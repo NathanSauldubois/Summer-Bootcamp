@@ -1,0 +1,2755 @@
+% markov_dp_metropolis_style.tex
+\documentclass[aspectratio=169]{beamer}
+
+% --- Language & encoding ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english,french]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+\usepackage{multicol}
+
+% --- Math & tables ---
+\usepackage{amsmath,amssymb,bm}
+\usepackage{mathtools}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{changepage}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning}
+% --- Metropolis Theme (same style as your attached slides) ---
+\usetheme[numbering=fraction,progressbar=frametitle]{metropolis}
+\setbeamertemplate{frame numbering}[fraction]
+
+% --- Colors (same palette as prior lectures) ---
+\definecolor{BootcampBlueDark}{HTML}{1A3C68}
+\definecolor{TextBlack}{HTML}{000000}
+\definecolor{AccentGold}{HTML}{DAA520}
+\definecolor{Crimson}{HTML}{990000}
+\definecolor{MatrixGreen}{HTML}{228B22}
+\definecolor{MatrixRed}{HTML}{B22222}
+
+\setbeamercolor{block title example}{bg=BootcampBlueDark!90!black,fg=white}
+\setbeamercolor{block body example}{bg=BootcampBlueDark!5!white,fg=black}
+
+% === Thick frame title band ===
+\setbeamercolor{frametitle}{bg=BootcampBlueDark,fg=white}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamertemplate{frametitle}{
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,ht=3.2ex,dp=1.4ex,leftskip=1em,rightskip=1em]{frametitle}
+    \usebeamerfont{frametitle}\insertframetitle
+  \end{beamercolorbox}
+}
+
+% === Custom Definition Block (same as attached file) ===
+\newenvironment{definitionblock}[1]{%
+  \par\vspace{0.4em}%
+  \begin{beamercolorbox}[
+      wd=\textwidth,
+      sep=0.4em,
+      leftskip=0.3em,
+      rightskip=0.6em,
+      rounded=false,
+      shadow=false
+    ]{block title example}%
+    \raisebox{0.15em}{\usebeamerfont{block title example}#1}%
+  \end{beamercolorbox}%
+  \vspace{-0.4em}%
+  \begin{beamercolorbox}[
+      wd=\textwidth,
+      sep=1em,
+      leftskip=0.6em,
+      rightskip=0.6em,
+      rounded=false,
+      shadow=false
+    ]{block body example}%
+    \usebeamerfont{block body example}%
+}{%
+  \end{beamercolorbox}%
+  \par\vspace{0.6em}%
+}
+
+% === Global text formatting ===
+\setbeamercolor{normal text}{fg=TextBlack,bg=white}
+\setbeamercolor{title}{fg=TextBlack}
+\setbeamercolor{structure}{fg=BootcampBlueDark}
+\setbeamercolor{progress bar}{fg=BootcampBlueDark,bg=gray!30}
+
+% --- Section & subsection transitions (plain) ---
+\metroset{
+  sectionpage=progressbar,
+  subsectionpage=progressbar
+}
+\AtBeginSection{
+  \frame[plain]{\sectionpage}
+}
+\AtBeginSubsection{
+  \frame[plain]{\subsectionpage}
+}
+
+% --- Deck info ---
+\title{Markov Chains and Dynamic Programming}
+\subtitle{Hands-on Tools for Finance and Sequential Decision Problems}
+\institute{NYU Tandon School, Finance and Risk Engineering}
+\author{Nathan Sauldubois}
+\date{\today}
+
+\begin{document}
+
+% =====================================================
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+  \tableofcontents[currentsection, hideothersubsections]
+\end{frame}
+
+% =====================================================
+\section{Motivation and Big Picture}
+
+\begin{frame}{Why Markov Chains and Dynamic Programming?}
+\begin{itemize}
+  \item A surprising number of interview puzzles are \textbf{Markovian} (``only the current state matters''). \pause
+  \item Finance \& operations are full of state-based dynamics: prices, credit ratings, queues, games.\pause
+  \item Dynamic Programming (DP) is \textbf{backward reasoning under uncertainty}: today’s choice affects tomorrow’s distribution.\pause
+\end{itemize}
+
+\medskip
+
+\textbf{Three recurring ideas:}
+\begin{itemize}
+  \item A \textbf{state} is a compact summary of the past.\pause
+  \item The \textbf{future depends only on the present state} (conditional on it).\pause
+  \item Optimal decisions satisfy a \textbf{recursion} (Bellman-type equation).
+\end{itemize}
+\end{frame}
+
+% =====================================================
+\section{Part I --- Markov Chains}
+
+\subsection{Definition and Intuition}
+
+\begin{frame}{What is a Markov Chain?}
+\begin{definitionblock}{Markov Property}
+A stochastic process $(X_n)_{n\ge 0}$ is a \textbf{Markov chain} if, for all states $i,j$,
+\[
+\mathbb{P}(X_{n+1}=j \mid X_n=i, X_{n-1},\dots,X_0)
+=
+\mathbb{P}(X_{n+1}=j \mid X_n=i).
+\]\pause
+\end{definitionblock}
+
+\begin{itemize}
+  \item The present state contains the relevant information.\pause
+  \item Given $X_n$, the past does not add predictive power for $X_{n+1}$.\pause
+\end{itemize}
+
+\medskip
+\textbf{Mental model:} track what matters, forget the rest.
+\end{frame}
+
+% =====================================================
+\begin{frame}{Example 1: Simple Random Walk (Markov)}
+
+Let $(X_n)_{n\ge0}$ be defined by
+\[
+X_{n+1} = X_n + \varepsilon_{n+1},
+\]
+where $(\varepsilon_n)$ are i.i.d.\pause with
+\[
+\mathbb{P}(\varepsilon_n=+1)=\mathbb{P}(\varepsilon_n=-1)=\tfrac12.
+\]\pause
+
+\begin{itemize}
+  \item States: integers $\mathbb{Z}$.\pause
+  \item Transition probabilities:
+  \[
+  \mathbb{P}(X_{n+1}=i\pm1 \mid X_n=i)=\tfrac12.
+  \]\pause
+  \item Given $X_n$, the future increment is independent of the past.\pause
+\end{itemize}
+
+\medskip
+\textbf{Conclusion:} $(X_n)$ is a Markov chain.
+\end{frame}
+
+% =====================================================
+\begin{frame}{Example 2: Credit Rating Model (Markov)}
+
+A firm’s credit rating evolves yearly among states:
+\[
+\{\text{AAA},\text{AA},\text{A},\text{BBB},\text{Default}\}.\pause
+\vspace{-5mm}
+\]
+\begin{itemize}
+  \item \pause Transition probabilities estimated from historical data.\pause
+  \item Default is an absorbing state.\pause
+  \item Next year’s rating depends only on the current rating.\pause
+\end{itemize}
+
+\medskip
+Formally:
+\[
+\mathbb{P}(X_{n+1}=j \mid X_n=i, X_{n-1},\dots)=P_{ij}.
+\vspace{-3mm}
+\]
+
+\textbf{Conclusion:} Credit rating dynamics are naturally modeled as a Markov chain.\pause
+
+\medskip
+\textbf{Finance insight:}
+\vspace{-3mm}
+\begin{itemize}
+  \item Used to price credit derivatives.\pause
+  \item Used to estimate default probabilities.
+\end{itemize}
+\end{frame}
+
+% =====================================================
+\begin{frame}{Counterexamples: When the Process is NOT Markov}
+
+Let
+\[
+X_n = \varepsilon_n + \varepsilon_{n-1},
+\]\pause
+where $(\varepsilon_n)$ are i.i.d.
+
+\begin{itemize}
+  \item Knowing $X_n$ alone is not enough.\pause
+  \item $X_{n+1}$ depends on $\varepsilon_n$, which is not determined by $X_n$.\pause
+\end{itemize}
+
+\medskip
+\textbf{Not Markov} (unless the state is enlarged).
+
+\end{frame}
+
+
+\begin{frame}{Transition Probabilities}
+\begin{definitionblock}{Transition Matrix}
+On a finite state space $\{1,\dots,N\}$, define
+\[
+P_{ij}=\mathbb{P}(X_{n+1}=j \mid X_n=i).\pause
+\]
+The matrix $P=(P_{ij})$ is called the \textbf{transition matrix}.\pause
+\end{definitionblock}
+
+\begin{itemize}
+  \item $P$ is \textbf{row-stochastic}:
+  \[
+  P_{ij}\ge 0, \qquad \sum_{j=1}^N P_{ij}=1 \ \ \text{for every } i.
+  \]\pause
+  \item Once $P$ is known, the full one-step dynamics are determined.
+\end{itemize}
+\end{frame}
+
+% =====================================================
+\begin{frame}{Transition Matrix: Simple Random Walk (Finite State)}
+
+To work with matrices, restrict the random walk to a finite state space:
+\[
+\{-1,0,1\},
+\vspace{-5mm}
+\]
+with reflecting boundaries.\pause
+\vspace{-2mm}
+
+\textbf{Dynamics:}
+\begin{itemize}
+  \item From state $0$: move to $-1$ or $1$ with probability $1/2$.\pause
+  \item From states $\pm1$: stay with prob.\ $1/2$, move to $0$ with prob.\ $1/2$.\pause
+  \vspace{-2mm}
+\end{itemize}
+
+\textbf{Transition matrix} (states ordered as $-1,0,1$):
+\[
+P=
+\begin{pmatrix}
+\frac12 & \frac12 & 0\\[4pt]
+\frac12 & 0 & \frac12\\[4pt]
+0 & \frac12 & \frac12
+\end{pmatrix}.
+\vspace{-8mm}
+\]\pause
+
+\medskip
+\textbf{Interpretation:}
+\begin{itemize}
+  \item Each row corresponds to the current state.\pause
+  \item Each row sums to $1$.
+\end{itemize}
+\end{frame}
+
+% =====================================================
+\begin{frame}{Transition Matrix: Credit Rating Example}
+
+States:
+$
+\{\text{AAA},\text{AA},\text{A},\text{BBB},\text{D}\},
+$
+where $\text{D}$ = Default (absorbing).\pause
+
+A stylized transition matrix:
+\[
+P=
+\begin{pmatrix}
+0.90 & 0.08 & 0.01 & 0.00 & 0.01\\
+0.02 & 0.90 & 0.06 & 0.01 & 0.01\\
+0.01 & 0.05 & 0.88 & 0.04 & 0.02\\
+0.00 & 0.02 & 0.06 & 0.87 & 0.05\\
+0.00 & 0.00 & 0.00 & 0.00 & 1
+\end{pmatrix}.
+\vspace{-5mm}
+\]\pause
+
+\begin{itemize}
+  \item Rows = current rating.\pause
+  \item Columns = next-year rating.\pause
+  \item Default is absorbing: $P_{DD}=1$.\pause
+  \vspace{-3mm}
+\end{itemize}
+
+\medskip
+\textbf{Finance insight:}
+\begin{itemize}
+  \item $P$ summarizes migration and default risk.\pause
+  \item Input for pricing bonds and CDS.
+\end{itemize}
+\end{frame}
+
+% =====================================================
+\begin{frame}{Multi-Step Transitions via Matrix Powers}
+
+Let $P$ be the transition matrix of a Markov chain.\pause
+
+\medskip
+
+\begin{definitionblock}{$n$-step transition probabilities}
+\[
+P^{(n)}_{ij}
+=
+\mathbb{P}(X_{n}=j \mid X_0=i),
+\qquad
+P^{(n)} = P^n.
+\vspace{-5mm}
+\]\pause
+\vspace{-3mm}
+\end{definitionblock}
+\vspace{-3mm}
+
+\textbf{Examples:}
+\begin{itemize}
+  \item Credit model:
+  \[
+  (P^3)_{\text{A},\text{D}}
+  =
+  \mathbb{P}(\text{default within 3 years} \mid \text{rating A today}).
+  \pause  \vspace{-5mm} \]
+  \item Random walk:
+  \[
+  P^2 \Rightarrow \text{distribution after two steps}.\pause
+  \vspace{-5mm}
+  \]
+\end{itemize}
+
+\medskip
+\textbf{Key takeaway:}
+\begin{quote}
+Markov chains turn probability problems into linear algebra.
+\end{quote}
+\end{frame}
+
+
+% =====================================================
+\begin{frame}{Accessibility and Communication}
+
+\begin{definitionblock}{Accessibility}
+A state $j$ is \textbf{accessible} from state $i$ if
+\vspace{-5mm}
+\[
+\exists n \ge 1 \quad \text{such that} \quad (P^n)_{ij} > 0.\pause
+\vspace{-5mm}
+\]
+We write $i \to j$.
+\vspace{-2mm}
+\end{definitionblock}
+
+
+\begin{definitionblock}{Communication}
+Two states $i$ and $j$ \textbf{communicate} if
+\vspace{-5mm}
+\[
+i \to j \quad \text{and} \quad j \to i.\pause
+\vspace{-5mm}
+\]
+\end{definitionblock}
+
+\medskip
+\textbf{Interpretation:}
+\begin{itemize}
+  \item Accessibility = reachability in the transition graph.\pause
+  \item Communication = same strongly connected component.
+\end{itemize}
+\end{frame}
+
+% =====================================================
+\begin{frame}{Periodicity}
+
+\begin{definitionblock}{Return times and period}
+For a state $i$, define the set of \emph{return times}
+\vspace{-3mm}
+\[
+\mathcal{T}(i)=\{n\ge 1:\ (P^n)_{ii}>0\}.
+\vspace{-5mm}
+\]
+If $\mathcal{T}(i)\neq\emptyset$, the \textbf{period} of $i$ is
+\[
+d(i)=\gcd\,\mathcal{T}(i).
+\vspace{-5mm}
+\]
+\vspace{-5mm}
+\end{definitionblock}\pause
+\vspace{-5mm}
+\begin{itemize}
+  \item $d(i)=1$ $\Rightarrow$ state $i$ is \textbf{aperiodic}. \pause
+  \item $d(i)=d>1$ $\Rightarrow$ returns to $i$ can only happen at multiples of $d$ (``cycle'').\pause
+  \item \textbf{Key fact:} if $i$ and $j$ communicate, then $d(i)=d(j)$ (period is a \emph{class property}).\pause
+  \vspace{-3mm}
+\end{itemize}
+
+\medskip
+\textbf{Graph intuition:}
+\begin{itemize}
+  \item A directed cycle of length $d$ typically induces period $d$.
+  \item Adding a self-loop (or two cycles with coprime lengths) often makes the class aperiodic.
+\end{itemize}
+
+\end{frame}
+
+% =====================================================
+\begin{frame}{Accessibility and Communication: Examples}
+
+\textbf{Example 1: Simple Random Walk on $\mathbb{Z}$}
+
+\begin{itemize}
+  \item From any state $i$, we can reach any other state $j$ in a finite number of steps.\pause
+  \item Hence, for all $i,j$:
+  \vspace{-5mm}
+  \[
+  i \to j \quad \text{and} \quad j \to i.\pause
+  \vspace{-6mm}
+  \]
+\end{itemize}
+
+\medskip
+\textbf{Conclusion:}
+\vspace{-2mm}
+\begin{itemize}
+  \item All states communicate.\pause
+  \item The random walk is \textbf{irreducible}.
+\end{itemize}
+
+\medskip
+\hrule
+
+\textbf{Example 2: Credit Rating Model}
+
+\begin{itemize}
+  \item From rating $\text{A}$, default $\text{D}$ is accessible:
+  $
+  \text{A} \to \text{D}.\pause
+  $
+  \item But once in default:
+  $
+  \text{D} \not\to \text{A}.\pause
+  $
+  \vspace{-3mm}
+\end{itemize}
+
+\medskip
+\textbf{Conclusion:}
+\vspace{-2mm}
+\begin{itemize}
+  \item Ratings communicate among themselves (before default).\pause
+  \item Default forms a separate communication class.
+\end{itemize}
+
+\end{frame}
+
+
+
+
+% =====================================================
+\begin{frame}{Communication Classes and Irreducibility}
+
+\begin{definitionblock}{Communication Class}
+A \textbf{communication class} is a maximal set of states that
+all communicate with each other. \pause
+\end{definitionblock}
+
+\begin{definitionblock}{Irreducible Markov Chain}
+A Markov chain is \textbf{irreducible} if it has a single
+communication class, i.e.\pause
+\vspace{-5mm}
+\[
+\forall i,j,\quad i \to j.
+\vspace{-5mm}\pause
+\]
+\end{definitionblock}
+
+\textbf{Examples:}
+\begin{itemize}
+  \item Simple random walk on $\mathbb{Z}$: irreducible.\pause
+  \item Credit ratings with default: not irreducible.
+\end{itemize}
+\end{frame}
+
+
+% =====================================================
+\begin{frame}{Absorbing States}
+
+\begin{definitionblock}{Absorbing State}
+A state $i$ is \textbf{absorbing} if
+\[
+P_{ii} = 1.\pause
+\]
+\end{definitionblock}
+
+\medskip
+
+\begin{itemize}
+  \item Once entered, the chain stays there forever.\pause
+  \item The state has no outgoing transitions.\pause
+\end{itemize}
+
+\medskip
+\textbf{Examples:}
+\begin{itemize}
+  \item Default in credit rating models.\pause
+  \item Ruin in gambler’s ruin.\pause
+\end{itemize}
+
+\medskip
+\textbf{Finance insight:}
+Absorbing states model irreversible events.\pause
+\end{frame}
+
+
+% =====================================================
+\begin{frame}{Transient and Recurrent States}
+
+\begin{definitionblock}{Recurrent State}
+A state $i$ is \textbf{recurrent} if, starting from $i$,
+the chain returns to $i$ with probability $1$.\pause
+\end{definitionblock}
+
+\medskip
+
+\begin{definitionblock}{Transient State}
+A state $i$ is \textbf{transient} if the probability of ever returning to $i$
+is strictly less than $1$.\pause
+\end{definitionblock}
+
+\medskip
+\textbf{Interpretation:}
+\begin{itemize}
+  \item Recurrent = visited infinitely often.\pause
+  \item Transient = eventually left forever.\pause
+\end{itemize}
+\end{frame}
+
+
+% =====================================================
+\begin{frame}{Stationary Distribution}
+
+\begin{definitionblock}{Stationary Distribution}
+A probability vector $\pi$ is \textbf{stationary} if
+\[
+\pi = \pi P.
+\]\pause
+\end{definitionblock}
+
+\medskip
+
+\begin{itemize}
+  \item If $X_0 \sim \pi$, then $X_n \sim \pi$ for all $n$.\pause
+  \item Represents long-run equilibrium behavior.\pause
+\end{itemize}
+
+\medskip
+\textbf{Finance interpretation:}
+\begin{itemize}
+  \item Long-term credit rating proportions.\pause
+  \item Baseline regime probabilities.
+\end{itemize}
+\end{frame}
+
+% =====================================================
+\begin{frame}{Example 1: Two-State Market Regime}
+
+Consider a market with two regimes:
+$
+\{\text{Bull},\text{Bear}\}.\pause
+$
+\textbf{Transition graph:}
+\begin{center}
+\begin{tikzpicture}[
+  >=Latex,
+  node distance=4.2cm,
+  every node/.style={font=\small},
+  state/.style={draw, rounded corners=2mm, minimum width=2.2cm, minimum height=1.0cm, align=center},
+  lab/.style={midway, fill=white, inner sep=1.5pt}
+]
+  \node[state] (BULL) {Bull};
+  \node[state, right=of BULL] (BEAR) {Bear};
+
+  % self-loops
+  \draw[->, thick] (BULL) edge[loop above] node[lab] {$0.9$} (BULL);
+  \draw[->, thick] (BEAR) edge[loop above] node[lab] {$0.7$} (BEAR);
+
+  % cross transitions (bend to separate arrows)
+  \draw[->, thick] (BULL) edge[bend left=18] node[lab] {$0.1$} (BEAR);
+  \draw[->, thick] (BEAR) edge[bend left=18] node[lab] {$0.3$} (BULL);
+\end{tikzpicture}
+\end{center}
+
+Transition matrix:
+\vspace{-5mm}
+\[
+P=
+\begin{pmatrix}
+0.9 & 0.1\\
+0.3 & 0.7
+\end{pmatrix}.\pause
+\vspace{-5mm}
+\]
+
+\begin{itemize}
+  \item Bull markets tend to persist.\pause
+  \item Bear markets revert more quickly.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Example 1: Two-State Market Regime}
+
+\textbf{Stationary distribution:}
+
+Let $\pi=(\pi_B,\pi_R)$ with $\pi=\pi P$.\pause
+ Solving:
+\[
+\begin{cases}
+\pi_B = 0.9\pi_B + 0.3\pi_R\\
+\pi_B+\pi_R=1
+\end{cases}
+\quad \Rightarrow \quad
+\pi=(0.75,0.25).\pause
+\vspace{-5mm}
+\]
+
+\medskip
+\textbf{Interpretation:}
+\begin{itemize}
+  \item Long-run: 75\% Bull, 25\% Bear.
+\end{itemize}
+
+\end{frame}
+
+
+% =====================================================
+\begin{frame}{Example 2: Absorbing State (Default)}
+
+States:
+$
+\{\text{Healthy},\text{Distressed},\text{Default}\}.\pause
+$
+
+Transition matrix:
+\[
+P=
+\begin{pmatrix}
+0.8 & 0.15 & 0.05\\
+0.0 & 0.7 & 0.3\\
+0.0 & 0.0 & 1
+\end{pmatrix}.
+\vspace{-5mm}\pause
+\]
+
+\begin{itemize}
+  \item Default is absorbing.\pause
+  \item All other states eventually lead to Default.\pause
+\end{itemize}
+
+\medskip
+\textbf{Stationary distribution:}
+\[
+\pi=(0,0,1).\pause
+\vspace{-5mm}
+\]
+
+
+\textbf{Key lesson:}
+\begin{itemize}
+  \item Stationary does not mean “balanced”.\pause
+  \item It reflects the \emph{long-run fate} of the system.
+\end{itemize}
+
+\end{frame}
+
+
+% =====================================================
+\begin{frame}{Example 3: Symmetric Chain and Uniform Stationarity}
+
+States:
+$
+\{1,2,3\}.
+$\pause
+
+Transition matrix:
+\[
+P=
+\begin{pmatrix}
+0 & \tfrac12 & \tfrac12\\
+\tfrac12 & 0 & \tfrac12\\
+\tfrac12 & \tfrac12 & 0
+\end{pmatrix}.\pause
+\]
+
+\begin{itemize}
+  \item From each state, move uniformly to the others.\pause
+  \item Completely symmetric dynamics.
+\end{itemize}
+
+\textbf{Stationary distribution:}
+\[
+\pi=\left(\tfrac13,\tfrac13,\tfrac13\right).\pause
+\]
+\textbf{Key insight:}
+\begin{quote}
+Symmetry in transitions $\Rightarrow$ uniform equilibrium.\pause
+\end{quote}
+
+\end{frame}
+
+
+% =====================================================
+\begin{frame}{Example 4: Stationary vs Finite-Time Distribution}
+
+Consider the two-state chain:
+\[
+P=
+\begin{pmatrix}
+0.6 & 0.4\\
+0.2 & 0.8
+\end{pmatrix},
+\qquad
+\pi=(\tfrac13,\tfrac23).\pause
+\]
+
+\begin{itemize}
+  \item $\pi$ is stationary: $\pi=\pi P$.\pause
+  \item But if $X_0=(1,0)$, then $X_1 \neq \pi$.\pause
+\end{itemize}
+
+\medskip
+\textbf{Key message:}
+\begin{itemize}
+  \item Stationarity is about \emph{invariance}, not initial conditions.\pause
+  \item Convergence to $\pi$ requires additional assumptions.\pause
+\end{itemize}
+
+\medskip
+\textbf{Next question:}
+\begin{quote}
+When do we actually converge to $\pi$?
+\end{quote}
+
+\end{frame}
+
+
+
+
+
+% =====================================================
+\begin{frame}{Why These Definitions Matter}
+
+\begin{itemize}
+  \item Structure (classes, absorbing states) determines long-term outcomes.\pause
+  \item Stationary distributions describe equilibrium behavior.\pause
+  \item Transition matrices allow dynamic optimization.\pause
+\end{itemize}
+
+\medskip
+\textbf{Key message:}
+\begin{quote}
+Markov chains describe dynamics —  
+Dynamic Programming decides what to do.\pause
+\end{quote}
+
+\medskip
+\textbf{Next section:}
+\begin{itemize}
+  \item Markov Decision Processes\pause
+  \item Bellman equations\pause
+  \item Optimal policies
+\end{itemize}
+\end{frame}
+
+
+
+
+% =====================================================
+\subsection{First Concrete Examples}
+
+% =====================================================
+\begin{frame}{Example 1: Frog on Lily Pads}
+
+A frog jumps between three lily pads arranged in a line:
+$
+\{1,2,3\}.\pause
+$
+
+\begin{itemize}
+  \item From pad 2: jumps left or right with prob.\ $1/2$.\pause
+  \item From pad 1: jumps to 2 with prob.\ $1$.\pause
+  \item From pad 3: jumps to 2 with prob.\ $1$.\pause
+\end{itemize}
+
+\medskip
+\textbf{Transition graph:}
+
+\begin{center}
+\begin{tikzpicture}[>=stealth, node distance=3.0cm]
+  \tikzstyle{state}=[circle, draw, thick, minimum size=10mm, inner sep=0pt]
+
+  \node[state] (1) {$1$};
+  \node[state] (2) [right of=1] {$2$};
+  \node[state] (3) [right of=2] {$3$};
+
+  % arrows
+  \draw[->, thick] (1) -- node[above] {\small $1$} (2);
+  \draw[->, thick, bend left=18] (2) to node[above] {\small $1/2$} (3);
+  \draw[->, thick, bend right=18] (2) to node[above] {\small $1/2$} (1);
+  \draw[->, thick] (3) -- node[above] {\small $1$} (2);
+\end{tikzpicture}
+\end{center}
+
+\medskip
+\textbf{State space:} finite, $\{1,2,3\}$.\pause
+
+\medskip
+\textbf{Question:}
+Where is the frog in the long run?
+
+\end{frame}
+
+
+% =====================================================
+\begin{frame}{Frog Example: Transition Matrix and States}
+
+Ordering states as $(1,2,3)$, the transition matrix is
+\[
+P=
+\begin{pmatrix}
+0 & 1 & 0\\
+\frac12 & 0 & \frac12\\
+0 & 1 & 0
+\end{pmatrix}.\pause
+\]
+
+\begin{itemize}
+  \item All states communicate.\pause
+  \item The chain is irreducible.\pause
+  \item Periodicity: states have period $2$.\pause
+\end{itemize}
+
+\medskip
+\textbf{Interpretation:}
+\begin{itemize}
+  \item The frog alternates between the center and the sides.\pause
+  \item Oscillatory behavior is expected.\pause
+\end{itemize}
+
+\end{frame}
+
+% =====================================================
+\begin{frame}{Frog Example: Stationary Distribution and Iterations}
+
+Let $\pi=(\pi_1,\pi_2,\pi_3)$.
+Solving $\pi=\pi P$ with $\sum \pi_i=1$ gives
+\[
+\pi=\left(\tfrac14,\tfrac12,\tfrac14\right).\pause
+\]
+
+\medskip
+\textbf{Meaning:}
+\begin{itemize}
+  \item Frog spends half its time on the middle pad.\pause
+\end{itemize}
+
+\medskip
+\textbf{However:}
+\begin{itemize}
+  \item Because of periodicity, $P^n$ does not converge.\pause
+  \item But time averages converge to $\pi$.\pause
+\end{itemize}
+
+\medskip
+\textbf{Key lesson:}
+\begin{quote}
+Stationary does not always mean convergence in distribution.\pause
+\end{quote}
+
+\end{frame}
+
+% =====================================================
+\begin{frame}{Example 2: Simple Weather Model}
+
+Each day is either:
+\[
+\{\text{Sunny}, \text{Rainy}\}.\pause
+\]
+
+Transition probabilities:
+\[
+\mathbb{P}(S\to S)=0.8,
+\qquad
+\mathbb{P}(R\to R)=0.6.\pause
+\]
+
+\medskip
+Equivalently:
+\[
+P=
+\begin{pmatrix}
+0.8 & 0.2\\
+0.4 & 0.6
+\end{pmatrix}.\pause
+\]
+
+\begin{itemize}
+  \item Weather is persistent but noisy.\pause
+  \item Memoryless assumption: only yesterday matters.
+\end{itemize}
+
+\end{frame}
+
+
+% =====================================================
+\begin{frame}{Weather Example: Long-Run Behavior}
+
+Let $\pi=(\pi_S,\pi_R)$ be stationary:
+\[
+\pi=\pi P
+\quad \Rightarrow \quad
+\pi=(\tfrac23,\tfrac13).\pause
+\]
+
+\medskip
+\textbf{Interpretation:}
+\begin{itemize}
+  \item Long run: 2 days sunny, 1 day rainy.\pause
+\end{itemize}
+
+\medskip
+\textbf{Dynamics:}
+\begin{itemize}
+  \item Chain is irreducible.\pause
+  \item Aperiodic (self-loops).\pause
+  \item $P^n \to \mathbf{1}\pi$.\pause
+\end{itemize}
+
+\medskip
+\textbf{Conclusion:}
+\begin{quote}
+Distribution converges to $\pi$ regardless of initial weather.
+\end{quote}
+
+\end{frame}
+
+% =====================================================
+\begin{frame}{Comparing the Two Examples}
+
+\begin{center}
+\begin{tabular}{lcc}
+\textbf{Property} & \textbf{Frog} & \textbf{Weather} \\
+\hline
+Finite state & \checkmark & \checkmark \\
+Irreducible & \checkmark & \checkmark \\
+Aperiodic & \texttimes & \checkmark \\
+Stationary $\pi$ & \checkmark & \checkmark \\
+Convergence of $P^n$ & \texttimes & \checkmark \\
+\end{tabular}\pause
+\end{center}
+
+\medskip
+\textbf{Big picture:}
+\begin{itemize}
+  \item Same theory.\pause
+  \item Very different long-run behaviors.\pause
+\end{itemize}
+
+\medskip
+\textbf{Moral:}
+\begin{quote}
+Structure of the chain determines convergence.\pause
+\end{quote}
+
+\end{frame}
+
+
+% =====================================================
+\subsection{Hitting Times and Absorption}
+
+\begin{frame}{Hitting Times}
+\begin{definitionblock}{Hitting Time}
+For a set of states $A$, define
+\[
+\tau_A=\inf\{n\ge 0:\ X_n\in A\}.\pause
+\]
+\end{definitionblock}
+
+\begin{itemize}
+  \item $\tau_A$ measures \textbf{time to reach} the target set $A$.\pause
+  \item Expectations such as $\mathbb{E}_i[\tau_A]$ often satisfy \textbf{linear equations}.\pause
+\end{itemize}
+
+\medskip
+
+\textbf{Template:} condition on the first step, and solve the resulting system.
+\end{frame}
+
+% =====================================================
+\begin{frame}{Example: Expected Hitting Time on a 3-State Chain}
+
+Consider the Markov chain on states $\{0,1,2\}$ with transition matrix
+\[
+P=
+\begin{pmatrix}
+1 & 0 & 0\\
+\frac12 & 0 & \frac12\\
+0 & 1 & 0
+\end{pmatrix}.
+\vspace{-5mm}\pause
+\]
+So:
+\begin{itemize}
+  \item $0$ is absorbing,
+  \item from $1$: go to $0$ w.p. $1/2$ or to $2$ w.p. $1/2$,\pause
+  \item from $2$: go to $1$ w.p. $1$.\pause
+\end{itemize}
+
+\medskip
+Let $A=\{0\}$ and define $\tau=\tau_{\{0\}}$.\pause
+Set
+$
+m_i=\mathbb{E}_i[\tau],\qquad i\in\{0,1,2\}.\pause
+$
+
+\textbf{Boundary:} $m_0=0$.
+
+\medskip
+\textbf{First-step equations:}
+\[
+m_1 = 1+\tfrac12 m_0+\tfrac12 m_2
+\qquad\text{and}\qquad
+m_2 = 1+m_1.\pause
+\]
+
+\end{frame}
+
+% =====================================================
+\begin{frame}{Solving the Hitting-Time System (Closed Form)}
+
+We have
+\[
+m_1 = 1+\tfrac12 m_2,
+\qquad
+m_2 = 1+m_1.\pause
+\]
+Substitute $m_2=1+m_1$ into the first equation:
+\[
+m_1 = 1+\tfrac12(1+m_1)=1+\tfrac12+\tfrac12 m_1
+\quad\Longrightarrow\quad
+\tfrac12 m_1=\tfrac32
+\quad\Longrightarrow\quad
+m_1=3.\pause
+\]
+Then
+\[
+m_2=1+m_1=4.\pause
+\]
+
+\medskip
+\textbf{Conclusion:}
+\[
+\boxed{\mathbb{E}_1[\tau_{\{0\}}]=3,\qquad \mathbb{E}_2[\tau_{\{0\}}]=4.}\pause
+\vspace{-5mm}
+\]
+
+\medskip
+\textbf{Interpretation:}
+Starting from $2$ you must go to $1$ first, so it takes exactly one extra step on average.
+
+\end{frame}
+
+% =====================================================
+\begin{frame}{General Method (What to Remember)}
+
+For any target set $A$:
+\[
+m_i=\mathbb{E}_i[\tau_A].\pause
+\]
+
+\medskip
+\textbf{Boundary conditions:}
+\[
+m_i=0 \quad \text{for all } i\in A.\pause
+\]
+
+\medskip
+\textbf{First-step recursion:} for $i\notin A$,
+\[
+m_i
+=
+1+\sum_{j} P_{ij}\,m_j.\pause
+\]
+
+\medskip
+\textbf{Key takeaway:}
+\begin{quote}
+Expected hitting times solve a linear system: $(I-P_{A^c})m=\mathbf{1}$.\pause
+\end{quote}
+
+\end{frame}
+
+\subsection{Gambler's Ruin (Step-by-Step)}
+
+% =====================================================
+\begin{frame}{Gambler's Ruin: Setup and Objectives}
+
+\textbf{State space:} $\{0,1,\dots,N\}$, where $X_n$ is the gambler's wealth after $n$ rounds.
+\pause
+\medskip
+\textbf{Dynamics:} for $i\in\{1,\dots,N-1\}$,
+\[
+X_{n+1}=
+\begin{cases}
+i+1 & \text{with prob. } p,\\
+i-1 & \text{with prob. } q:=1-p.
+\end{cases}\pause
+\]
+\[
+P_{i,i+1}=p,\qquad P_{i,i-1}=q.
+\vspace{-2mm}\pause
+\]
+
+\textbf{Absorbing boundaries:}
+$
+0 \text{ (ruin) and } N \text{ (target)},\qquad P_{0,0}=1,\ P_{N,N}=1.\pause
+$
+
+\textbf{Hitting time:}
+$
+\tau=\tau_{\{0,N\}}=\inf\{n\ge 0:\ X_n\in\{0,N\}\}.\pause
+$
+
+\medskip
+\textbf{Key questions (starting from $X_0=i$)}
+\begin{itemize}
+  \item \textbf{Ruin probability}:
+  $
+  u_i:=\mathbb{P}_i(\text{hit }0\text{ before }N).\pause
+  $
+  \item \textbf{Expected duration}:
+  $
+  m_i:=\mathbb{E}_i[\tau].
+  $
+\end{itemize}
+ \end{frame}
+
+% =====================================================
+\begin{frame}{Step 1: Ruin Probability as a Linear Recurrence}
+
+Define
+\[
+u_i=\mathbb{P}_i(\tau_0<\tau_N),
+\qquad i=0,1,\dots,N.\pause
+\]
+\textbf{Boundary conditions:}
+\[
+u_0=1,\qquad u_N=0.\pause
+\]
+
+\medskip
+\textbf{First-step decomposition (conditioning on $X_1$):}
+from state $i\in\{1,\dots,N-1\}$,
+\[
+u_i
+= \mathbb{P}_i(\tau_0<\tau_N)
+= p\,\mathbb{P}_{i+1}(\tau_0<\tau_N)+q\,\mathbb{P}_{i-1}(\tau_0<\tau_N).\pause
+\]
+So the recurrence is
+\[
+\boxed{u_i = p\,u_{i+1}+q\,u_{i-1}\qquad (1\le i\le N-1),}
+\]
+with $u_0=1,\ u_N=0$.\pause
+
+\medskip
+\textbf{Key idea:} a hitting probability solves a \emph{harmonic} equation on the interior states.
+
+\end{frame}
+
+% =====================================================
+\begin{frame}{Step 2: Solve the Ruin Probability (Case $p\neq \tfrac12$)}
+
+Assume $p\neq q$ and set $r:=\frac{q}{p}$.\pause
+
+Try a solution of the form $u_i=A+B\,r^i$ (standard for 2nd-order linear recurrences).\pause
+Impose the boundary conditions:
+\[
+u_0= A+B=1,
+\qquad
+u_N= A+B\,r^N=0.
+\]
+Solving:
+$
+B=\frac{1}{1-r^N},
+\qquad
+A=1-B=\frac{-r^N}{1-r^N}.
+$
+\pause
+\textbf{Closed form:}
+\[
+\boxed{
+u_i
+=
+\frac{r^i-r^N}{1-r^N}
+=
+\frac{\left(\frac{q}{p}\right)^i-\left(\frac{q}{p}\right)^N}{1-\left(\frac{q}{p}\right)^N}.
+}
+\vspace{-7mm}
+\]
+\pause
+\textbf{Sanity checks:}
+\begin{itemize}
+  \item $u_0=1$ and $u_N=0$.
+  \item If $p>q$ (upward drift), then $r<1$ and $u_i$ decreases with $i$ (more wealth $\Rightarrow$ less ruin).
+\end{itemize}
+
+\end{frame}
+
+% =====================================================
+\begin{frame}{Step 2b: Solve the Ruin Probability (Fair Case $p=\tfrac12$)}
+
+If $p=q=\tfrac12$, the recurrence becomes
+\[
+u_i=\tfrac12 u_{i+1}+\tfrac12 u_{i-1}
+\quad\Longleftrightarrow\quad
+u_{i+1}-u_i = u_i-u_{i-1}.\pause
+\]
+So the increments are constant:
+\[
+u_{i+1}-u_i = c \quad\Rightarrow\quad u_i = a+ci.\pause
+\]
+Use $u_0=1$ and $u_N=0$:
+\[
+u_0=1 \Rightarrow a=1,
+\qquad
+u_N=0 \Rightarrow 1+cN=0 \Rightarrow c=-\frac{1}{N}.\pause
+\]
+
+\medskip
+\textbf{Closed form:}
+\[
+\boxed{
+u_i=1-\frac{i}{N}=\frac{N-i}{N}.\pause
+}
+\]
+
+\medskip
+\textbf{Interpretation:} with no drift, ruin probability is linear in initial wealth.
+
+\end{frame}
+
+% =====================================================
+\begin{frame}{Step 3: Expected Duration as a Linear Recurrence}
+
+Define
+\[
+m_i=\mathbb{E}_i[\tau],\qquad i=0,1,\dots,N.\pause
+\]
+\textbf{Boundary conditions:}
+\[
+m_0=0,\qquad m_N=0.\pause
+\]
+
+\medskip
+\textbf{First-step decomposition:} for $1\le i\le N-1$,
+\[
+m_i=\mathbb{E}_i[\tau]
+=
+1+\mathbb{E}_i[\tau-1]
+=
+1+p\,\mathbb{E}_{i+1}[\tau]+q\,\mathbb{E}_{i-1}[\tau].\pause
+\]
+So
+\[
+\boxed{
+m_i = 1+p\,m_{i+1}+q\,m_{i-1}
+\qquad (1\le i\le N-1),\pause
+}
+\]
+with $m_0=m_N=0$.
+\pause
+\medskip
+\textbf{Key idea:} expected hitting times solve a \emph{Poisson} equation (harmonic + constant source term).
+
+\end{frame}
+
+% =====================================================
+\begin{frame}{Step 4: Expected Duration (Fair Case $p=\tfrac12$)}
+
+Assume $p=q=\tfrac12$. The recurrence becomes
+\[
+m_i = 1+\tfrac12 m_{i+1}+\tfrac12 m_{i-1}
+\quad\Longleftrightarrow\quad
+m_{i+1}-2m_i+m_{i-1}=-2.\pause
+\vspace{-5mm}
+\]
+
+A standard guess is a quadratic: $m_i=ai^2+bi+c$.
+Compute the discrete second difference:
+\[
+m_{i+1}-2m_i+m_{i-1} = 2a.\pause
+\]
+So $2a=-2 \Rightarrow a=-1$ and
+$
+m_i = -i^2+bi+c.\pause
+$
+Use $m_0=0 \Rightarrow c=0$ and $m_N=0 \Rightarrow -N^2+bN=0 \Rightarrow b=N$.
+
+\medskip
+\textbf{Closed form:}
+\[
+\boxed{
+m_i = i(N-i).
+}
+\vspace{-9mm}\pause
+\]
+
+\textbf{Interpretation:}
+\begin{itemize}
+  \item Longest expected game occurs near the middle $i\approx N/2$.\pause
+  \item Duration scales like $O(N^2)$.
+\end{itemize}
+
+\end{frame}
+
+% =====================================================
+\begin{frame}{Step 4b: Expected Duration (General Case $p\neq \tfrac12$)}
+
+Let $p\neq q$ and set $r=\frac{q}{p}$.\pause
+\medskip
+A known closed form (solving the linear recurrence) is:
+\[
+\boxed{
+m_i
+=
+\frac{i}{q-p}
+-
+\frac{N}{q-p}\,
+\frac{1-r^i}{1-r^N}
+\qquad (p\neq q).
+}
+\vspace{-5mm}\pause
+\]
+
+\medskip
+\textbf{Quick checks:}
+\begin{itemize}
+  \item $m_0=0$ since $1-r^0=0$.\pause
+  \item $m_N=0$ since $1-r^N$ cancels.\pause
+  \item If $p>q$ (drift upward), the expected time to absorption is typically smaller than in the fair case.\pause
+\end{itemize}
+
+\medskip
+\textbf{Pedagogical note:}
+In class, it’s common to \emph{derive} the fair case and \emph{state} this formula (derivation is algebra-heavy but uses the same method: homogeneous + particular solution).
+
+\end{frame}
+
+% =====================================================
+\begin{frame}{Mini Finance Intuition (Optional Slide)}
+
+\textbf{Credit barrier / default barrier.}
+Think of $X_n$ as a firm's “distance-to-default” on a grid:
+\[
+0=\text{default},\qquad N=\text{safe zone}.\pause
+\]
+Each period, news moves the firm up or down:
+\[
++1 \text{ with prob. } p,\qquad -1 \text{ with prob. } q.\pause
+\]
+
+\textbf{Quantities of interest:}
+\begin{itemize}
+  \item $u_i$ = probability of default before recovery.\pause
+  \item $m_i$ = expected time until default or recovery (risk horizon).\pause
+\end{itemize}
+
+\medskip
+\textbf{Why it matters:}
+\begin{itemize}
+  \item $u_i$ informs \emph{default likelihood} / risk limits.\pause
+  \item $m_i$ informs \emph{time scale} of risk (stress testing, liquidity planning).
+\end{itemize}
+
+\end{frame}
+
+% =====================================================
+\section{Part II --- Dynamic Programming}
+
+\subsection{Philosophy}
+
+\begin{frame}{Dynamic Programming: The Big Idea}
+\begin{itemize}
+  \item Replace a hard, multi-step problem by a sequence of easier problems.\pause
+  \item Work \textbf{backward}: end-of-horizon values $\rightarrow$ earlier decisions.\pause
+  \item Optimal choices satisfy a \textbf{recursion} (Bellman equation).\pause
+\end{itemize}
+
+\medskip
+
+\textbf{Bellman principle (informal):}
+\begin{quote}
+If a strategy is optimal from time $0$, then after any history, the remaining decisions must still be optimal for the remaining problem.
+\end{quote}
+\end{frame}
+
+% =====================================================
+\begin{frame}{Bellman Principle with Uncertainty}
+
+\textbf{Problem.}
+You have one step left and can choose: \pause
+\begin{itemize}
+  \item \textbf{Action A:} gain \$1 for sure.\pause
+  \item \textbf{Action B:} gain \$3 with prob.\ $1/2$, \$0 otherwise.\pause
+\end{itemize}
+
+\medskip
+\textbf{Value function:}
+\[
+V = \max \left\{
+1,\;
+\mathbb{E}[B]
+\right\}
+=
+\max\left\{1,\; \tfrac12\cdot3\right\}
+=1.5\pause
+\]
+
+\medskip
+\textbf{Bellman equation (stochastic):}
+\[
+V(x) = \max_a \left\{ r(x,a) + \mathbb{E}[V(X')\mid x,a] \right\}\pause
+\vspace{-3mm}
+\]
+\textbf{Key message:}
+\begin{itemize}
+  \item Future value is replaced by its \textbf{conditional expectation}.\pause
+  \item This connects DPP and Markov chains.
+\end{itemize}
+
+\end{frame}
+
+% =====================================================
+\begin{frame}{Dynamic Programming: Mental Model}
+
+\begin{itemize}
+  \item State = all relevant information \textbf{now}\pause
+  \item Action = decision taken now\pause
+  \item Transition = how the state evolves\pause
+  \item Value = best achievable future reward\pause
+\end{itemize}
+
+\medskip
+\textbf{Core recursion:}
+\[
+V(\text{state})
+=
+\max_{\text{action}}
+\Big\{
+\text{reward}
++
+\mathbb{E}[V(\text{next state})]
+\Big\}
+\vspace{-5mm}\pause
+\]
+
+\medskip
+\textbf{Why it works:}
+\begin{itemize}
+  \item Markov property: the future depends only on the current state\pause
+  \item Bellman principle: optimal decisions remain optimal over time\pause
+\end{itemize}
+
+\medskip
+\textbf{Bridge:}
+\begin{quote}
+Markov chains describe \emph{dynamics} —  
+Dynamic Programming optimizes \emph{decisions}.
+\end{quote}
+
+\end{frame}
+
+% =====================================================
+\begin{frame}{Dynamic Programming in Programming Practice}
+
+\textbf{Key idea:}
+\begin{itemize}
+  \item Solve a problem by storing solutions to subproblems.\pause
+  \item Avoid recomputation by reusing previously computed values.\pause
+\end{itemize}
+
+\medskip
+\textbf{Two main implementation styles:}
+
+
+\begin{enumerate}
+  \item \textbf{Top-down (Memoization)}
+  \begin{itemize}
+    \item Write the Bellman recursion directly.\pause
+    \item Store results in a table (cache).\pause
+    \item Recursive, close to the math.\pause
+  \end{itemize}
+    
+
+  \item \textbf{Bottom-up (Tabulation)}
+  \begin{itemize}
+    \item Start from terminal states.\pause
+    \item Fill a table iteratively backward or forward.\pause
+    \item Iterative, faster in practice.
+  \end{itemize}
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{Dynamic Programming in Programming Practice}
+\textbf{Typical structure:}
+\begin{itemize}
+  \item Define \textbf{state} variables.\pause
+  \item Define \textbf{actions}.\pause
+  \item Write the \textbf{Bellman update}.\pause
+  \item Choose traversal order (time, space, graph).\pause
+\end{itemize}
+
+\medskip
+\textbf{Examples in practice:}
+\begin{itemize}
+  \item Shortest path algorithms\pause
+  \item Optimal stopping problems\pause
+  \item Option pricing (binomial tree)\pause
+  \item Reinforcement learning value iteration
+\end{itemize}
+
+\end{frame}
+
+% =====================================================
+\begin{frame}{Dynamic Programming vs Divide \& Conquer}
+
+\textbf{Common idea:}
+\begin{itemize}
+  \item Break a complex problem into smaller subproblems.\pause
+\end{itemize}
+
+\medskip
+\hrule
+\medskip
+
+\textbf{Divide \& Conquer}
+\begin{itemize}
+  \item Subproblems are \textbf{independent}.\pause
+  \item Each subproblem is solved once.\pause
+  \item Results are combined at the end.\pause
+\end{itemize}
+
+\medskip
+\textbf{Examples:}
+\begin{itemize}
+  \item Merge sort\pause
+  \item Quick sort\pause
+  \item Binary search
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}{Dynamic Programming vs Divide \& Conquer}
+\textbf{Dynamic Programming}
+\begin{itemize}
+  \item Subproblems \textbf{overlap}.\pause
+  \item Naive recursion leads to repeated work.\pause
+  \item Store and reuse results (memoization / tables).\pause
+\end{itemize}
+
+\medskip
+\textbf{Examples:}
+\begin{itemize}
+  \item Fibonacci numbers\pause
+  \item Shortest paths\pause
+  \item Optimal stopping, option pricing\pause
+\end{itemize}
+
+\medskip
+\textbf{Key distinction:}
+\begin{quote}
+Divide \& Conquer splits — Dynamic Programming remembers.
+\end{quote}
+
+\end{frame}
+
+% =====================================================
+\begin{frame}{Why Dynamic Programming Beats Naive Recursion}
+
+\textbf{Example: Fibonacci numbers}
+\[
+F(n)=F(n-1)+F(n-2)
+\]
+
+\medskip
+\begin{itemize}
+  \item Naive recursion recomputes the same values many times.\pause
+  \item Time complexity: \(\mathcal{O}(2^n)\).\pause
+\end{itemize}
+
+\medskip
+\textbf{Dynamic Programming:}
+\begin{itemize}
+  \item Store each \(F(k)\) once.\pause
+  \item Time complexity: \(\mathcal{O}(n)\).
+\end{itemize}
+
+\medskip
+\textbf{Lesson:}
+\begin{quote}
+DP trades memory for speed.
+\end{quote}
+
+\end{frame}
+
+
+
+
+
+% =====================================================
+\subsection{Finite-Horizon DP}
+
+\subsection{Control Problem}
+
+\begin{frame}{Finite-Horizon Control Problem}
+
+\textbf{Ingredients:}
+\begin{itemize}
+  \item \textbf{State} at time $n$: $X_n \in \mathcal{X}$\pause
+  \item \textbf{Action (control)}: $a_n \in \mathcal{A}$ where $\mathcal{A}$ stochastic process with $a_n \in \sigma(X_1, \cdots, X_n)$\pause
+  \item \textbf{One-step cost}: $c(X_n,a_n)$\pause
+  \item \textbf{Horizon}: $n=0,1,\dots,N$\pause
+\end{itemize}
+
+\medskip
+
+\begin{definitionblock}{Value Function}
+For each time $n$ and state $x$, define the \textbf{value function}
+\[
+V_n(x)
+=
+\inf_{\text{admissible controls}}
+\mathbb{E}\!\left[
+\sum_{k=n}^{N-1} c(X_k,a_k)
+\;\middle|\;
+X_n=x
+\right].\pause
+\]
+It represents the \textbf{minimal expected total cost from time $n$ onward},
+starting from state $x$.\pause
+\end{definitionblock}
+
+\medskip
+
+\begin{definitionblock}{Bellman Recursion}
+The value function satisfies the backward recursion
+\[
+V_N(x)=0,
+\qquad
+V_n(x)
+=
+\min_{a\in\mathcal{A}}
+\Big(
+c(x,a)
++
+\mathbb{E}\!\big[V_{n+1}(X_{n+1})\mid X_n=x,\ a_n=a\big]
+\Big).
+\]\pause
+\end{definitionblock}
+
+\medskip
+\textbf{Key idea:} optimal decisions today depend on optimal behavior in the future.
+
+\end{frame}
+
+\begin{frame}{Finite-Horizon Control Problem}
+\begin{itemize}
+  \item State at time $n$: $X_n$\pause
+  \item Action (control): $a_n$\pause
+  \item One-step cost: $c(X_n,a_n)$\pause
+\end{itemize}
+
+\medskip
+
+\begin{definitionblock}{Bellman Recursion (Finite Horizon)}
+Define the value function $V_n(x)$ as the minimal expected total cost from time $n$ onward when $X_n=x$.
+Then
+\[
+V_n(x)=\min_{a}\Big(
+c(x,a)+\mathbb{E}\!\big[V_{n+1}(X_{n+1})\mid X_n=x,\ a_n=a\big]
+\Big).
+\]\pause
+\end{definitionblock}
+\end{frame}
+
+% =====================================================
+\subsubsection{Illustrations of the Bellman Recursion (Hands-on)}
+
+% =====================================================
+\begin{frame}{Illustration 1: A 2-Step Control Problem (Toy but Concrete)}
+
+\textbf{State:} $X_n\in\{0,1,2\}$ (inventory level). \qquad
+\textbf{Horizon:} $n=0,1,2$.\pause
+
+\medskip
+\textbf{Action:} $a_n\in\{0,1\}$ (order $a_n$ units).\pause
+
+\medskip
+\textbf{Dynamics:} demand $D_{n+1}\in\{0,1\}$ with
+$\mathbb{P}(D_{n+1}=1)=p$, and
+\[
+X_{n+1}=\max\{0,\,X_n+a_n-D_{n+1}\}.
+\vspace{-5mm}\pause
+\]
+
+\medskip
+\textbf{Cost:}
+\[
+c(x,a)=K\,a + h(x+a),
+\]
+(ordering cost + holding cost).\pause
+
+\medskip
+\textbf{Bellman step:}
+\[
+V_n(x)=\min_{a\in\{0,1\}}
+\Big( K a+h(x+a) + \mathbb{E}[V_{n+1}(X_{n+1})\mid X_n=x,a_n=a]\Big).\pause
+\]
+
+\medskip
+\textbf{Interpretation:} choose $a$ to trade off \emph{current cost} vs.\ \emph{future expected cost}.
+
+\end{frame}
+
+% =====================================================
+\begin{frame}{Illustration 2: One Backward Step (Explicit Computation)}
+
+Continue the inventory example, and assume a \textbf{terminal cost}
+\[
+V_2(x)=g(x)=\gamma x \qquad (\text{leftover inventory penalty}).
+\vspace{-5mm}\pause
+\]
+
+\medskip
+At time $n=1$, for a given state $x$ and action $a\in\{0,1\}$:
+\[
+X_2=
+\begin{cases}
+\max\{0,x+a-1\} & \text{with prob } p,\\
+x+a & \text{with prob } 1-p.
+\end{cases}
+\vspace{-5mm}\pause
+\]
+
+So
+\[
+\mathbb{E}[V_2(X_2)\mid x,a]
+=
+p\,g(\max\{0,x+a-1\})+(1-p)\,g(x+a).
+\vspace{-2mm}\pause
+\]
+
+Hence the \textbf{Q-value} (cost-to-go if you choose $a$ now) is
+\[
+Q_1(x,a)=Ka+h(x+a)+p\,g(\max\{0,x+a-1\})+(1-p)\,g(x+a),\pause
+\]
+and the Bellman update becomes
+\[
+V_1(x)=\min_{a\in\{0,1\}} Q_1(x,a).\pause
+\]
+
+\medskip
+\textbf{Decision rule:} order ($a=1$) iff $Q_1(x,1)\le Q_1(x,0)$.
+
+\end{frame}
+
+% =====================================================
+\begin{frame}{Illustration 3: Optimal Stopping = Bellman with Two Actions}
+
+\textbf{Setup (finite horizon):} observe $(X_n)_{n=0,\dots,N}$.
+At each time $n$, choose:
+\[
+a_n\in\{\text{stop},\text{continue}\}.\pause
+\]
+
+\medskip
+\textbf{Reward:}
+\begin{itemize}
+  \item If you stop at time $n$: receive $R_n=r(X_n)$.\pause
+  \item If you continue: no immediate reward, but you can stop later.\pause
+\end{itemize}
+
+\medskip
+\textbf{Bellman recursion (value = best expected payoff):}
+\[
+V_n(x)=\max\Big(
+\underbrace{r(x)}_{\text{stop now}},
+\underbrace{\mathbb{E}[V_{n+1}(X_{n+1})\mid X_n=x]}_{\text{continue}}
+\Big),
+\qquad V_N(x)=r(x).\pause
+\]
+
+\medskip
+\textbf{Stopping region:}
+\[
+\mathcal{S}_n=\{x:\ r(x)\ge \mathbb{E}[V_{n+1}(X_{n+1})\mid X_n=x]\}.\pause
+\]
+
+\medskip
+\textbf{Finance link:} American options ($r(x)=$ intrinsic value, continuation $=$ discounted expected value).
+
+\end{frame}
+
+% =====================================================
+\begin{frame}{Illustration 4: A 2-Step American Call on a Binomial Tree}
+
+\textbf{Model:} $S_0=s$, one-step up/down:
+\[
+S_{n+1}=
+\begin{cases}
+uS_n & \text{with prob } q,\\
+dS_n & \text{with prob } 1-q,
+\end{cases}
+\qquad 0<d<1<u.\pause
+\]
+
+\medskip
+\textbf{Payoff if exercised at time $n$:}
+\[
+r(S_n)=(S_n-K)_+.\pause
+\]
+
+\medskip
+\textbf{Backward induction (Bellman):}
+\[
+V_2(S_2)=(S_2-K)_+,\pause
+\]
+\[
+V_1(S_1)=\max\Big(
+(S_1-K)_+,\ \frac{1}{1+r}\,\mathbb{E}\big[V_2(S_2)\mid S_1\big]
+\Big),\pause
+\]
+\[
+V_0(S_0)=\max\Big(
+(S_0-K)_+,\ \frac{1}{1+r}\,\mathbb{E}\big[V_1(S_1)\mid S_0\big]
+\Big).\pause
+\]
+
+\medskip
+\textbf{Interpretation:}
+\begin{itemize}
+  \item \emph{Immediate exercise value} vs.\ \emph{continuation value}.\pause
+  \item The optimal policy is a threshold rule on $S_n$ (exercise region).
+\end{itemize}
+
+\end{frame}
+
+
+\subsection{Optimal Stopping problem}
+\begin{frame}{Optimal Stopping: Bellman Recursion (Finite Horizon)}
+
+\begin{itemize}
+  \item Time steps: $n=0,1,\dots,N$\pause
+  \item State process: $(X_n)$ (Markov or adapted to $(\mathcal{F}_n)$)\pause
+  \item If you stop at time $n$, you receive a reward $g(X_n)$\pause
+  \item If you continue, the state evolves to $X_{n+1}$\pause
+\end{itemize}
+
+\medskip
+
+\begin{definitionblock}{Value Function (Optimal Stopping)}
+For each time $n$ and state $x$, define
+\[
+V_n(x)
+=
+\sup_{\tau\in\{n,\dots,N\}}
+\mathbb{E}\!\big[g(X_\tau)\mid X_n=x\big],\pause
+\]
+the maximal expected payoff when you are at $(n,x)$ and can choose a stopping time $\tau$.
+\end{definitionblock}
+
+\end{frame}
+
+\begin{frame}{Optimal Stopping: Bellman Recursion (Finite Horizon)}
+
+\begin{definitionblock}{Bellman Principle (Stop vs.\ Continue)}
+For $n=0,\dots,N-1$,
+\vspace{-3mm}
+\[
+V_n(x)
+=
+\max\Big(
+\underbrace{g(x)}_{\text{stop now}},
+\underbrace{\mathbb{E}\!\big[V_{n+1}(X_{n+1})\mid X_n=x\big]}_{\text{continue}}
+\Big),
+\qquad
+V_N(x)=g(x).
+\vspace{-3mm}\pause
+\]
+\vspace{-3mm}
+\end{definitionblock}
+
+\medskip
+
+\textbf{Optimal rule:} stop at time $n$ iff
+\vspace{-3mm}
+\[
+g(X_n)\ \ge\ \mathbb{E}\!\big[V_{n+1}(X_{n+1})\mid \mathcal{F}_n\big].\pause
+\]
+
+\end{frame}
+
+% =====================================================
+\begin{frame}{Concrete Example: 2-Step American Put (Binomial Model)}
+
+\textbf{Model.}
+\begin{itemize}
+  \item $S_0=100$, $r=0$ (no discounting).\pause
+  \item Up/down factors: $u=1.2$, $d=0.9$.\pause
+  \item Thus $S_{n+1}\in\{uS_n,\ dS_n\}$.\pause
+\end{itemize}
+
+\medskip
+
+\textbf{Payoff (American put).}
+At any time $n\in\{0,1,2\}$, if you stop you receive
+\[
+g(S_n)=(K-S_n)_+,\qquad K=100.\pause
+\]
+
+\medskip
+
+\textbf{Risk-neutral probability.}
+Choose $q$ such that $(S_n)$ is a martingale:
+\[
+S_0=\mathbb{E}^q[S_1]=q(120)+(1-q)(90)
+\quad\Rightarrow\quad
+q=\frac{100-90}{120-90}=\frac{1}{3}.\pause
+\]
+
+\end{frame}
+
+\begin{frame}{Concrete Example: 2-Step American Put (Binomial Model)}
+
+\textbf{Stock-price tree.}
+\begin{center}
+\begin{tikzpicture}[scale=0.95, every node/.style={font=\small}]
+\node (S0) at (0,0) {$S_0=100$};
+
+\node (Su) at (2,1) {$S_1=120$};
+\node (Sd) at (2,-1) {$S_1=90$};
+
+\node (Suu) at (4,2) {$S_2=144$};
+\node (Sud) at (4,0) {$S_2=108$};
+\node (Sdu) at (4,0) {}; % same node visually (recombining)
+\node (Sdd) at (4,-2) {$S_2=81$};
+
+\draw[->] (S0) -- (Su) node[midway,above] {$q$};
+\draw[->] (S0) -- (Sd) node[midway,below] {$1-q$};
+
+\draw[->] (Su) -- (Suu) node[midway,above] {$q$};
+\draw[->] (Su) -- (Sud) node[midway,below] {$1-q$};
+
+\draw[->] (Sd) -- (Sud) node[midway,above] {$q$};
+\draw[->] (Sd) -- (Sdd) node[midway,below] {$1-q$};
+\end{tikzpicture}
+\end{center}
+
+\end{frame}
+
+
+% =====================================================
+\begin{frame}{Backward Induction: Value and Optimal Stopping Rule}
+
+\textbf{Step 1: terminal values ($n=2$).}
+\[
+V_2(s)=g(s)=(100-s)_+.\pause
+\]
+So
+\[
+V_2(144)=0,\qquad V_2(108)=0,\qquad V_2(81)=19.\pause
+\]
+
+\medskip
+
+\textbf{Step 2: time $n=1$ (stop vs continue).}
+
+\smallskip
+\underline{At $S_1=120$:}
+\[
+\text{Stop}=g(120)=0,\qquad
+\text{Continue}=\mathbb{E}^q[V_2(S_2)\mid S_1=120]=\tfrac13\cdot0+\tfrac23\cdot0=0.\pause
+\]
+Hence $V_1(120)=0$ (indifferent).
+\end{frame}
+
+
+\begin{frame}{Backward Induction: Value and Optimal Stopping Rule}
+
+\underline{At $S_1=90$:}
+\[
+\text{Stop}=g(90)=10,\qquad
+\text{Continue}=\mathbb{E}^q[V_2(S_2)\mid S_1=90]
+=\tfrac13\cdot 0+\tfrac23\cdot 19=\frac{38}{3}\approx 12.67.\pause
+\]
+Hence
+\[
+V_1(90)=\max(10,\tfrac{38}{3})=\tfrac{38}{3},
+\quad\Rightarrow\quad
+\textbf{continue is optimal at } S_1=90.\pause
+\]
+
+\medskip
+
+\textbf{Step 3: time $n=0$.}
+\[
+\text{Stop}=g(100)=0,
+\qquad
+\text{Continue}=\mathbb{E}^q[V_1(S_1)]
+=\tfrac13\cdot 0+\tfrac23\cdot \frac{38}{3}
+=\frac{76}{9}\approx 8.44.\pause
+\]
+So the optimal value is
+\[
+V_0=V_0(100)=\frac{76}{9}\approx 8.44,
+\quad\text{and you should \textbf{not} stop at time }0.\pause
+\]
+
+\end{frame}
+
+\begin{frame}{Takeaway (stopping region).}
+
+Here, the only profitable early-stop candidate is $S_1=90$, but even there
+continuation dominates: the stopping region is essentially \emph{at maturity only}.
+
+\end{frame}
+
+% =====================================================
+\begin{frame}{Concrete Optimal Stopping Example: When to Stop a Game}
+
+\textbf{Problem setup (very simple).}
+
+\begin{itemize}
+  \item You play a game for at most \textbf{2 rounds}.\pause
+  \item At each round $n\in\{0,1,2\}$ you observe a random value $X_n$.\pause
+  \item You may either:
+  \begin{itemize}
+    \item \textbf{Stop} and receive payoff $X_n$,\pause
+    \item or \textbf{Continue} (if $n<2$).\pause
+  \end{itemize}
+  \item If you reach round $2$, you must stop.
+\end{itemize}
+
+\medskip
+
+\textbf{Dynamics.}
+\[
+X_0=0,\qquad
+X_{n+1} =
+\begin{cases}
+X_n + 1 & \text{with prob. } \tfrac12,\\
+X_n - 1 & \text{with prob. } \tfrac12.
+\end{cases}\pause
+\]
+
+\medskip
+\textbf{Goal:} choose when to stop to \textbf{maximize} expected payoff.
+\end{frame}
+
+% =====================================================
+\begin{frame}{Step 1: Define the Value Function}
+
+\textbf{Value function.}
+
+For each time $n$ and state $x$, define
+\[
+V_n(x)
+=
+\sup_{\tau \ge n}
+\mathbb{E}\!\left[X_\tau \mid X_n=x\right],
+\]
+where $\tau$ is a stopping time taking values in $\{n,n+1,2\}$.\pause
+
+\medskip
+
+\textbf{Interpretation.}
+\begin{itemize}
+  \item $V_n(x)$ = best expected payoff if:
+  \begin{itemize}
+    \item current time is $n$,
+    \item current value is $X_n=x$,
+    \item and you play optimally from now on.
+  \end{itemize}\pause
+\end{itemize}
+
+\medskip
+We compute $V_n$ \textbf{backward}.
+\end{frame}
+
+% =====================================================
+\begin{frame}{Step 2: Terminal Time ($n=2$)}
+
+At time $n=2$, stopping is mandatory.
+
+\medskip
+
+\[
+V_2(x)=x.\pause
+\]
+
+\medskip
+
+\textbf{No decision here:}
+\begin{itemize}
+  \item The value function equals the payoff.\pause
+  \item This initializes the backward recursion.
+\end{itemize}
+\end{frame}
+
+% =====================================================
+\begin{frame}{Step 3: Time $n=1$ (Stop or Continue?)}
+
+At time $n=1$, you observe $X_1=x$.\pause
+
+\medskip
+
+\textbf{Two choices:}
+
+\medskip
+\underline{Stop now:}
+\[
+\text{Payoff} = x.
+\vspace{-3mm}\pause
+\]
+
+\underline{Continue to $n=2$:}
+\[
+\mathbb{E}[V_2(X_2)\mid X_1=x]
+=
+\mathbb{E}[X_2\mid X_1=x]
+=
+x.
+\vspace{-3mm}\pause
+\]
+
+\textbf{Conclusion:}
+\[
+V_1(x)=\max(x,x)=x.
+\vspace{-5mm}\pause
+\]
+
+\medskip
+\textbf{Interpretation:}
+\begin{itemize}
+  \item At time 1, you are indifferent between stopping and continuing.\pause
+\end{itemize}
+\end{frame}
+
+% =====================================================
+\begin{frame}{Step 4: Time $n=0$ (The Real Decision)}
+
+At time $n=0$, $X_0=0$.
+
+\medskip
+
+\textbf{Stop immediately:}
+\[
+\text{Payoff}=0.\pause
+\]
+
+\medskip
+\textbf{Continue to time 1:}
+\[
+\mathbb{E}[V_1(X_1)]
+=
+\mathbb{E}[X_1]
+=
+\tfrac12(1)+\tfrac12(-1)=0.\pause
+\]
+
+\medskip
+
+\textbf{Conclusion:}
+\[
+V_0(0)=0.\pause
+\]
+
+\medskip
+\textbf{Optimal strategy:}
+\begin{itemize}
+  \item Any stopping rule is optimal here.\pause
+  \item This reflects the \textbf{martingale property}.
+\end{itemize}
+\end{frame}
+
+% =====================================================
+\begin{frame}{Key Lessons from This Example}
+
+\begin{itemize}
+  \item Optimal stopping problems are solved by:\pause
+  \begin{itemize}
+    \item defining a value function,\pause
+    \item working backward,\pause
+    \item comparing \textbf{stop value} vs \textbf{continuation value}.\pause
+  \end{itemize}
+  \item The rule is always:
+  \[
+  \boxed{
+  V_n(x)=\max\Big(
+  \underbrace{g(x)}_{\text{stop}},
+  \underbrace{\mathbb{E}[V_{n+1}(X_{n+1})\mid X_n=x]}_{\text{continue}}
+  \Big)
+  }
+  \]
+  \item In martingale settings, early stopping does not improve expectation.
+\end{itemize}
+
+\medskip
+\textbf{Bridge to finance:}
+\begin{itemize}
+  \item Replace $X_n$ by a stock price,
+  \item replace payoff $g(x)$ by $(K-x)_+$,
+  \item and you get American options.
+\end{itemize}
+\end{frame}
+
+
+
+
+% =====================================================
+\subsection{Markov Chains + DP}
+
+\begin{frame}{Markov Decision Processes (MDP)}
+\begin{itemize}
+  \item A Markov chain with \textbf{actions that affect transitions}.\pause
+  \item Next-step distribution depends on both state and action.\pause
+\end{itemize}
+
+\medskip
+
+\begin{definitionblock}{Controlled Transition Kernel}
+For states $i,j$ and action $a$,
+\[
+P_{ij}(a)=\mathbb{P}(X_{n+1}=j \mid X_n=i,\ a_n=a).\pause
+\]
+\end{definitionblock}
+
+\begin{itemize}
+  \item DP chooses actions to minimize cost / maximize reward over time.
+\end{itemize}
+\end{frame}
+
+% =====================================================
+\begin{frame}{Concrete MDP Example: ``Invest or Stay Safe'' (2-state, finite horizon)}
+
+\textbf{States (market regime):}
+$
+X_n\in\{G,B\}\quad\text{(Good / Bad)}.
+$\pause
+
+\textbf{Actions:}
+$
+a_n\in\{\text{Safe},\ \text{Risky}\}.
+$\pause
+
+\textbf{Horizon:} $n=0,1$ (two decisions), with terminal value $V_2(\cdot)=0$.\pause
+
+\medskip
+\textbf{One-step reward } r(x,a):
+\vspace{-5mm}
+\[
+r(G,\text{Safe})=1,\quad r(B,\text{Safe})=1,\pause
+\vspace{-5mm}
+\]
+\[
+r(G,\text{Risky})=3,\quad r(B,\text{Risky})=-1.\pause
+\vspace{-7mm}
+\]
+
+\textbf{Controlled transitions:}
+\begin{itemize}
+  \item If \textbf{Safe}: regime tends to persist,
+  \[
+  P(G\to G|\text{Safe})=0.9,\quad P(B\to B|\text{Safe})=0.8.
+  \vspace{-4mm}\pause
+  \]
+  \item If \textbf{Risky}: more instability,
+  \[
+  P(G\to G|\text{Risky})=0.6,\quad P(B\to B|\text{Risky})=0.6.
+  \vspace{-4mm}\pause
+  \]
+\end{itemize}
+
+\medskip
+\textbf{Goal:} choose $(a_0,a_1)$ to maximize expected total reward.
+\end{frame}
+
+% =====================================================
+\begin{frame}{Solve by Backward Induction (Bellman Recursion)}
+
+Bellman recursion (finite horizon):
+\[
+V_n(x)=\max_{a\in\{\text{Safe},\text{Risky}\}}
+\Big(r(x,a)+\mathbb{E}[V_{n+1}(X_{n+1})\mid X_n=x,a_n=a]\Big).\pause
+\]
+Terminal condition: $V_2(G)=V_2(B)=0$.
+
+\textbf{Step 1: time $n=1$.}
+
+Since $V_2(\cdot)=0$,
+\[
+V_1(x)=\max_{a}\ r(x,a).\pause
+\vspace{-5mm}
+\]
+
+So:
+\vspace{-5mm}
+\[
+V_1(G)=\max(1,3)=3\quad(\text{choose Risky}),\pause
+\vspace{-5mm}
+\]
+\[
+V_1(B)=\max(1,-1)=1\quad(\text{choose Safe}).\pause
+\vspace{-7mm}
+\]
+
+\textbf{Interpretation:}
+\begin{itemize}
+  \item In Good regime at the last step: take risk.\pause
+  \item In Bad regime at the last step: stay safe.
+\end{itemize}
+\end{frame}
+
+
+% =====================================================
+\begin{frame}{Time $n=0$: Compute Continuation Values and Optimal Policy}
+
+We use the values found at time $1$:
+\[
+V_1(G)=3,\qquad V_1(B)=1.\pause
+\vspace{-6mm}
+\]
+
+\textbf{Case 1: start in $G$.}
+
+If \textbf{Safe} at $n=0$:
+\[
+Q_0(G,\text{Safe})=1+\big(0.9\cdot V_1(G)+0.1\cdot V_1(B)\big)
+=1+(0.9\cdot 3+0.1\cdot 1)=1+2.8=3.8.\pause
+\vspace{-5mm}
+\]
+
+If \textbf{Risky} at $n=0$:
+\[
+Q_0(G,\text{Risky})=3+\big(0.6\cdot V_1(G)+0.4\cdot V_1(B)\big)
+=3+(0.6\cdot 3+0.4\cdot 1)=3+2.2=5.2.\pause
+\vspace{-5mm}
+\]
+
+So:
+\[
+V_0(G)=\max(3.8,5.2)=5.2
+\quad\Rightarrow\quad a_0^\star(G)=\text{Risky}.
+\]
+\end{frame}
+
+\begin{frame}{Time $n=0$: Compute Continuation Values and Optimal Policy}
+\textbf{Case 2: start in $B$.}
+
+If \textbf{Safe} at $n=0$:
+\[
+Q_0(B,\text{Safe})=1+\big(0.2\cdot V_1(G)+0.8\cdot V_1(B)\big)
+=1+(0.2\cdot 3+0.8\cdot 1)=1+1.4=2.4.\pause
+\vspace{-5mm}
+\]
+
+If \textbf{Risky} at $n=0$:
+\[
+Q_0(B,\text{Risky})=-1+\big(0.4\cdot V_1(G)+0.6\cdot V_1(B)\big)
+=-1+(0.4\cdot 3+0.6\cdot 1)=-1+1.8=0.8.\pause
+\vspace{-5mm}
+\]
+
+So:
+\[
+V_0(B)=\max(2.4,0.8)=2.4
+\quad\Rightarrow\quad a_0^\star(B)=\text{Safe}.\pause
+\vspace{-3mm}
+\]
+
+\textbf{Optimal policy (time 0 and 1):}
+\[
+\pi^\star(G)=\text{Risky},\qquad \pi^\star(B)=\text{Safe}.
+\]
+\end{frame}
+
+% =====================================================
+\begin{frame}{Policy Summary and Finance Intuition}
+
+\textbf{Optimal policy:}
+$
+\pi^\star(G)=\text{Risky},\qquad \pi^\star(B)=\text{Safe}.\pause
+$
+
+\medskip
+\textbf{What happened?}
+\begin{itemize}
+  \item In state $G$, \textbf{Risky} has high immediate reward and still decent chance to remain in $G$.\pause
+  \item In state $B$, \textbf{Risky} has negative reward and does not improve the outlook enough.\pause
+\end{itemize}
+
+\medskip
+\textbf{Finance interpretation (stylized):}
+\begin{itemize}
+  \item $G/B$ = market regimes (risk-on / risk-off).\pause
+  \item Safe = bonds / defensive allocation.\pause
+  \item Risky = equity / leveraged exposure.\pause
+  \item DP learns a \textbf{state-dependent allocation rule}.\pause
+\end{itemize}
+
+\medskip
+\textbf{Key takeaway:}
+\begin{quote}
+MDPs formalize ``act based on the regime'' and solve it by backward recursion.
+\end{quote}
+\end{frame}
+
+
+
+
+\begin{frame}{Example: Inventory Management (Sketch)}
+\begin{itemize}
+  \item \textbf{State} = current inventory level.\pause
+  \item \textbf{Action} = order quantity (or reorder decision).\pause
+  \item Random demand moves you to the next state.\pause
+\end{itemize}
+
+\medskip
+
+\textbf{Cost components:}
+\begin{itemize}
+  \item holding cost (too much inventory),\pause
+  \item shortage / backorder cost (too little inventory),\pause
+  \item ordering cost (fixed + variable).
+\end{itemize}
+
+\medskip
+DP formalizes the best tradeoff across time under demand uncertainty.
+\end{frame}
+
+% =====================================================
+\subsection{Finance-Oriented Examples}
+
+\begin{frame}{Binomial Asset Pricing as a DP}
+\begin{itemize}
+  \item \textbf{State} = asset price $S_n$ (binomial tree node).\pause
+  \item \textbf{Value function} = derivative price at node.\pause
+  \item Under risk-neutral measure $q$, compute by backward induction.
+\end{itemize}
+
+\medskip
+
+\begin{definitionblock}{Backward Pricing Recursion (European Style)}
+\[
+V_n(S)=\mathbb{E}^{q}\!\left[V_{n+1}(S_{n+1})\mid S_n=S\right],
+\qquad
+V_T(S)=\text{payoff}(S).\pause
+\]
+\end{definitionblock}
+\end{frame}
+
+\begin{frame}{American Options = Optimal Stopping}
+\begin{itemize}
+  \item At each node: \textbf{exercise now} or \textbf{continue}.\pause
+  \item Immediate exercise value vs.\ continuation value.\pause
+\end{itemize}
+
+\medskip
+
+\textbf{Bellman step (informal):}
+\[
+V_n(S)=\max\Big(\text{exercise payoff}(S),\ \mathbb{E}^q[V_{n+1}(S_{n+1})\mid S_n=S]\Big).\pause
+\]
+
+\medskip
+Same DP structure as ``stop vs.\ continue'' problems.
+\end{frame}
+
+% =====================================================
+\section{Hands on example}
+\subsubsection{(DPP optimal control): liquidation with quadratic costs}
+% =====================================================
+
+\begin{frame}{Hard Problem 3 (DP Control): Optimal Liquidation in Discrete Time}
+\textbf{Problem (finance-flavored control).}
+You must liquidate an initial position $x_0>0$ over $N$ periods.
+State: inventory $x_n$.\pause
+Control: trade $a_n\in[0,x_n]$ (sell amount).\pause
+Dynamics:
+\[
+x_{n+1}=x_n-a_n,\qquad x_N=0 \text{ (must be fully liquidated).}\pause
+\]
+Cost per step:
+\[
+c(x_n,a_n)=\lambda a_n^2 + h x_n^2,
+\qquad \lambda,h>0.\pause
+\]
+
+\begin{enumerate}
+\item Write the Bellman recursion for $V_n(x)$.\pause
+\item Solve explicitly and show the optimal policy is \textbf{linear}: $a_n^\star=\kappa_n x_n$.\pause
+\item Interpret: how do $\lambda$ and $h$ change the trading speed?\pause
+\end{enumerate}
+
+\medskip
+\textbf{Why naive approaches fail:}
+greedy selling (minimize today’s cost) ignores future holding costs $h x_n^2$.
+\end{frame}
+
+\begin{frame}{Hard Problem 3: Step 1 --- Bellman recursion and terminal condition}
+Define value function:
+\[
+V_n(x)=\min_{(a_n,\dots,a_{N-1})}\sum_{k=n}^{N-1}\big(\lambda a_k^2+h x_k^2\big)
+\quad \text{s.t. } x_{k+1}=x_k-a_k,\ x_n=x,\ x_N=0.\pause
+\]
+
+Terminal condition (constraint $x_N=0$):
+\[
+V_N(x)=
+\begin{cases}
+0 & \text{if } x=0,\\
++\infty & \text{if } x\neq 0.
+\end{cases}\pause
+\]
+
+Bellman step for $n=N-1,\dots,0$:
+\[
+\boxed{
+V_n(x)=\min_{a\in[0,x]}
+\Big(\lambda a^2+h x^2+V_{n+1}(x-a)\Big).}
+\]
+\end{frame}
+
+\begin{frame}{Hard Problem 3: Step 2 --- Quadratic Ansatz and one-step minimization}
+\textbf{Key DP trick:} guess $V_n(x)=\alpha_n x^2$ (quadratic in inventory).\pause
+
+Then
+\[
+V_{n+1}(x-a)=\alpha_{n+1}(x-a)^2.\pause
+\]
+So we minimize over $a\in[0,x]$:
+\[
+\lambda a^2 + h x^2 + \alpha_{n+1}(x-a)^2.\pause
+\vspace{-5mm}
+\]
+Expand in $a$:
+\[
+(\lambda+\alpha_{n+1})a^2 -2\alpha_{n+1}x\,a + (h+\alpha_{n+1})x^2.\pause
+\]
+Unconstrained minimizer:
+\vspace{-3mm}
+\[
+a^\star
+=
+\frac{\alpha_{n+1}}{\lambda+\alpha_{n+1}}\,x.\pause
+\]
+(It lies in $[0,x]$ automatically since coefficients are positive.)
+
+Thus the optimal policy is linear:
+\[
+\boxed{a_n^\star=\kappa_n x_n,\qquad \kappa_n=\frac{\alpha_{n+1}}{\lambda+\alpha_{n+1}}.}
+\]
+\end{frame}
+
+\begin{frame}{Hard Problem 3: Step 3 --- Recursion for $\alpha_n$ and interpretation}
+Plug $a^\star$ back to get $V_n(x)=\alpha_n x^2$ with
+\[
+\alpha_n
+=
+h+\alpha_{n+1}-\frac{\alpha_{n+1}^2}{\lambda+\alpha_{n+1}}
+=
+h+\frac{\lambda\alpha_{n+1}}{\lambda+\alpha_{n+1}}.\pause
+\]
+So
+\[
+\boxed{\alpha_n=h+\frac{\lambda\alpha_{n+1}}{\lambda+\alpha_{n+1}},\qquad \alpha_N=+\infty.}\pause
+\]
+From $\alpha_N=+\infty$, we get $\kappa_{N-1}=1$ (sell everything at last step), as expected.\pause
+
+\medskip
+\textbf{Economic intuition:}
+\begin{itemize}
+\item Larger $\lambda$ (impact/transaction cost) $\Rightarrow$ sell \emph{slower} (smaller $\kappa_n$).\pause
+\item Larger $h$ (risk/holding penalty) $\Rightarrow$ sell \emph{faster} (larger $\kappa_n$).
+\end{itemize}
+\end{frame}
+
+% =====================================================
+\subsubsection{Credit regime + protection decision (finite horizon)}
+% =====================================================
+
+\begin{frame}{Hard Problem 4 (MDP): Credit Regime + Hedging Decision}
+\textbf{Problem (MDP, finite horizon).}
+States: $S=\{G,B,D\}$ (Good, Bad, Default), where $D$ is absorbing.\pause
+
+At each date, you choose an action:
+$
+a_n\in\{\text{Unhedged},\ \text{Hedged}\}.\pause
+$
+Rewards:
+\begin{itemize}
+\item If $X_n\in\{G,B\}$ and \textbf{Unhedged}: receive coupon $c>0$.\pause
+\item If \textbf{Hedged}: receive coupon $c$ but pay premium $k>0$ (net $c-k$).\pause
+\item If $X_n=D$: receive $0$ forever.\pause
+\end{itemize}
+
+Transition probabilities depend on action:
+$
+P(a)=\big(P_{ij}(a)\big)_{i,j\in S}.\pause
+$
+Assume hedging reduces default risk (numerical example on next slide).\pause
+
+\textbf{Goal:} maximize expected total reward over horizon $N$ (no discount for simplicity).\pause
+
+\textbf{Why naive approaches fail:}
+hedging “looks bad” today (you pay $k$) but can dominate long-term by avoiding default.
+\end{frame}
+
+\begin{frame}{Hard Problem 4: Numerical Kernel + Bellman Equation}
+Take $c=1$, $k=0.2$, horizon $N=3$ (times $0,1,2$ decisions).\pause
+Transitions (rows $G,B,D$; columns $G,B,D$):
+
+\[
+P(\text{Unhedged})=
+\begin{pmatrix}
+0.7&0.2&0.1\\
+0.1&0.6&0.3\\
+0&0&1
+\end{pmatrix},
+\qquad
+P(\text{Hedged})=
+\begin{pmatrix}
+0.7&0.25&0.05\\
+0.1&0.75&0.15\\
+0&0&1
+\end{pmatrix}.\pause
+\]
+
+Define the value function:
+\[
+V_n(i)=\max_{\pi}\mathbb{E}\Big[\sum_{t=n}^{N-1} r(X_t,a_t)\,\Big|\,X_n=i\Big],
+\quad V_N(\cdot)=0.
+\vspace{-2mm}\pause
+\]
+Bellman recursion:
+\vspace{-3mm}
+\[
+\boxed{
+V_n(i)=\max_{a\in\{\mathrm{U},\mathrm{H}\}}
+\Big(
+r(i,a)+\sum_{j\in S} P_{ij}(a)V_{n+1}(j)
+\Big).}\pause
+\]
+Here $r(G,\mathrm{U})=r(B,\mathrm{U})=1$, $r(G,\mathrm{H})=r(B,\mathrm{H})=0.8$, and $r(D,\cdot)=0$.
+\end{frame}
+
+\begin{frame}{Hard Problem 4: Backward Induction (Step-by-step)}
+We compute $V_2$ then $V_1$ then $V_0$.\pause
+At time $2$ (one step remaining):
+$
+V_2(i)=\max_{a} r(i,a),
+$
+so for $i\in\{G,B\}$,
+\vspace{-2mm}
+\[
+V_2(G)=V_2(B)=\max(1,0.8)=1,
+\qquad V_2(D)=0.
+\vspace{-3mm}\pause
+\]
+At time $1$:
+\vspace{-3mm}
+\[
+V_1(i)=\max_a\Big(r(i,a)+\sum_j P_{ij}(a)V_2(j)\Big).
+\vspace{-2mm}\pause
+\]
+Compute continuation term using $V_2(G)=V_2(B)=1$, $V_2(D)=0$:
+\[
+\sum_j P_{ij}(a)V_2(j)=P_{iG}(a)+P_{iB}(a)=1-P_{iD}(a).
+\vspace{-3mm}\pause
+\]
+Hence
+\[
+V_1(i)=\max_a\Big(r(i,a)+1-P_{iD}(a)\Big),\quad i\in\{G,B\}.
+\]
+So comparing actions reduces to comparing:
+\[
+\text{choose H over U iff } (0.8-1) + \big(P_{iD}(\mathrm{U})-P_{iD}(\mathrm{H})\big)\ge 0.
+\]
+That is: hedge iff default-risk reduction $\ge 0.2$.
+\end{frame}
+
+\begin{frame}{Hard Problem 4: Apply the criterion + compute the values}
+For state $G$: $P_{GD}(U)=0.1$, $P_{GD}(H)=0.05$, reduction $0.05<0.2$
+\[
+\Rightarrow \textbf{do not hedge in } G.\pause
+\vspace{-3mm}
+\]
+For state $B$: $P_{BD}(U)=0.3$, $P_{BD}(H)=0.15$, reduction $0.15<0.2$
+\[
+\Rightarrow \textbf{do not hedge in } B \text{ (with these numbers)}.
+\vspace{-2mm}\pause
+\]
+Thus $V_1(G)=1+1-0.1=1.9$, and $V_1(B)=1+1-0.3=1.7$.
+
+At time $0$, compute similarly:
+\[
+V_0(i)=\max_a\Big(r(i,a)+\sum_j P_{ij}(a)V_1(j)\Big).
+\vspace{-2mm}\pause
+\]
+Now the continuation value depends on $V_1(G)=1.9$, $V_1(B)=1.7$, $V_1(D)=0$.
+You can compute both actions explicitly (plug numbers) and select the max.
+
+\medskip
+\textbf{Pedagogical takeaway:}
+MDP $\Rightarrow$ \emph{systematic} backward induction; the “right” decision can depend on the state via
+a \textbf{trade-off:} premium today vs reduced probability of falling into absorbing default.
+\end{frame}
+
+\end{document}

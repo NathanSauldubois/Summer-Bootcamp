@@ -1,0 +1,742 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,bm}
+\usepackage{mathtools}
+
+\title{Solutions -- Random Vectors and Convergence of Random Variables\\[0.4em]
+{\large Applications of Lecture: Random Vectors \& Convergence}}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\bigskip
+\hrule
+\bigskip
+
+\section*{Part A -- Fundamental and Applied Exercises (Solutions)}
+
+\begin{enumerate}
+
+% -------------------------------------------------
+\item \textbf{Joint distribution of two discrete variables}
+
+Here $(X,Y)$ is uniform on $\{0,1\}\times\{0,1,2\}$, so there are $6$ equiprobable pairs.
+
+\begin{enumerate}
+\item \emph{Marginals.}
+For $i\in\{0,1\}$,
+\[
+\mathbb{P}(X=i)=\sum_{j=0}^2 \mathbb{P}(X=i,Y=j)=3\cdot \frac16=\frac12.
+\]
+So $X\sim \mathrm{Bernoulli}(1/2)$ (with values $0,1$).
+For $j\in\{0,1,2\}$,
+\[
+\mathbb{P}(Y=j)=\sum_{i=0}^1 \mathbb{P}(X=i,Y=j)=2\cdot\frac16=\frac13,
+\]
+so $Y$ is uniform on $\{0,1,2\}$.
+
+\item \emph{Expectations.}
+\[
+\mathbb{E}[X]=0\cdot \tfrac12 + 1\cdot \tfrac12 = \tfrac12,
+\qquad
+\mathbb{E}[Y]=\frac{0+1+2}{3}=1.
+\]
+
+\item \emph{Covariance.}
+Compute $\mathbb{E}[XY]$:
+\[
+\mathbb{E}[XY]=\sum_{i=0}^1\sum_{j=0}^2 (ij)\,\frac16
+=\frac16 \sum_{j=0}^2 (1\cdot j) = \frac{0+1+2}{6}=\frac12.
+\]
+Hence
+\[
+\mathrm{Cov}(X,Y)=\mathbb{E}[XY]-\mathbb{E}[X]\mathbb{E}[Y]
+=\frac12-\frac12\cdot 1 = 0.
+\]
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Independence check from a joint law}
+
+Given
+\[
+f_{X,Y}(x,y)=2\,\mathbf{1}_{\{0\le y\le x\le 1\}}.
+\]
+
+\begin{enumerate}
+\item \emph{Marginals.}
+For $x\in[0,1]$,
+\[
+f_X(x)=\int_{\mathbb{R}} f_{X,Y}(x,y)\,dy=\int_{0}^{x} 2\,dy = 2x.
+\]
+For $y\in[0,1]$,
+\[
+f_Y(y)=\int_{\mathbb{R}} f_{X,Y}(x,y)\,dx=\int_{y}^{1} 2\,dx = 2(1-y).
+\]
+Outside $[0,1]$ they are $0$.
+
+\item \emph{Independence?}
+If independent, we would have $f_{X,Y}(x,y)=f_X(x)f_Y(y)= (2x)\cdot(2(1-y))=4x(1-y)$ on the support.
+But the true joint density equals $2$ on $\{0\le y\le x\le1\}$, so they are not equal. Therefore $X$ and $Y$ are \textbf{not} independent.
+
+\item \emph{Conditional expectation $\mathbb{E}[Y\mid X=x]$.}
+For $x\in(0,1]$,
+\[
+f_{Y\mid X=x}(y)=\frac{f_{X,Y}(x,y)}{f_X(x)}
+=\frac{2}{2x}\mathbf{1}_{\{0\le y\le x\}}
+=\frac{1}{x}\mathbf{1}_{\{0\le y\le x\}},
+\]
+so $Y\mid X=x \sim U[0,x]$, hence
+\[
+\mathbb{E}[Y\mid X=x]=\frac{x}{2}.
+\]
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Mean and covariance of a random vector}
+
+Let $X=(X_1,X_2)$ with $X_1\sim\mathcal{N}(1,1)$ and $X_2=2X_1+1$.
+
+\begin{enumerate}
+\item \emph{Mean.}
+\[
+\mathbb{E}[X_1]=1,\qquad \mathbb{E}[X_2]=2\mathbb{E}[X_1]+1=3.
+\]
+Thus
+\[
+\mathbb{E}[X]=\begin{pmatrix}1\\3\end{pmatrix}.
+\]
+
+\item \emph{Covariance matrix.}
+\[
+\mathrm{Var}(X_1)=1,\qquad \mathrm{Var}(X_2)=\mathrm{Var}(2X_1+1)=4\,\mathrm{Var}(X_1)=4.
+\]
+Also
+\[
+\mathrm{Cov}(X_1,X_2)=\mathrm{Cov}(X_1,2X_1+1)=2\,\mathrm{Var}(X_1)=2.
+\]
+So
+\[
+\mathrm{Cov}(X)=
+\begin{pmatrix}
+1 & 2\\
+2 & 4
+\end{pmatrix}.
+\]
+
+\item \emph{Is $X$ Gaussian?}
+Yes. $X$ is an affine transformation of the Gaussian variable $X_1$:
+\[
+X=\begin{pmatrix} X_1 \\ 2X_1+1\end{pmatrix}
+=
+\begin{pmatrix} 0\\1\end{pmatrix}
++
+\begin{pmatrix} 1\\2\end{pmatrix} X_1,
+\]
+and any affine transformation of a Gaussian vector is Gaussian. (Here it is a degenerate
+$bivariate$ normal supported on a line.)
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Linear transformation (portfolio-style)}
+
+Given $\mu=\mathbb{E}[R]=\binom{0.05}{0.02}$, covariance $\Sigma$, and $w=(0.6,0.4)$.
+
+\begin{enumerate}
+\item \emph{Expected return.}
+\[
+\mathbb{E}[w^\top R]=w^\top \mu = 0.6\cdot 0.05 + 0.4\cdot 0.02 = 0.03+0.008=0.038.
+\]
+
+\item \emph{Variance.}
+\[
+\mathrm{Var}(w^\top R)=w^\top \Sigma w.
+\]
+Compute $\Sigma w$:
+\[
+\Sigma w =
+\begin{pmatrix}
+0.04 & 0.01\\
+0.01 & 0.01
+\end{pmatrix}
+\binom{0.6}{0.4}
+=
+\binom{0.04\cdot0.6+0.01\cdot0.4}{0.01\cdot0.6+0.01\cdot0.4}
+=
+\binom{0.028}{0.010}.
+\]
+Then
+\[
+w^\top \Sigma w = (0.6,0.4)\binom{0.028}{0.010}
+=0.6\cdot 0.028 + 0.4\cdot 0.010
+=0.0168+0.004
+=0.0208.
+\]
+
+\item \emph{Effect of correlation.}
+The off-diagonal term $0.01$ contributes through $2w_1w_2\Sigma_{12}$ in the expansion
+\[
+w^\top\Sigma w = w_1^2\Sigma_{11}+w_2^2\Sigma_{22}+2w_1w_2\Sigma_{12}.
+\]
+A larger positive covariance increases portfolio variance; a smaller/negative covariance reduces it (diversification benefit).
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Multidimensional change of variables}
+
+$(X,Y)$ uniform on $[0,1]^2$, density $f_{X,Y}(x,y)=1$ on the square.
+
+Define $U=X+Y$, $V=X-Y$.
+
+\begin{enumerate}
+\item \emph{Inverse transform.}
+Solve
+\[
+u=x+y,\quad v=x-y \quad\Rightarrow\quad
+x=\frac{u+v}{2},\qquad y=\frac{u-v}{2}.
+\]
+
+\item \emph{Jacobian determinant.}
+Compute $(u,v)$ as functions of $(x,y)$:
+\[
+u=x+y,\quad v=x-y
+\quad\Rightarrow\quad
+J=\frac{\partial(u,v)}{\partial(x,y)}
+=
+\begin{pmatrix}
+1 & 1\\
+1 & -1
+\end{pmatrix},
+\quad
+\det J = -2.
+\]
+Hence $|\det J|=2$. Equivalently, for the inverse mapping,
+\[
+\frac{\partial(x,y)}{\partial(u,v)}=
+\begin{pmatrix}
+1/2 & 1/2\\
+1/2 & -1/2
+\end{pmatrix},
+\quad
+\left|\det \frac{\partial(x,y)}{\partial(u,v)}\right|=\frac12.
+\]
+
+\item \emph{Support of $(U,V)$.}
+Constraints $0\le x\le 1$, $0\le y\le 1$ become
+\[
+0\le \frac{u+v}{2}\le 1
+\quad\text{and}\quad
+0\le \frac{u-v}{2}\le 1,
+\]
+i.e.
+\[
+0\le u+v \le 2,\qquad 0\le u-v \le 2.
+\]
+Equivalently:
+\[
+-u \le v \le 2-u,\qquad u-2 \le v \le u.
+\]
+Also $u=x+y\in[0,2]$. The support is the diamond (parallelogram) in the $(u,v)$-plane.
+
+\item \emph{Joint density $f_{U,V}$.}
+On the support, by change of variables
+\[
+f_{U,V}(u,v)= f_{X,Y}\!\left(\tfrac{u+v}{2},\tfrac{u-v}{2}\right)\cdot
+\left|\det \frac{\partial(x,y)}{\partial(u,v)}\right|
+=1\cdot \frac12=\frac12,
+\]
+and $f_{U,V}(u,v)=0$ outside the support.
+
+\item \emph{Marginal density of $U$ and its law.}
+For fixed $u\in[0,2]$, the admissible $v$ range length is:
+\[
+\ell(u)=
+\begin{cases}
+2u, & 0\le u\le 1,\\
+2(2-u), & 1\le u\le 2,
+\end{cases}
+\]
+since the intersection of the two $v$-intervals above has that length.
+Thus
+\[
+f_U(u)=\int f_{U,V}(u,v)\,dv = \frac12\,\ell(u)
+=
+\begin{cases}
+u, & 0\le u\le 1,\\
+2-u, & 1\le u\le 2,\\
+0, & \text{otherwise}.
+\end{cases}
+\]
+So $U=X+Y$ has the \emph{triangular} distribution on $[0,2]$.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Convergence in probability (simple scaling)}
+
+Let $X_n=Z/n$ with $Z\in L^1$.
+
+\begin{enumerate}
+\item \emph{$X_n\to 0$ in probability.}
+For $\varepsilon>0$,
+\[
+\mathbb{P}(|X_n|>\varepsilon)=\mathbb{P}(|Z|>n\varepsilon)\xrightarrow[n\to\infty]{}0,
+\]
+since $\{|Z|>t\}\downarrow \emptyset$ as $t\to\infty$ and probabilities are continuous from above.
+
+\item \emph{$X_n\to 0$ in $L^1$.}
+\[
+\mathbb{E}[|X_n|]=\frac{1}{n}\mathbb{E}[|Z|]\xrightarrow[n\to\infty]{}0.
+\]
+
+\item \emph{Almost sure convergence?}
+Yes: for each $\omega$, $X_n(\omega)=Z(\omega)/n\to 0$ deterministically. Hence $X_n\to0$ a.s.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Almost sure convergence from series}
+
+$X_n\in\{0,1\}$ with $\mathbb{P}(X_n=1)=1/n^2$, independent.
+
+\begin{enumerate}
+\item Let $A_n=\{X_n=1\}$. Then $\sum_n \mathbb{P}(A_n)=\sum_n \frac1{n^2}<\infty$.
+By Borel--Cantelli (I), $\mathbb{P}(A_n\ \text{i.o.})=0$, meaning only finitely many $n$ satisfy $X_n=1$ almost surely.
+Therefore $X_n(\omega)=0$ for all large $n$, so $X_n\to 0$ a.s.
+
+\item \emph{$L^1$ convergence.}
+Since $|X_n-0|=X_n$,
+\[
+\mathbb{E}[|X_n|]=\mathbb{E}[X_n]=\mathbb{P}(X_n=1)=\frac1{n^2}\xrightarrow[n\to\infty]{}0.
+\]
+Hence $X_n\to 0$ in $L^1$.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Convergence in distribution: uniform shrinking}
+
+Let $X_n\sim U[0,1/n]$.
+
+\begin{enumerate}
+\item \emph{Convergence in probability.}
+For $\varepsilon>0$,
+\[
+\mathbb{P}(|X_n|>\varepsilon)=\mathbb{P}(X_n>\varepsilon)=
+\begin{cases}
+1-n\varepsilon, & 0\le \varepsilon\le 1/n,\\
+0, & \varepsilon>1/n,
+\end{cases}
+\]
+so for fixed $\varepsilon>0$ and $n>1/\varepsilon$, the probability equals $0$. Thus $X_n\xrightarrow{\mathbb{P}}0$.
+
+\item \emph{Distribution of $nX_n$.}
+If $X_n$ is uniform on $[0,1/n]$, then $nX_n$ is uniform on $[0,1]$.
+
+\item \emph{Limit in distribution.}
+Hence $nX_n \xrightarrow{d} U[0,1]$ (in fact equality in law for all $n$).
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Sample mean and convergence}
+
+Let $\bar X_n=\frac1n\sum_{k=1}^n X_k$, i.i.d., $\mathbb{E}[X_1]=m$, $\mathrm{Var}(X_1)=\sigma^2$.
+
+\begin{enumerate}
+\item \emph{Mean and variance.}
+By linearity,
+\[
+\mathbb{E}[\bar X_n]=\frac1n\sum_{k=1}^n \mathbb{E}[X_k]=m.
+\]
+Independence gives
+\[
+\mathrm{Var}(\bar X_n)
+=
+\frac{1}{n^2}\sum_{k=1}^n \mathrm{Var}(X_k)
+=
+\frac{1}{n^2}\cdot n\sigma^2
+=
+\frac{\sigma^2}{n}.
+\]
+
+\item \emph{Convergence in probability to $m$.}
+By Chebyshev, for $\varepsilon>0$,
+\[
+\mathbb{P}(|\bar X_n-m|\ge \varepsilon)\le \frac{\mathrm{Var}(\bar X_n)}{\varepsilon^2}
+=\frac{\sigma^2}{n\varepsilon^2}\xrightarrow[n\to\infty]{}0.
+\]
+So $\bar X_n\xrightarrow{\mathbb{P}} m$ (weak law of large numbers).
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Convergence of vectors}
+
+Let $X_n=(X_n^{(1)},X_n^{(2)})$ with $X_n^{(1)}\xrightarrow{\mathbb{P}}1$ and $X_n^{(2)}\xrightarrow{\mathbb{P}}2$.
+
+\begin{enumerate}
+\item For $\varepsilon>0$, using $\|(a,b)\|_2\le |a|+|b|$,
+\[
+\mathbb{P}\!\left(\|X_n-(1,2)\|_2>\varepsilon\right)
+\le
+\mathbb{P}\!\left(|X_n^{(1)}-1|>\varepsilon/2\right)
++
+\mathbb{P}\!\left(|X_n^{(2)}-2|>\varepsilon/2\right)
+\xrightarrow[n\to\infty]{}0.
+\]
+Hence $X_n\xrightarrow{\mathbb{P}}(1,2)$.
+
+\item For any $a=(a_1,a_2)$,
+\[
+a^\top X_n \;=\; a_1 X_n^{(1)}+a_2 X_n^{(2)} \xrightarrow{\mathbb{P}} a_1\cdot 1+a_2\cdot 2
+\]
+by stability of convergence in probability under linear combinations.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Convergence via continuous mapping}
+
+Let $X_n\xrightarrow{\mathbb{P}}X$ and $Y_n=X_n^2+1$.
+
+\begin{enumerate}
+\item The function $g(x)=x^2+1$ is continuous, hence by the continuous mapping theorem,
+\[
+Y_n=g(X_n)\xrightarrow{\mathbb{P}} g(X)=X^2+1.
+\]
+
+\item The theorem used is the \textbf{Continuous Mapping Theorem}.
+\end{enumerate}
+
+\end{enumerate}
+
+\bigskip
+\hrule
+\bigskip
+
+\section*{Part B -- More Advanced Applied Exercises (Solutions)}
+
+\begin{enumerate}
+\setcounter{enumi}{10}
+
+% -------------------------------------------------
+\item \textbf{Gaussian random vector and conditioning}
+
+$(X,Y)$ jointly Gaussian, centered, with $\mathrm{Var}(X)=1$, $\mathrm{Var}(Y)=4$, $\mathrm{Cov}(X,Y)=2$.
+
+\begin{enumerate}
+\item For a centered Gaussian pair,
+\[
+\mathbb{E}[X\mid Y]=\frac{\mathrm{Cov}(X,Y)}{\mathrm{Var}(Y)}\,Y=\frac{2}{4}Y=\frac12\,Y.
+\]
+
+\item Conditional variance:
+\[
+\mathrm{Var}(X\mid Y)=\mathrm{Var}(X)-\frac{\mathrm{Cov}(X,Y)^2}{\mathrm{Var}(Y)}
+=1-\frac{2^2}{4}=1-1=0.
+\]
+So $X$ is actually (a.s.) a linear function of $Y$.
+
+\item Regression interpretation:
+the best mean-square predictor of $X$ from $Y$ is $\widehat X=\frac12 Y$ and the residual variance is $0$,
+meaning perfect linear predictability here (correlation $=1$).
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Conditional expectation as best predictor}
+
+Let $X,Y\in L^2$ and predictors $\hat X=aY+b$.
+
+\begin{enumerate}
+\item Minimize $\mathbb{E}[(X-aY-b)^2]$ over $(a,b)$.
+Set derivatives (normal equations) to zero. First w.r.t.\ $b$:
+\[
+0=\frac{\partial}{\partial b}\mathbb{E}[(X-aY-b)^2]
+=-2\,\mathbb{E}[X-aY-b]
+\quad\Rightarrow\quad
+b=\mathbb{E}[X]-a\,\mathbb{E}[Y].
+\]
+Then w.r.t.\ $a$:
+\[
+0=\frac{\partial}{\partial a}\mathbb{E}[(X-aY-b)^2]
+=-2\,\mathbb{E}[(X-aY-b)Y].
+\]
+Plugging $b=\mathbb{E}[X]-a\mathbb{E}[Y]$ gives
+\[
+\mathbb{E}\!\big[(X-\mathbb{E}[X])Y\big]-a\,\mathbb{E}\!\big[(Y-\mathbb{E}[Y])Y\big]=0,
+\]
+so
+\[
+a=\frac{\mathrm{Cov}(X,Y)}{\mathrm{Var}(Y)}\quad (\mathrm{Var}(Y)>0),
+\qquad
+b=\mathbb{E}[X]-a\,\mathbb{E}[Y].
+\]
+
+\item If $(X,Y)$ is jointly Gaussian, then $\mathbb{E}[X\mid Y]$ is affine in $Y$, and the
+best affine predictor coincides with the conditional expectation:
+\[
+\mathbb{E}[X\mid Y]=aY+b,
+\quad
+a=\frac{\mathrm{Cov}(X,Y)}{\mathrm{Var}(Y)},\ \ b=\mathbb{E}[X]-a\mathbb{E}[Y].
+\]
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Failure of converse implications}
+
+\begin{enumerate}
+\item \emph{In probability does not imply a.s.}
+Let $U\sim U[0,1]$ and define
+\[
+X_n(\omega)=\mathbf{1}_{I_n}(\omega),
+\]
+where $(I_n)$ is a sequence of intervals of length $1/n$ that ``sweeps'' $[0,1]$ (standard construction:
+enumerate dyadic intervals so every point belongs to infinitely many $I_n$ but $\sum |I_n|<\infty$ fails?).
+A simpler classical choice (``typewriter sequence'') is:
+for each $k\ge1$, partition $[0,1]$ into $2^k$ intervals of length $2^{-k}$ and let $X_n$ run through
+the indicators of these intervals.
+Then $\mathbb{P}(X_n=1)=2^{-k}\to 0$ along the blocks, hence $X_n\to 0$ in probability.
+But for every $\omega$, $X_n(\omega)=1$ infinitely often (the intervals cover $[0,1]$ infinitely many times),
+so $X_n(\omega)\not\to 0$ for any $\omega$, hence no a.s.\ convergence.
+
+\item \emph{In distribution does not imply in probability.}
+Let $X_n$ be i.i.d.\ Rademacher:
+\[
+\mathbb{P}(X_n=1)=\mathbb{P}(X_n=-1)=\tfrac12.
+\]
+Then $X_n \xrightarrow{d} X$ where $X$ has the same $\pm1$ distribution (the law is constant in $n$).
+However $(X_n)$ does not converge in probability to any random variable:
+if it converged in probability to $X$, then it would be Cauchy in probability, but
+\[
+\mathbb{P}(|X_n-X_m|>1)=\mathbb{P}(X_n\neq X_m)=\tfrac12
+\]
+for $n\neq m$ (independence), so it cannot be Cauchy in probability.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Slutsky-type application}
+
+Let $X_n=\sqrt{n}(\bar X_n-m)$ and $\mathrm{Var}(X_1)=\sigma^2$.
+
+\begin{enumerate}
+\item \emph{CLT.}
+If $X_i$ are i.i.d.\ with mean $m$ and variance $\sigma^2<\infty$, then
+\[
+\sqrt{n}\,\frac{\bar X_n-m}{\sigma}\xrightarrow{d}\mathcal{N}(0,1).
+\]
+
+\item Then
+\[
+\frac{X_n}{\sigma}=\sqrt{n}\,\frac{\bar X_n-m}{\sigma}\xrightarrow{d}\mathcal{N}(0,1).
+\]
+
+\item If $\hat\sigma_n\to\sigma$ in probability (e.g.\ consistent estimator), then $\sigma/\hat\sigma_n\xrightarrow{\mathbb{P}}1$.
+By Slutsky,
+\[
+\frac{X_n}{\hat\sigma_n}
+=
+\frac{X_n}{\sigma}\cdot \frac{\sigma}{\hat\sigma_n}
+\xrightarrow{d} \mathcal{N}(0,1)\cdot 1
+=
+\mathcal{N}(0,1).
+\]
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Maximum of random variables}
+
+$X_1,\dots,X_n$ i.i.d.\ $U[0,1]$, $M_n=\max(X_1,\dots,X_n)$.
+
+\begin{enumerate}
+\item For $x\in[0,1]$,
+\[
+F_{M_n}(x)=\mathbb{P}(M_n\le x)=\mathbb{P}(X_1\le x,\dots,X_n\le x)=x^n.
+\]
+Also $F_{M_n}(x)=0$ for $x<0$ and $1$ for $x\ge1$.
+
+\item $M_n\xrightarrow{\mathbb{P}}1$:
+for $\varepsilon>0$,
+\[
+\mathbb{P}(|M_n-1|>\varepsilon)=\mathbb{P}(M_n<1-\varepsilon)=F_{M_n}(1-\varepsilon)=(1-\varepsilon)^n\to 0.
+\]
+
+\item Limit of $n(1-M_n)$:
+for $t\ge0$,
+\[
+\mathbb{P}(n(1-M_n)\le t)=\mathbb{P}(M_n\ge 1-t/n)=1-\mathbb{P}(M_n\le 1-t/n)
+=1-(1-t/n)^n \to 1-e^{-t}.
+\]
+Thus
+\[
+n(1-M_n)\xrightarrow{d}\mathrm{Exp}(1).
+\]
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Convergence of covariance matrices}
+
+Assume $\mathrm{Cov}(X_n)=\Sigma_n\to\Sigma$ (entrywise, hence in any matrix norm).
+
+\begin{enumerate}
+\item For any fixed $a\in\mathbb{R}^2$,
+\[
+\mathrm{Var}(a^\top X_n)=a^\top \Sigma_n a.
+\]
+Since $\Sigma_n\to\Sigma$, we have $a^\top \Sigma_n a\to a^\top \Sigma a$ by continuity of $(\Sigma\mapsto a^\top\Sigma a)$.
+
+\item Portfolio interpretation:
+$a$ can be viewed as portfolio weights and $a^\top X_n$ as portfolio return; then the portfolio variance computed from the estimated covariance $\Sigma_n$ converges to the true variance based on $\Sigma$.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Random vector LLN}
+
+Let $X_i\in\mathbb{R}^d$ i.i.d.\ with mean $\mu$ and $\bar X_n=\frac1n\sum_{k=1}^n X_k$.
+
+\begin{enumerate}
+\item For each coordinate $j=1,\dots,d$, the scalar variables $X_i^{(j)}$ are i.i.d.\ with mean $\mu_j$.
+By the (scalar) weak law, $\bar X_n^{(j)}\xrightarrow{\mathbb{P}}\mu_j$.
+Hence $\bar X_n\xrightarrow{\mathbb{P}}\mu$ as a vector (componentwise convergence implies vector convergence).
+
+\item For any $w\in\mathbb{R}^d$, by stability of convergence in probability under continuous maps (linear map $x\mapsto w^\top x$),
+\[
+w^\top \bar X_n \xrightarrow{\mathbb{P}} w^\top \mu.
+\]
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Delta method (one-dimensional)}
+
+Assume $X_n\xrightarrow{d}\mathcal{N}(0,\sigma^2)$ and $g(x)=x^2$.
+
+\begin{enumerate}
+\item By the continuous mapping theorem, $X_n^2 \xrightarrow{d} X^2$ where $X\sim\mathcal{N}(0,\sigma^2)$.
+But if $X=\sigma Z$ with $Z\sim\mathcal{N}(0,1)$, then
+\[
+X^2=\sigma^2 Z^2,
+\]
+and $Z^2\sim \chi^2_1$. Hence
+\[
+g(X_n)=X_n^2 \xrightarrow{d} \sigma^2\,\chi^2_1.
+\]
+
+\item The limit is not Gaussian because it is supported on $[0,\infty)$ and has a $\chi^2$-type (gamma) distribution.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Estimation error in portfolios}
+
+Assume $\sqrt{n}(\hat\mu_n-\mu)\xrightarrow{d}\mathcal{N}(0,\Sigma)$.
+
+\begin{enumerate}
+\item For fixed $w\in\mathbb{R}^d$,
+\[
+\sqrt{n}\big(w^\top\hat\mu_n-w^\top\mu\big)
+=
+w^\top \sqrt{n}(\hat\mu_n-\mu)
+\xrightarrow{d} w^\top Z,
+\]
+where $Z\sim\mathcal{N}(0,\Sigma)$. Thus
+\[
+w^\top Z \sim \mathcal{N}\big(0,\; w^\top \Sigma w\big).
+\]
+Equivalently,
+\[
+w^\top \hat\mu_n \approx \mathcal{N}\!\left(w^\top\mu,\ \frac{1}{n}w^\top\Sigma w\right)\ \text{for large }n.
+\]
+
+\item Interpretation:
+The estimation error on the portfolio expected return scales like $1/\sqrt{n}$, and its asymptotic variance is the portfolio variance computed with $\Sigma$ (in the parameter space of $\mu$).
+For large-dimensional portfolios, $w^\top\Sigma w$ can be large unless $w$ is well-regularized/diversified.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Applied convergence comparison}
+
+Let $U\sim U[0,1]$.
+
+Sequences:
+\[
+X_n=\frac{\sin n}{n},\qquad
+Y_n=\mathbf{1}_{\{U\le 1/n\}},\qquad
+Z_n\sim \mathcal{N}(0,1/n).
+\]
+
+\begin{enumerate}
+\item \emph{Almost sure convergence.}
+
+$X_n$ is deterministic and $|\sin n|/n\to 0$, hence $X_n\to 0$ a.s.
+
+For $Y_n$, for each fixed $\omega$ with $U(\omega)>0$, there exists $N$ such that for $n\ge N$, $1/n<U(\omega)$, hence $Y_n(\omega)=0$ eventually.
+Since $\mathbb{P}(U=0)=0$, we get $Y_n\to 0$ a.s.
+
+For $Z_n$: if we realize all $Z_n$ on one space as $Z_n=\frac{1}{\sqrt{n}}Z$ with a fixed $Z\sim\mathcal{N}(0,1)$, then $Z_n\to 0$ a.s.
+(Without specifying a coupling, a.s.\ convergence is not a property of laws alone; but such a natural coupling exists.)
+
+\item \emph{Convergence in probability.}
+
+$X_n\to 0$ trivially in probability (deterministic).
+
+For $Y_n$:
+\[
+\mathbb{P}(Y_n=1)=\mathbb{P}(U\le 1/n)=\frac{1}{n}\to 0,
+\]
+so $Y_n\xrightarrow{\mathbb{P}}0$.
+
+For $Z_n\sim\mathcal{N}(0,1/n)$:
+for any $\varepsilon>0$,
+\[
+\mathbb{P}(|Z_n|>\varepsilon)=
+2\Big(1-\Phi(\varepsilon\sqrt{n})\Big)\to 0,
+\]
+so $Z_n\xrightarrow{\mathbb{P}}0$.
+
+\item \emph{Convergence in distribution.}
+
+If $X_n\xrightarrow{\mathbb{P}}0$ then $X_n\xrightarrow{d}0$, so $X_n\xrightarrow{d}0$.
+
+Similarly $Y_n\xrightarrow{\mathbb{P}}0$ implies $Y_n\xrightarrow{d}0$ (degenerate at $0$).
+
+Also $Z_n\xrightarrow{\mathbb{P}}0$ implies $Z_n\xrightarrow{d}0$.
+Indeed the law $\mathcal{N}(0,1/n)$ converges weakly to $\delta_0$.
+\end{enumerate}
+
+\end{enumerate}
+
+\end{document}

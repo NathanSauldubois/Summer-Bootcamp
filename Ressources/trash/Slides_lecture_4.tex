@@ -1,0 +1,356 @@
+% main_probability_metropolis.tex
+\documentclass[aspectratio=169]{beamer}
+
+% --- Language & encoding ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english,french]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% --- Math & tables ---
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{changepage}
+
+% --- Metropolis Theme ---
+\usetheme[numbering=fraction,progressbar=frametitle]{metropolis}
+\setbeamertemplate{frame numbering}[fraction]
+
+% --- Colors (same palette as prior lectures) ---
+\definecolor{BootcampBlueDark}{HTML}{1A3C68}
+\definecolor{TextBlack}{HTML}{000000}
+\definecolor{AccentGold}{HTML}{DAA520}
+\definecolor{Crimson}{HTML}{990000}
+\definecolor{MatrixGreen}{HTML}{228B22}
+\definecolor{MatrixRed}{HTML}{B22222}
+
+\setbeamercolor{block title example}{bg=BootcampBlueDark!90!black,fg=white}
+\setbeamercolor{block body example}{bg=BootcampBlueDark!5!white,fg=black}
+
+% === Thick frame title band ===
+\setbeamercolor{frametitle}{bg=BootcampBlueDark,fg=white}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamertemplate{frametitle}{
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,ht=3.2ex,dp=1.4ex,leftskip=1em,rightskip=1em]{frametitle}
+    \usebeamerfont{frametitle}\insertframetitle
+  \end{beamercolorbox}
+}
+
+% === Custom Definition Block ===
+\newenvironment{definitionblock}[1]{%
+  \par\vspace{0.4em}%
+  \begin{beamercolorbox}[
+      wd=\textwidth,
+      sep=0.4em,
+      leftskip=0.3em,
+      rightskip=0.6em,
+      rounded=false,
+      shadow=false
+    ]{block title example}%
+    \raisebox{0.15em}{\usebeamerfont{block title example}#1}%
+  \end{beamercolorbox}%
+  \vspace{-0.4em}%
+  \begin{beamercolorbox}[
+      wd=\textwidth,
+      sep=1em,
+      leftskip=0.6em,
+      rightskip=0.6em,
+      rounded=false,
+      shadow=false
+    ]{block body example}%
+    \usebeamerfont{block body example}%
+}{%
+  \end{beamercolorbox}%
+  \par\vspace{0.6em}%
+}
+
+% === Global text formatting ===
+\setbeamercolor{normal text}{fg=TextBlack,bg=white}
+\setbeamercolor{title}{fg=TextBlack}
+\setbeamercolor{structure}{fg=BootcampBlueDark}
+\setbeamercolor{progress bar}{fg=BootcampBlueDark,bg=gray!30}
+
+% --- Course Info ---
+\title{Probability (Lecture 3) --- Foundations \& Random Variables}
+\author{Your Name}
+\institute{Your Program / Department}
+\date{\today}
+% \titlegraphic{\includegraphics[height=1.2cm]{your_logo.pdf}}
+
+\metroset{
+  sectionpage=progressbar,
+  subsectionpage=progressbar
+}
+
+% --- Section & subsection transitions (plain) ---
+\AtBeginSection{
+  \frame[plain]{\sectionpage}
+}
+\AtBeginSubsection{
+  \frame[plain]{\subsectionpage}
+}
+
+\begin{document}
+
+\maketitle
+
+% ===== Outline =====
+\begin{frame}{Outline}
+  \tableofcontents[hideallsubsections]
+\end{frame}
+
+% ===========================
+% SECTION 0 — Motivation
+% ===========================
+\section{Motivation \& Overview}
+
+\begin{frame}{Outline}
+  \tableofcontents[currentsection, hideothersubsections]
+\end{frame}
+
+\subsection{Why Probability in Finance?}
+\begin{frame}{Uncertainty, Modeling, \& Decisions}
+\begin{itemize}
+  \item Model uncertainty in asset prices, defaults, and risk factors.
+  \item Support portfolio analysis, pricing, and risk measurement.
+  \item Link to optimization via expectations, variance, and covariances.
+\end{itemize}
+\end{frame}
+
+\subsection{Learning Goals}
+\begin{frame}{What You Will Learn}
+\begin{definitionblock}{Learning Goals}
+By the end of this lecture, you will be able to:
+\begin{itemize}
+  \item Define probability spaces and manipulate probabilities.
+  \item Apply conditional probability, independence, total probability, and Bayes' rule.
+  \item Work with random variables: pmf/pdf/cdf, expectation, variance, covariance.
+  \item Understand joint/marginal distributions and the (multi)variate normal.
+\end{itemize}
+\end{definitionblock}
+\end{frame}
+
+% ======================================
+% SECTION 1 — Basics
+% ======================================
+\section{Basics of Probability}
+
+\begin{frame}{Outline}
+  \tableofcontents[currentsection, hideothersubsections]
+\end{frame}
+
+\subsection{Probability Spaces \& Events}
+\begin{frame}{Foundations}
+\begin{definitionblock}{Probability Space}
+A triple \((\Omega,\mathcal{F},\mathbb{P})\) where:
+\begin{itemize}
+  \item \(\Omega\): sample space (outcomes),
+  \item \(\mathcal{F}\): \(\sigma\)-algebra of events,
+  \item \(\mathbb{P}\): probability measure on \(\mathcal{F}\).
+\end{itemize}
+\end{definitionblock}
+\begin{itemize}
+  \item Events are subsets \(A\in\mathcal{F}\).
+  \item Axioms: non-negativity, normalization, countable additivity.
+\end{itemize}
+\end{frame}
+
+\subsection{Rules, Independence, Conditional Probability}
+\begin{frame}{Rules \& Conditional Probability}
+\begin{itemize}
+  \item Complement: \(\mathbb{P}(A^c)=1-\mathbb{P}(A)\).
+  \item Inclusion–exclusion: \(\mathbb{P}(A\cup B)=\mathbb{P}(A)+\mathbb{P}(B)-\mathbb{P}(A\cap B)\).
+  \item Conditional probability: \(\mathbb{P}(A\mid B)=\dfrac{\mathbb{P}(A\cap B)}{\mathbb{P}(A)}\) if \(\mathbb{P}(B)>0\).
+  \item Independence: \(\mathbb{P}(A\cap B)=\mathbb{P}(A)\mathbb{P}(B)\).
+\end{itemize}
+\end{frame}
+
+\subsection{Total Probability \& Bayes}
+\begin{frame}{Law of Total Probability \& Bayes' Theorem}
+\begin{definitionblock}{Total Probability}
+If \(\{B_i\}\) partitions \(\Omega\), then
+\[
+\mathbb{P}(A)=\sum_i \mathbb{P}(A\mid B_i)\,\mathbb{P}(B_i).
+\]
+\end{definitionblock}
+\begin{definitionblock}{Bayes' Theorem}
+\[
+\mathbb{P}(A\mid B)=\frac{\mathbb{P}(B\mid A)\,\mathbb{P}(A)}{\mathbb{P}(B)}.
+\]
+\end{definitionblock}
+\end{frame}
+
+\subsection{Applications: Discrete Events in Finance}
+\begin{frame}{Default Risk \& Conditional Views}
+\begin{itemize}
+  \item Event \(D\): default within horizon; conditional on macro state \(M\).
+  \item Use total probability across scenarios; update via Bayes given signals.
+  \item Joint vs conditional interpretations in portfolio/credit risk.
+\end{itemize}
+\end{frame}
+
+% ======================================
+% SECTION 2 — Random Variables
+% ======================================
+\section{Random Variables: Discrete \& Continuous}
+
+\begin{frame}{Outline}
+  \tableofcontents[currentsection, hideothersubsections]
+\end{frame}
+
+\subsection{Definition \& Examples}
+\begin{frame}{What is a Random Variable?}
+\begin{definitionblock}{Random Variable}
+A measurable function \(X:(\Omega,\mathcal{F})\to(\mathbb{R},\mathcal{B})\).
+\end{definitionblock}
+\begin{itemize}
+  \item Financial examples: returns, log-returns, losses, counts (defaults).
+  \item Distribution of \(X\) described by pmf/pdf/cdf.
+\end{itemize}
+\end{frame}
+
+\subsection{Discrete Variables}
+\begin{frame}{PMF, Expectation, Variance (Discrete)}
+\begin{itemize}
+  \item PMF: \(p_X(x)=\mathbb{P}(X=x)\).
+  \item CDF: \(F_X(x)=\sum_{t\le x} p_X(t)\).
+  \item Mean: \(\mathbb{E}[X]=\sum_x x\,p_X(x)\).
+  \item Variance: \(\mathrm{Var}(X)=\mathbb{E}[X^2]-\mathbb{E}[X]^2\).
+\end{itemize}
+% TODO: add Bernoulli/Poisson examples
+\end{frame}
+
+\subsection{Continuous Variables}
+\begin{frame}{PDF, CDF, Expectation (Continuous)}
+\begin{itemize}
+  \item PDF: \(f_X(x)\ge 0\), \(\int_{-\infty}^\infty f_X(x)\,dx=1\).
+  \item CDF: \(F_X(x)=\int_{-\infty}^x f_X(t)\,dt\).
+  \item Mean: \(\mathbb{E}[X]=\int x f_X(x)\,dx\).
+  \item Variance: \(\mathrm{Var}(X)=\int (x-\mu)^2 f_X(x)\,dx\).
+\end{itemize}
+% TODO: add Normal/Exponential quick examples
+\end{frame}
+
+\subsection{Moments \& Co-moments}
+\begin{frame}{Expectation, Variance, Covariance, Correlation}
+\begin{itemize}
+  \item Linearity: \(\mathbb{E}[aX+bY]=a\,\mathbb{E}[X]+b\,\mathbb{E}[Y]\).
+  \item Covariance: \(\mathrm{Cov}(X,Y)=\mathbb{E}[XY]-\mathbb{E}[X]\mathbb{E}[Y]\).
+  \item Correlation: \(\rho_{XY}=\dfrac{\mathrm{Cov}(X,Y)}{\sigma_X\sigma_Y}\).
+\end{itemize}
+\[
+\textcolor{BootcampBlueDark}{\text{Portfolio variance: }}\;
+\mathrm{Var}(w^\top R)=w^\top \Sigma\, w.
+\]
+\end{frame}
+
+\subsection{Joint \& Marginal Distributions}
+\begin{frame}{Joint/Marginal \& Independence}
+\begin{itemize}
+  \item Joint pmf/pdf \(p_{X,Y}(x,y)\) or \(f_{X,Y}(x,y)\).
+  \item Marginalization: \(f_X(x)=\int f_{X,Y}(x,y)\,dy\).
+  \item Independence: \(f_{X,Y}(x,y)=f_X(x)f_Y(y)\).
+\end{itemize}
+% TODO: add simple bivariate example
+\end{frame}
+
+% ======================================
+% SECTION 3 — Normal \& MVN
+% ======================================
+\section{Normal \& Multivariate Normal Distributions}
+
+\begin{frame}{Outline}
+  \tableofcontents[currentsection, hideothersubsections]
+\end{frame}
+
+\subsection{Normal Distribution}
+\begin{frame}{Gaussian Basics}
+\begin{itemize}
+  \item \(X\sim \mathcal{N}(\mu,\sigma^2)\), pdf:
+  \[
+  f_X(x)=\frac{1}{\sqrt{2\pi\sigma^2}}
+  \exp\!\left(-\frac{(x-\mu)^2}{2\sigma^2}\right).
+  \]
+  \item Standardization: \(Z=\dfrac{X-\mu}{\sigma}\).
+  \item Symmetry, tail behavior, and z-scores.
+\end{itemize}
+\end{frame}
+
+\subsection{Multivariate Normal}
+\begin{frame}{Definition \& Properties}
+\begin{itemize}
+  \item \(R\sim \mathcal{N}(\mu,\Sigma)\) with mean vector \(\mu\) and covariance \(\Sigma\).
+  \item Any linear combination \(w^\top R\) is normal with
+    \(\mathbb{E}[w^\top R]=w^\top\mu\), \(\mathrm{Var}(w^\top R)=w^\top\Sigma w\).
+  \item Conditioning formulas support regression and inference.
+\end{itemize}
+\end{frame}
+
+\subsection{Finance Relevance}
+\begin{frame}{Why (Multi)Normal in Finance?}
+\begin{itemize}
+  \item Approximate modeling of asset returns.
+  \item Mean–variance portfolio analysis: inputs \((\mu,\Sigma)\).
+  \item Diversification via the covariance matrix; role of correlation.
+\end{itemize}
+\end{frame}
+
+% ======================================
+% SECTION 4 — Applications
+% ======================================
+\section{Applications in Finance}
+
+\begin{frame}{Outline}
+  \tableofcontents[currentsection, hideothersubsections]
+\end{frame}
+
+\subsection{Modeling Returns \& Risk}
+\begin{frame}{Asset Returns, VaR, \& Stress}
+\begin{itemize}
+  \item Using pdf/cdf for tail probabilities and quantiles (VaR).
+  \item Portfolio risk via \(w^\top\Sigma w\); correlation and diversification.
+  \item Joint distributions for co-movement and stress scenarios.
+\end{itemize}
+\end{frame}
+
+\subsection{Connecting to Next Lecture}
+\begin{frame}{Preview of Lecture 4}
+\begin{itemize}
+  \item Conditional expectation, transformations, and moment-generating tools.
+  \item LLN/CLT for aggregation of risks.
+  \item Applications to pricing and statistical inference.
+\end{itemize}
+\end{frame}
+
+% ======================================
+% SECTION 5 — Summary \& References
+% ======================================
+\section{Summary \& References}
+
+\begin{frame}{Outline}
+  \tableofcontents[currentsection, hideothersubsections]
+\end{frame}
+
+\subsection{Key Takeaways}
+\begin{frame}{What to Remember}
+\begin{itemize}
+  \item Probability spaces, rules, conditional probability, independence.
+  \item Random variables: pmf/pdf/cdf; expectation, variance, covariance.
+  \item Joint/marginal distributions; normal and multivariate normal.
+  \item Portfolio variance and diversification through covariance matrices.
+\end{itemize}
+\end{frame}
+
+\subsection{References}
+\begin{frame}{Suggested References}
+\begin{itemize}
+  \item Carl P. Simon and Lawrence Blume, \textit{Mathematics for Economists}.
+  \item Sydsaeter and Hammond, \textit{Essential Mathematics for Economic Analysis}.
+  \item J. Douglas Carroll and Paul E. Green, \textit{Mathematical Tools for Applied Multivariate Analysis}.
+\end{itemize}
+\end{frame}
+
+\end{document}

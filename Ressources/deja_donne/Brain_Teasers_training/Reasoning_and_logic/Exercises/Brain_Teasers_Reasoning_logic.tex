@@ -1,0 +1,88 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{enumitem}
+\usepackage{amsmath,amssymb}
+
+\setlist[enumerate]{itemsep=0.9em, topsep=0.5em}
+
+\begin{document}
+
+\begin{center}
+{\LARGE \textbf{Logic \& Reasoning — Practice Sheet (20 Problems)}}\\[0.3em]
+{\small (Selected from \textit{Heard on the Street} and \textit{A Practical Guide to Quantitative Finance Interviews})}
+\end{center}
+
+\section*{Easy / Basic (7)}
+
+\begin{enumerate}[label=\textbf{\arabic*.}]
+\item \textbf{Two jugs (water \& alcohol).} You have two glass jugs of equal volume. One contains pure water and the other contains pure alcohol. Pour a small quantity $Q$ of water into the alcohol jug, mix thoroughly, then pour back the same quantity $Q$ (now a mixture) into the water jug. What simple relationship holds between the final amount of water in the alcohol jug and the final amount of alcohol in the water jug?\\
+\hfill{\small\textit{Source: Heard on the Street, Ch.\ 1, Question 1.1 }}
+
+\item \textbf{Two bells.} One bell rings 5 times per minute and another rings 4 times per minute. If they ring together at time 0, how long until they next ring together?\\
+\hfill{\small\textit{Source: Heard on the Street, Ch.\ 1, Question 1.2 }}
+
+\item \textbf{Sum of integers.} Compute $1+2+\cdots+1007$ without adding term-by-term.\\
+\hfill{\small\textit{Source: Heard on the Street, Ch.\ 1, Question 1.3 }}
+
+\item \textbf{Socks in the dark.} A drawer contains 8 red socks and 11 blue socks (otherwise identical). You pick socks in the dark. What is the minimum number of socks you must take to guarantee you have at least one matching pair?\\
+\hfill{\small\textit{Source: Heard on the Street, Ch.\ 1, Question 1.15 }}
+
+\item \textbf{Lily pads (doubling).} You start with one lily pad on a pond. The area covered doubles every day, and it takes 30 days for the pond to be fully covered. If you start with 8 lily pads (same growth behavior), how many days will it take to cover the pond?\\
+\hfill{\small\textit{Source: Heard on the Street, Ch.\ 1, Question 1.21 }}
+
+\item \textbf{Trailing zeros of a factorial.} How many trailing zeros are there at the end of $100!$?\\
+\hfill{\small\textit{Source: Heard on the the Street, Ch.\ 1, Question 1.54 }}
+
+\item \textbf{Macro-cube erosion.} Consider a $10\times 10\times 10$ ``macro-cube'' made of $1\times 1\times 1$ micro-cubes glued together. Weather damage loosens the outermost layer of micro-cubes, and that entire outer layer falls off. How many micro-cubes are on the ground?\\
+\hfill{\small\textit{Source: Heard on the Street, Ch.\ 1, Question 1.9}}
+\end{enumerate}
+
+\section*{Medium (7)}
+
+\begin{enumerate}[label=\textbf{\arabic*.}, resume]
+
+\item \textbf{Broken clock face.} An old-style analog clock falls and the face breaks into three pieces. The numbers on each piece add to the same total. Describe the three pieces (i.e., which numbers are on each piece).\\
+\hfill{\small\textit{Source: Heard on the Street, Ch.\ 1, Question 1.4 }}
+
+\item \textbf{100 bulbs / 100 brokers.} There are 100 light bulbs in a row, all initially off, each with its own switch. Broker 1 enters and toggles every bulb; Broker 2 toggles every 2nd bulb; Broker 3 toggles every 3rd bulb; \dots; Broker 100 toggles every 100th bulb. After Broker 100 finishes, how many bulbs are on, and which ones?\\
+\hfill{\small\textit{Source: Heard on the Street, Ch.\ 1, Question 1.14 (setup in Q1.13) }}
+
+\item \textbf{One fuse, 30 seconds.} You have a string-like fuse that burns in exactly 1 minute, but it burns non-uniformly (speed varies along the fuse). With a match and no watch, how can you measure exactly 30 seconds?\\
+\hfill{\small\textit{Source: Heard on the Street, Ch.\ 1, Question 1.51 }}
+
+\item \textbf{Two fuses, 45 seconds.} You have two non-uniform fuses; each burns in exactly 1 minute. With a match and no watch, how can you measure exactly 45 seconds?\\
+\hfill{\small\textit{Source: Heard on the Street, Ch.\ 1, Question 1.52 }}
+
+\item \textbf{River crossing (torch).} Four people $A,B,C,D$ must cross a bridge at night with one torch. At most two can cross at once; any pair moves at the slower person’s speed. Crossing times: $A=10$ min, $B=5$ min, $C=2$ min, $D=1$ min. What is the minimum total time to get everyone across?\\
+\hfill{\small\textit{Source: A Practical Guide to Quantitative Finance Interviews, Ch.\ 2, \S2.2 ``River crossing'' page 5}}
+
+\item \textbf{Coin piles (blindfolded).} You are blindfolded in a room with 1000 coins: 980 show tails up and 20 show heads up. You cannot distinguish sides by touch, but you may flip any coins you choose. Can you split the coins into two piles so that you are guaranteed the two piles contain the same number of heads? Describe how.\\
+\hfill{\small\textit{Source: A Practical Guide to Quantitative Finance Interviews, Ch.\ 2, \S2.4 ``Coin piles'' page 15 }}
+
+\item \textbf{Last ball (invariant).} A bag has 20 blue balls and 14 red balls. Repeatedly: randomly draw two balls (without replacement); if the two balls have the same color, add one blue ball; if they have different colors, add one red ball (assume unlimited supply). Continue until one ball remains. What is the color of the last ball? What if the initial bag has 20 blue and 13 red instead?\\
+\hfill{\small\textit{Source: A Practical Guide to Quantitative Finance Interviews, Ch.\ 2, ``Last ball'' page 13}}
+\end{enumerate}
+
+\section*{Hard (6)}
+
+\begin{enumerate}[label=\textbf{\arabic*.}, resume]
+\item \textbf{90 coins, paid weighings.} You have a balance scale and 90 coins. 89 coins are identical; 1 coin has a different weight (unknown whether heavier or lighter). Each use of the scale costs \$100. Design a strategy to identify and discard the odd coin while minimizing the worst-case total cost.\\
+\hfill{\small\textit{Source: Heard on the Street, Ch.\ 1, Question 1.18 }}
+
+\item \textbf{Motorcyclists and a fly.} Two motorcyclists are 25 miles apart and ride toward each other: one at 20 mph, the other at 30 mph. A fly starts on the first rider’s helmet and flies back-and-forth between them at 40 mph, instantly turning around each time it reaches a rider, until the motorcycles meet. How far does the fly travel in total?\\
+\hfill{\small\textit{Source: Heard on the Street, Ch.\ 1, Question 1.28 }}
+
+\item \textbf{25 horses, top 3 (5 lanes).} There are 25 horses, all with distinct constant speeds. A track has 5 lanes, so at most 5 horses race at once. With no stopwatch (only relative finish order per race), what is the minimum number of races required to determine the 3 fastest horses for sure?\\
+\hfill{\small\textit{Source: A Practical Guide to Quantitative Finance Interviews, Ch.\ 2, ``Horse race'' page 9}}
+
+\item \textbf{12 balls, heavier or lighter (3 weighings).} You have 12 identical-looking balls; one is defective and is either heavier or lighter (unknown which). Using a balance scale (only tells which side is heavier), find a strategy to identify the defective ball and determine whether it is heavier or lighter in 3 weighings.\\
+\hfill{\small\textit{Source: A Practical Guide to Quantitative Finance Interviews, Ch.\ 2, ``Defective ball'' page 7}}
+
+\item \textbf{Two glass balls, 100 floors (minimax).} There exists a threshold floor $X$ such that a glass ball breaks if dropped from any floor $\ge X$, and does not break from any floor $<X$. You have two glass balls and a 100-floor building. What strategy minimizes the worst-case number of drops needed to determine $X$?\\
+\hfill{\small\textit{Source: A Practical Guide to Quantitative Finance Interviews, 'Glass ball' Ch.\ 2, page 19 }}
+
+\item \textbf{50 wise men and a glass.} A sultan imprisons 50 wise men in separate rooms. There is one glass that can be either upright or upside down. Each minute, the sultan calls one wise man (randomly; repeats possible). The called man may either flip the glass or do nothing. If any called wise man ever correctly declares ``all 50 wise men have been called at least once,'' everyone goes free; if the declaration is wrong, all die. The wise men may communicate once beforehand. Design a strategy that guarantees eventual freedom.\\
+\hfill{\small\textit{Source: A Practical Guide to Quantitative Finance Interviews, "wise men" page 17}}
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,484 @@
+\documentclass[10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{geometry}
+\usepackage{hyperref}
+
+\geometry{margin=0.8in}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\setlist{itemsep=2pt,topsep=3pt,parsep=0pt,partopsep=0pt}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt}
+\setlength{\abovedisplayskip}{5pt plus 2pt minus 2pt}
+\setlength{\belowdisplayskip}{5pt plus 2pt minus 2pt}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\rank}{\operatorname{rank}}
+\newcommand{\im}{\operatorname{Im}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\Span}{\operatorname{span}}
+
+\title{Summer Bootcamp -- Session 1 Exercises\\Linear Algebra}
+\author{Nathan Sauldubois}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\section*{Instructions}
+
+The goal is to become operational with matrix language. Exercises 1--6 are the
+core paper exercises. Exercises 7--8 are hands-on Python exercises. Exercises
+9--11 are decomposition brainteasers and applications. Exercises 12--13 are
+finance-flavored brainteasers and theoretical questions. Exercises 14--16
+connect transition matrices with Markov chains and hitting-time puzzles.
+
+For the hands-on exercises, use only basic \texttt{NumPy}; do not use a built-in
+PCA or portfolio-optimization function unless explicitly asked to compare.
+
+\section{Core Linear Algebra}
+
+\paragraph{Exercise 1 -- Matrix arithmetic and dimension checks.}
+Let
+\[
+A=\begin{pmatrix}
+1&2&-1\\
+0&3&4
+\end{pmatrix},\qquad
+B=\begin{pmatrix}
+2&1\\
+-1&0\\
+3&2
+\end{pmatrix},\qquad
+C=\begin{pmatrix}
+2&-1\\
+1&1
+\end{pmatrix},
+\]
+and
+\[
+x=\begin{pmatrix}1\\-2\\0\end{pmatrix},\qquad
+y=\begin{pmatrix}3\\1\end{pmatrix}.
+\]
+
+\begin{enumerate}
+\item For each expression, say whether it is defined and give its dimension:
+\[
+AB,\quad BA,\quad AC,\quad CA,\quad Ax,\quad Ay,\quad Bx,\quad By,\quad
+C^2,\quad A^\top C.
+\]
+\item Compute all defined products among $AB$, $BA$, $Ax$, $By$, and $C^2$.
+\item Compute $A^\top$, $B^\top$, $\tr(C)$, $\det(C)$, and $C^{-1}$.
+\item Use your computations to show explicitly that matrix multiplication is
+not commutative.
+\item Interpret $Ax$ as a linear combination of the columns of $A$.
+\end{enumerate}
+
+\paragraph{Exercise 2 -- Kernel, image, rank, and geometry.}
+Consider
+\[
+L=
+\begin{pmatrix}
+1&-1&0\\
+-1&2&-1\\
+0&-1&1
+\end{pmatrix}.
+\]
+
+\begin{enumerate}
+\item Solve $Lx=0$ and give a basis of $\ker(L)$.
+\item Compute $\rank(L)$ using rank-nullity.
+\item Show that every column of $L$ is orthogonal to $(1,1,1)^\top$.
+\item Deduce that
+\[
+\im(L)=\{y\in\R^3:y_1+y_2+y_3=0\}.
+\]
+\item For each vector below, decide whether $Lx=b$ has a solution:
+\[
+b_1=\begin{pmatrix}1\\0\\-1\end{pmatrix},\qquad
+b_2=\begin{pmatrix}1\\1\\0\end{pmatrix}.
+\]
+When a solution exists, find all solutions.
+\item Give a geometric interpretation: which direction is killed by $L$, and
+on which plane does $L$ act non-trivially?
+\end{enumerate}
+
+\paragraph{Exercise 3 -- Linear systems and bootstrapping.}
+
+\textbf{Part A: a small system.}
+Consider
+\[
+\begin{cases}
+2x_1+3x_2=5,\\
+x_1-4x_2=-2.
+\end{cases}
+\]
+\begin{enumerate}
+\item Write the system as $Ax=b$.
+\item Compute $\det(A)$ and decide whether the solution is unique.
+\item Solve the system by substitution.
+\item Compute $A^{-1}$ and verify that $x=A^{-1}b$ gives the same answer.
+\end{enumerate}
+
+\textbf{Part B: fixed-income bootstrapping.}
+You observe three annual coupon bonds with face value $1$:
+\[
+\begin{array}{@{}cccc@{}}
+\toprule
+\text{Maturity} & \text{Coupon} & \text{Cash flows} & \text{Price}\\
+\midrule
+1 & 3\% & 1.03\text{ at }T_1 & 1.005\\
+2 & 4\% & 0.04\text{ at }T_1,\ 1.04\text{ at }T_2 & 1.018\\
+3 & 5\% & 0.05\text{ at }T_1,\ 0.05\text{ at }T_2,\ 1.05\text{ at }T_3 & 1.025\\
+\bottomrule
+\end{array}
+\]
+Let $d_k=D(T_k)$ be the discount factor at maturity $T_k$.
+\begin{enumerate}
+\item Write the pricing equations in matrix form $Cd=p$.
+\item Explain why the system is triangular.
+\item Solve for $d_1,d_2,d_3$ using forward substitution.
+\item Compute the zero rates
+\[
+z_k=-\frac{1}{T_k}\log d_k,\qquad k=1,2,3.
+\]
+\item Explain why this is a linear algebra version of bootstrapping.
+\end{enumerate}
+
+\paragraph{Exercise 4 -- Covariance matrices and portfolio variance.}
+The following centered return matrix contains four daily observations of two
+assets:
+\[
+X=
+\begin{pmatrix}
+0.01&-0.02\\
+0.02&0.01\\
+-0.01&0.00\\
+-0.02&0.01
+\end{pmatrix}.
+\]
+
+\begin{enumerate}
+\item Check that each column is centered.
+\item Compute
+\[
+\widehat{\Sigma}=\frac{1}{n-1}X^\top X,\qquad n=4.
+\]
+\item Verify directly that $\widehat{\Sigma}$ is symmetric.
+\item For $w=(0.6,0.4)^\top$, compute $w^\top\widehat{\Sigma}w$.
+\item Decompose the variance into individual variance terms and covariance
+terms:
+\[
+w^\top\widehat{\Sigma}w
+=w_1^2\sigma_1^2+w_2^2\sigma_2^2+2w_1w_2\sigma_{12}.
+\]
+\item Explain why covariance can either increase or reduce portfolio risk.
+\end{enumerate}
+
+\paragraph{Exercise 5 -- Diagonalization and covariance interpretation.}
+For $\rho\in(-1,1)$, consider the two-asset correlation matrix
+\[
+C_\rho=
+\begin{pmatrix}
+1&\rho\\
+\rho&1
+\end{pmatrix}.
+\]
+
+\begin{enumerate}
+\item Compute the eigenvalues and eigenvectors of $C_\rho$.
+\item Specialize to $\rho=0.8$ and write an orthogonal diagonalization
+$C_\rho=QDQ^\top$.
+\item Interpret the two eigenvectors as the common direction and the spread
+direction.
+\item Which eigenvalue becomes small when $\rho$ is close to $1$? What does
+that mean financially?
+\item What happens when $\rho=-1$? Is the matrix invertible?
+\end{enumerate}
+
+\paragraph{Exercise 6 -- PCA by hand.}
+The centered data matrix is
+\[
+X=
+\begin{pmatrix}
+-1&-1\\
+0&0\\
+1&1
+\end{pmatrix}.
+\]
+
+\begin{enumerate}
+\item Compute $\widehat{\Sigma}=\frac{1}{n-1}X^\top X$.
+\item Find its eigenvalues and orthonormal eigenvectors.
+\item Identify the first principal component.
+\item Project the three observations onto the first principal component.
+\item Reconstruct the observations using only the first principal component.
+Is the reconstruction exact?
+\item Explain what information is kept and what information is lost.
+\end{enumerate}
+
+\section{Hands-On Python}
+
+\paragraph{Exercise 7 -- Empirical covariance and PCA with NumPy.}
+Use the following return matrix. Rows are days and columns are assets:
+\[
+R=
+\begin{pmatrix}
+0.010&-0.004&0.006&0.012\\
+-0.006&0.003&-0.002&-0.008\\
+0.014&0.001&0.010&0.015\\
+-0.012&-0.006&-0.007&-0.010\\
+0.008&0.004&0.005&0.009\\
+0.003&-0.002&0.001&0.004\\
+-0.009&0.002&-0.004&-0.011\\
+0.011&0.005&0.007&0.013
+\end{pmatrix}.
+\]
+
+\begin{enumerate}
+\item Load this matrix into a \texttt{NumPy} array.
+\item Compute the empirical mean vector.
+\item Center the matrix manually.
+\item Compute the empirical covariance matrix using
+\[
+\widehat{\Sigma}=\frac{1}{n-1}R_c^\top R_c.
+\]
+\item Compare your result with \texttt{np.cov(R, rowvar=False)}.
+\item Compute eigenvalues and eigenvectors using \texttt{np.linalg.eigh}.
+\item Sort eigenvalues in decreasing order and compute the explained variance
+ratios.
+\item Project the centered data onto the first one and then the first two
+principal components.
+\item In two or three sentences, interpret the first principal component as a
+financial factor.
+\end{enumerate}
+
+Suggested skeleton:
+\begin{verbatim}
+import numpy as np
+
+R = np.array([
+    [ 0.010, -0.004,  0.006,  0.012],
+    [-0.006,  0.003, -0.002, -0.008],
+    [ 0.014,  0.001,  0.010,  0.015],
+    [-0.012, -0.006, -0.007, -0.010],
+    [ 0.008,  0.004,  0.005,  0.009],
+    [ 0.003, -0.002,  0.001,  0.004],
+    [-0.009,  0.002, -0.004, -0.011],
+    [ 0.011,  0.005,  0.007,  0.013],
+])
+
+n, d = R.shape
+mu = ...
+Rc = ...
+Sigma = ...
+eigvals, eigvecs = ...
+\end{verbatim}
+
+\paragraph{Exercise 8 -- Portfolio risk lab.}
+Consider four assets with expected returns and covariance matrix
+\[
+\mu=
+\begin{pmatrix}
+0.05\\0.07\\0.09\\0.12
+\end{pmatrix},
+\qquad
+\Sigma=
+\begin{pmatrix}
+0.040&0.012&0.018&0.010\\
+0.012&0.060&0.020&0.016\\
+0.018&0.020&0.090&0.030\\
+0.010&0.016&0.030&0.160
+\end{pmatrix}.
+\]
+
+\begin{enumerate}
+\item Check numerically that $\Sigma$ is symmetric.
+\item Check numerically that all eigenvalues of $\Sigma$ are positive.
+\item For
+\[
+w_0=(0.25,0.25,0.25,0.25)^\top,
+\]
+compute expected return, variance, and volatility.
+\item Compute the unconstrained minimum-variance portfolio with budget
+$\mathbf{1}^\top w=1$:
+\[
+w^\star=\frac{\Sigma^{-1}\mathbf{1}}
+{\mathbf{1}^\top\Sigma^{-1}\mathbf{1}}.
+\]
+Use \texttt{np.linalg.solve} rather than explicitly forming the inverse.
+\item Compare $w^\star$ to $w_0$ in terms of return and volatility.
+\item Generate 5000 random long-only portfolios, normalize each one so weights
+sum to $1$, and plot or print the lowest volatility you find.
+\item Does the best random portfolio get close to $w^\star$? Explain why or
+why not.
+\end{enumerate}
+
+\section{Decomposition Brainteasers and Applications}
+
+\paragraph{Exercise 9 -- Predicting a coupled system without iterating.}
+Two quantities evolve according to
+\[
+x_{k+1}=Ax_k,
+\qquad
+A=\begin{pmatrix}3&1\\0&2\end{pmatrix},
+\qquad
+x_0=\begin{pmatrix}0\\1\end{pmatrix}.
+\]
+
+\begin{enumerate}
+\item Compute $x_1,x_2,x_3$ directly and guess the form of $x_k$.
+\item Diagonalize $A$ and use the decomposition to compute $A^k$.
+\item Deduce a closed formula for $x_k$ and verify your initial guess.
+\item Which eigenvalue controls the long-run growth? Explain without carrying
+out any additional matrix multiplication.
+\item Suppose instead that $x_0=(-1,1)^\top$. What simplification occurs, and
+why?
+\end{enumerate}
+
+\paragraph{Exercise 10 -- Finding hidden risk factors.}
+Two standardized asset returns have correlation matrix
+\[
+C=\begin{pmatrix}1&0.8\\0.8&1\end{pmatrix}.
+\]
+
+\begin{enumerate}
+\item Without expanding a determinant, propose two orthogonal candidate
+eigenvectors using the symmetry between the assets.
+\item Normalize these vectors and compute their eigenvalues.
+\item Interpret the two eigenportfolios as a common trade and a spread trade.
+\item Compute the variance of each unit eigenportfolio.
+\item A trader claims that the equally weighted long--short portfolio is almost
+riskless. Is that statement literally correct? Quantify your answer.
+\item Repeat the reasoning for
+$C_\rho=\begin{pmatrix}1&\rho\\\rho&1\end{pmatrix}$ and describe what happens
+as $\rho\to1$ and as $\rho\to-1$.
+\end{enumerate}
+
+\paragraph{Exercise 11 -- Manufacturing a target correlation.}
+Let $Z_1,Z_2$ be independent standard Gaussian variables. You want to construct
+a Gaussian vector $X=(X_1,X_2)^\top$ with covariance matrix
+\[
+\Sigma=\begin{pmatrix}4&2\\2&3\end{pmatrix}.
+\]
+
+\begin{enumerate}
+\item Find the lower-triangular Cholesky factor $L$ such that
+$\Sigma=LL^\top$.
+\item Write $X=LZ$ component by component.
+\item Compute $\Var(X_1)$, $\Var(X_2)$, and $\Cov(X_1,X_2)$ directly from
+your formulas and verify that they match $\Sigma$.
+\item Compute the correlation between $X_1$ and $X_2$.
+\item If $z=(1,-1)^\top$ is one simulated independent shock, compute the
+corresponding correlated shock $Lz$.
+\item Explain why multiplying by $\Sigma$ itself, instead of $L$, would not
+produce covariance $\Sigma$.
+\end{enumerate}
+
+\section{Finance Brainteasers and Theory}
+
+\paragraph{Exercise 12 -- Singular covariance and redundant assets.}
+Let $R_1$ and $R_2$ be two returns with
+\[
+\Var(R_1)=1,\qquad \Var(R_2)=1,\qquad \Cov(R_1,R_2)=0.2.
+\]
+Define a third return by $R_3=R_1+R_2$.
+
+\begin{enumerate}
+\item Compute $\Cov(R_1,R_3)$, $\Cov(R_2,R_3)$, and $\Var(R_3)$ from the
+identity $R_3=R_1+R_2$.
+\item Use these quantities to write the full covariance matrix $\Sigma$ of
+$(R_1,R_2,R_3)$.
+\item Write $R=(R_1,R_2,R_3)^\top$ as $R=MX$, where
+$X=(R_1,R_2)^\top$, and deduce the factorization
+$\Sigma=M\Sigma_XM^\top$.
+\item Find a nonzero vector $w$ such that $\Sigma w=0$ and verify the matrix
+multiplication explicitly.
+\item Compute and interpret the corresponding portfolio return $w^\top R$.
+\item Explain in three equivalent ways why $\Sigma$ is singular: using the
+linear relation among returns, the kernel, and the rank of $M$.
+\item Suppose three securities have payoffs exactly $R_1,R_2,R_3$ and current
+prices $p_1,p_2,p_3$. Derive the price relation required by no arbitrage.
+\item If $p_3<p_1+p_2$, give the positions, initial cash flow, and terminal
+payoff. Repeat the analysis for $p_3>p_1+p_2$.
+\end{enumerate}
+
+\paragraph{Exercise 13 -- Short theoretical questions.}
+Give short but rigorous answers.
+
+\begin{enumerate}
+\item Prove that for any real matrix $X$, the matrix $X^\top X$ is symmetric
+positive semidefinite.
+\item Prove that if $A$ is injective, then $\ker(A)=\{0\}$, and prove the
+converse.
+\item Let $A\in\R^{m\times n}$. Explain why $Ax=b$ has a solution if and only
+if $b\in\im(A)$.
+\item Let $A$ be real symmetric. Prove that eigenvectors associated with
+distinct eigenvalues are orthogonal.
+\item Give an example of a matrix with one repeated eigenvalue that is not
+diagonalizable.
+\item Explain, in one paragraph, why PCA is just diagonalization of a covariance
+matrix.
+\end{enumerate}
+
+\section{Markov Chains and Matrix Brainteasers}
+
+Throughout this section, probability distributions are column vectors and
+$P_{ij}=\mathbb{P}(X_{n+1}=i\mid X_n=j)$.
+
+\paragraph{Exercise 14 -- Credit migration by matrix powers.}
+Consider
+\[
+P=\begin{pmatrix}0.9&0.4\\0.1&0.6\end{pmatrix}.
+\]
+
+\begin{enumerate}
+\item Verify that $P$ is column-stochastic and explain the meaning of each
+column.
+\item Starting from $\mu_0=(1,0)^\top$, compute $\mu_1$ and $\mu_2$.
+\item Find the stationary distribution $\pi$ by solving
+$P\pi=\pi$ together with $\mathbf{1}^\top\pi=1$.
+\item Find both eigenvalues of $P$ and diagonalize it.
+\item Obtain a closed formula for $\mu_n=P^n\mu_0$.
+\item How many periods are needed before the Bad-state probability is within
+$10^{-3}$ of its stationary value?
+\end{enumerate}
+
+\paragraph{Exercise 15 -- Waiting time for PPF.}
+A fair coin is tossed repeatedly until the consecutive pattern PPF appears,
+where P denotes heads and F denotes tails.
+
+\begin{enumerate}
+\item Define states according to the longest suffix that is also a prefix of
+PPF.
+\item Draw the transition graph and write its transition matrix, including an
+absorbing completion state.
+\item Let $E_0,E_P,E_{PP}$ be the expected remaining waiting times. Condition
+on the next toss to obtain a linear system.
+\item Solve the system and compute the expected number of tosses from the
+start.
+\item Explain why observing another P from state PP does not reset the process.
+\end{enumerate}
+
+\paragraph{Exercise 16 -- Waiting time for 564.}
+A fair six-sided die is rolled repeatedly until three consecutive rolls are
+5, then 6, then 4.
+
+\begin{enumerate}
+\item Construct states $0$, $5$, and $56$ using the longest useful suffix.
+\item Write the transition matrix after adding an absorbing state for 564.
+\item Let $E_0,E_5,E_{56}$ be the expected remaining waiting times. Derive the
+three first-step recurrences.
+\item Solve the resulting linear system.
+\item Compare the answer with $6^3$ and explain the relationship.
+\end{enumerate}
+
+\end{document}

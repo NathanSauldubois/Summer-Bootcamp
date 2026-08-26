@@ -1,0 +1,636 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,bm}
+\usepackage{enumitem}
+
+\title{Exercise Sheet -- Probability Spaces \& Random Variables\\[0.4em]
+{\large (Events, Laws, Expectation, Variance, Inequalities, and Basic Tools)}}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+This sheet is organized in two parts:
+\begin{itemize}
+  \item \textbf{Part A -- Fundamental exercises (9 problems)}
+  \item \textbf{Part B -- Advanced exercises (11 problems)}
+\end{itemize}
+
+The problems are designed to practice:
+events as sets, probability measures and their properties (union bound, total probability, Bayes),
+random variables and distributions (pmf/pdf/cdf), expectation/variance and transformations,
+and classical inequalities (Jensen/Markov/Chebyshev), with a few finance-flavored applications.
+
+\bigskip
+\hrule
+\bigskip
+
+\section*{Part A -- Fundamental Exercises}
+
+\begin{enumerate}[leftmargin=*, itemsep=1.2em]
+
+% -----------------------------
+\item \textbf{Events as sets: operations, unions/intersections, and $\limsup/\liminf$}
+
+\textbf{(a) Dice warm-up.}
+Let $\Omega=\{1,2,3,4,5,6\}$ and
+\[
+A=\{2\},\qquad B=\{2,4,6\},\qquad C=\{1,2,3\}.
+\]
+Compute $A^c,B^c,C^c$, then $A\cup C$, $B\cap C$, and $B\setminus C$.
+Verify that $B\setminus C=B\cap C^c$.
+
+\medskip
+\textbf{(b) Infinite unions/intersections and limits.}
+For $n\ge1$, define
+\[
+A_n=\Big[-\frac1n,\;2+\frac1n\Big],
+\qquad
+B_n=\Big[-\frac5n,\;\frac{n}{2}\Big].
+\]
+\begin{enumerate}[label=(\roman*)]
+\item Compute $\bigcup_{n\ge1}A_n$ and $\bigcap_{n\ge1}A_n$.
+\item Compute $\limsup_{n\to\infty}A_n$ and $\liminf_{n\to\infty}A_n$ and interpret them.
+\item Same questions for $(B_n)_{n\ge1}$.
+\end{enumerate}
+
+\bigskip
+
+% -----------------------------
+\item \textbf{Basic probability properties + union bound (proof + application)}
+
+Let $(\Omega,\mathcal{F},\mathbb{P})$ be a probability space and $A,B\in\mathcal{F}$.
+\begin{enumerate}[label=(\alph*)]
+\item Prove: if $A\subseteq B$ then $\mathbb{P}(A)\le \mathbb{P}(B)$.
+\item Prove: $\mathbb{P}(A^c)=1-\mathbb{P}(A)$.
+\item Prove inclusion--exclusion:
+\[
+\mathbb{P}(A\cup B)=\mathbb{P}(A)+\mathbb{P}(B)-\mathbb{P}(A\cap B),
+\]
+and deduce $\mathbb{P}(A\cup B)\le \mathbb{P}(A)+\mathbb{P}(B)$.
+\item (Union bound, finite case) Show that for events $A_1,\dots,A_n$,
+\[
+\mathbb{P}\Big(\bigcup_{k=1}^n A_k\Big)\le \sum_{k=1}^n \mathbb{P}(A_k).
+\]
+\end{enumerate}
+
+\bigskip
+
+% -----------------------------
+\item \textbf{Independence: pairwise vs mutual (finite example)}
+
+Let $\Omega=\{\omega_1,\omega_2,\omega_3,\omega_4\}$ with the uniform probability.
+Define
+\[
+A=\{\omega_1,\omega_2\},\quad
+B=\{\omega_1,\omega_3\},\quad
+C=\{\omega_2,\omega_3\}.
+\]
+\begin{enumerate}[label=(\alph*)]
+\item Show that $A,B,C$ are pairwise independent.
+\item Compute $\mathbb{P}(A\cap B\cap C)$ and compare with $\mathbb{P}(A)\mathbb{P}(B)\mathbb{P}(C)$.
+\item Explain briefly what this teaches you about ``pairwise'' vs ``mutual'' independence.
+\end{enumerate}
+
+\bigskip
+
+% -----------------------------
+\item \textbf{Independence and dependence (coin tosses)}
+
+Let $(X_1,X_2,X_3)$ be outcomes of three independent fair coin tosses, $X_i\in\{H,T\}$.
+Define
+\[
+A=\{X_1=H\},\qquad
+B=\{X_2=H\},\qquad
+C=\{\text{exactly two heads occur}\}.
+\]
+\begin{enumerate}[label=(\alph*)]
+\item Show that $A$ and $B$ are independent.
+\item Are $A$ and $C$ independent? Justify by computing probabilities.
+\item Give an example of two events built from $(X_1,X_2,X_3)$ that are \emph{not} independent.
+\end{enumerate}
+
+\bigskip
+
+% -----------------------------
+\item \textbf{Conditioning: the two-children problem}
+
+A family has two children. Assume the four configurations
+\[
+(F,F), (F,G), (G,F), (G,G)
+\]
+are equiprobable ($F$=girl, $G$=boy; first coordinate = older child).
+Compute:
+\begin{enumerate}[label=(\alph*)]
+\item $\mathbb{P}(\text{both girls}\mid \text{younger is a girl})$,
+\item $\mathbb{P}(\text{both girls}\mid \text{older is a girl})$,
+\item $\mathbb{P}(\text{both girls}\mid \text{at least one is a girl})$.
+\end{enumerate}
+
+\bigskip
+
+% -----------------------------
+\item \textbf{Law of total probability + Bayes (finite case)}
+
+A market indicator $Y\in\{G,B\}$ (Good/Bad) satisfies
+$\mathbb{P}(Y=G)=0.7$ and $\mathbb{P}(Y=B)=0.3$.
+A signal $S\in\{1,0\}$ is observed with
+\[
+\mathbb{P}(S=1\mid Y=G)=0.9,
+\qquad
+\mathbb{P}(S=1\mid Y=B)=0.2.
+\]
+\begin{enumerate}[label=(\alph*)]
+\item Compute $\mathbb{P}(S=1)$ using the law of total probability.
+\item Compute $\mathbb{P}(Y=G\mid S=1)$ using Bayes' formula.
+\item Interpret the result in one sentence.
+\end{enumerate}
+
+\bigskip
+
+% -----------------------------
+\item \textbf{Bernoulli/binomial modeling (oil slicks)}
+
+In an oil region, the probability that one drilling leads to an oil slick is $0.1$.
+\begin{enumerate}[label=(\alph*)]
+\item Explain why one drilling can be modeled by a Bernoulli random variable.
+\item We perform $10$ drillings. Let $X$ be the number of oil slicks.
+Under which assumptions does $X\sim\mathrm{Bin}(10,0.1)$ hold?
+\item Assuming $X\sim\mathrm{Bin}(10,0.1)$, compute $\mathbb{P}(X=2)$ and $\mathbb{P}(X\ge1)$.
+\end{enumerate}
+
+\bigskip
+
+% -----------------------------
+\item \textbf{CDF, expectation, and variance for a discrete law}
+
+Let $X$ satisfy
+\[
+\mathbb{P}(X=-1)=\frac14,\quad
+\mathbb{P}(X=0)=\frac12,\quad
+\mathbb{P}(X=2)=\frac14.
+\]
+\begin{enumerate}[label=(\alph*)]
+\item Write the cdf $F_X(t)=\mathbb{P}(X\le t)$ explicitly (piecewise).
+\item Check that $F_X$ is non-decreasing and right-continuous, and identify its jumps.
+\item Compute $\mathbb{P}(-1<X\le2)$ using the cdf.
+\item Compute $\mathbb{E}[X]$ and $\mathrm{Var}(X)$.
+\end{enumerate}
+
+\bigskip
+
+% -----------------------------
+\item \textbf{Mean/variance for standard laws (short answers)}
+
+Compute mean and variance for:
+\begin{enumerate}[label=(\alph*)]
+\item $X\sim \mathrm{Bin}(n,p)$,
+\item $Y\sim \mathrm{Poi}(\lambda)$,
+\item $U\sim U[a,b]$,
+\item $E\sim \mathrm{Exp}(\lambda)$,
+\item $Z\sim \mathcal{N}(\mu,\sigma^2)$.
+\end{enumerate}
+(You may state known formulas, but justify at least two of them.)
+
+\bigskip
+
+% -----------------------------
+\item \textbf{Transformations}
+
+\textbf{(a) Continuous transformation.}
+Let $X\sim U[0,1]$ and define $Z=X^2$.
+Compute $F_Z$, deduce $f_Z$, and compute $\mathbb{E}[Z]$ in two ways.
+
+\medskip
+\textbf{(b) Min/max.}
+Let $X\sim U[0,1]$. Define
+\[
+Y=\min(X,1-X),\qquad W=\max(X,1-X).
+\]
+Determine the cdf (or density) of $Y$ and of $W$, and compute $\mathbb{E}[YW]$.
+
+\bigskip
+
+\bigskip
+
+% -----------------------------
+\item \textbf{Quadratic transformation of a normal variable}
+
+Let $X\sim \mathcal{N}(0,1)$ and define
+\[
+Y = X^2.
+\]
+
+\begin{enumerate}[label=(\alph*)]
+\item Compute the cdf $F_Y(y)=\mathbb{P}(Y\le y)$ for $y\ge0$.
+\item Deduce the density $f_Y$.
+\item Identify the distribution of $Y$.
+\item Compute $\mathbb{E}[Y]$ and $\mathrm{Var}(Y)$.
+\end{enumerate}
+
+\bigskip
+
+% -----------------------------
+\item \textbf{Absolute value of a normal variable}
+
+Let $X\sim\mathcal{N}(0,\sigma^2)$ and define
+\[
+Y=|X|.
+\]
+
+\begin{enumerate}[label=(\alph*)]
+\item Compute the cdf of $Y$.
+\item Deduce the density of $Y$.
+\item Compute $\mathbb{E}[Y]$.
+\item Explain why $Y$ is not Gaussian.
+\end{enumerate}
+
+\bigskip
+
+% -----------------------------
+\item \textbf{Characteristic function and identification (detailed)}
+
+Let $X$ be a real random variable with characteristic function
+\[
+\varphi_X(t)=\mathbb{E}\!\left[e^{itX}\right]=\frac{1}{1+t^2},\qquad t\in\mathbb{R}.
+\]
+
+\begin{enumerate}[label=(\alph*)]
+
+\item \textbf{Basic checks.}
+\begin{enumerate}[label=(\roman*)]
+\item Verify that $\varphi_X(0)=1$ and that $\varphi_X$ is even and real-valued.
+\item Show that $|\varphi_X(t)|\le 1$ for all $t$.
+\item Compute $\displaystyle \lim_{|t|\to\infty}\varphi_X(t)$.
+\end{enumerate}
+
+\medskip
+
+\item \textbf{Integrability.}
+Show that $\varphi_X\in L^1(\mathbb{R})$ by computing
+\[
+\int_{-\infty}^{\infty}\left|\varphi_X(t)\right|\,dt
+=
+\int_{-\infty}^{\infty}\frac{1}{1+t^2}\,dt.
+\]
+(You may recall $\int_{-\infty}^{\infty}\frac{1}{1+t^2}\,dt=\pi$.)
+
+\medskip
+
+\item \textbf{Recovering a density via Fourier inversion.}
+Assume that $\varphi_X\in L^1(\mathbb{R})$. Then $X$ admits a continuous density $f_X$ given by
+\[
+f_X(x)=\frac{1}{2\pi}\int_{-\infty}^{\infty} e^{-itx}\,\varphi_X(t)\,dt.
+\]
+\begin{enumerate}[label=(\roman*)]
+\item Using the known Fourier transform identity
+\[
+\int_{-\infty}^{\infty} e^{-itx}\,\frac{1}{1+t^2}\,dt
+= \pi e^{-|x|},
+\]
+deduce that
+\[
+f_X(x)=\frac{1}{2}e^{-|x|},\qquad x\in\mathbb{R}.
+\]
+\item Check that $f_X$ integrates to $1$.
+\end{enumerate}
+
+\medskip
+
+\item \textbf{Identification of the law.}
+\begin{enumerate}[label=(\roman*)]
+\item Identify the distribution corresponding to $f_X(x)=\frac12 e^{-|x|}$.
+(State its name and parameters.)
+\item Compute $\mathbb{P}(X\ge 0)$ and explain why it must be $1/2$.
+\end{enumerate}
+
+\medskip
+
+\item \textbf{Moments: existence and computation.}
+\begin{enumerate}[label=(\roman*)]
+\item Does $\mathbb{E}[X]$ exist? Justify carefully.
+\item Compute $\mathbb{E}[X]$.
+\item Compute $\mathbb{E}[|X|]$ and $\mathrm{Var}(X)$.
+\end{enumerate}
+
+\medskip
+
+\item \textbf{Link between smoothness of $\varphi_X$ and moments (optional but instructive).}
+\begin{enumerate}[label=(\roman*)]
+\item Compute $\varphi_X'(t)$ and check whether $\varphi_X'(0)$ exists.
+Recall that if $\mathbb{E}[|X|]<\infty$, then $\varphi_X'(0)=i\mathbb{E}[X]$.
+\item Compute $\varphi_X''(0)$ and discuss what it suggests about $\mathbb{E}[X^2]$.
+(Recall: if $\mathbb{E}[X^2]<\infty$ then $\varphi_X''(0)=-\mathbb{E}[X^2]$.)
+\end{enumerate}
+
+\medskip
+
+\item \textbf{Comparison with the Gaussian case.}
+Let $Z\sim\mathcal{N}(0,\sigma^2)$ so that
+\[
+\varphi_Z(t)=\exp\!\left(-\frac{\sigma^2 t^2}{2}\right).
+\]
+\begin{enumerate}[label=(\roman*)]
+\item Compare the decay rates of $\varphi_X(t)=1/(1+t^2)$ and $\varphi_Z(t)$ as $|t|\to\infty$.
+\item Explain qualitatively what this implies about the tails of $X$ versus $Z$.
+\item Which variable has heavier tails? Give one quantitative argument (e.g.\ compare $\mathbb{P}(|X|>x)$ and $\mathbb{P}(|Z|>x)$ asymptotically).
+\end{enumerate}
+
+\end{enumerate}
+\bigskip
+% -----------------------------
+\item \textbf{Non-monotone transformation}
+
+Let $X\sim U[-1,2]$ and define
+\[
+Y = X(1-X).
+\]
+
+\begin{enumerate}[label=(\alph*)]
+\item Determine the range of $Y$.
+\item Compute $F_Y(y)=\mathbb{P}(Y\le y)$.
+\item Deduce the density of $Y$.
+\item Sketch the density.
+\end{enumerate}
+
+\bigskip
+
+% -----------------------------
+\item \textbf{Exponential transformation (finance flavor)}
+
+Let $X\sim \mathcal{N}(\mu,\sigma^2)$ and define
+\[
+S = e^X.
+\]
+
+\begin{enumerate}[label=(\alph*)]
+\item Compute the cdf of $S$.
+\item Deduce the density of $S$.
+\item Compute $\mathbb{E}[S]$.
+\item Identify the distribution of $S$ and interpret it financially.
+\end{enumerate}
+
+\bigskip
+
+% -----------------------------
+\item \textbf{Minimum of two independent variables}
+
+Let $X,Y$ be independent $\mathrm{Exp}(\lambda)$ random variables and define
+\[
+Z=\min(X,Y).
+\]
+
+\begin{enumerate}[label=(\alph*)]
+\item Compute $\mathbb{P}(Z>t)$.
+\item Deduce the distribution of $Z$.
+\item Compute $\mathbb{E}[Z]$.
+\item Give a short interpretation (waiting times).
+\end{enumerate}
+
+\bigskip
+
+% -----------------------------
+\item \textbf{Maximum of two independent variables}
+
+Let $X,Y$ be independent $U[0,1]$ variables and define
+\[
+M=\max(X,Y).
+\]
+
+\begin{enumerate}[label=(\alph*)]
+\item Compute the cdf of $M$.
+\item Deduce the density of $M$.
+\item Compute $\mathbb{E}[M]$.
+\item Compare $\mathbb{E}[M]$ with $\mathbb{E}[X]$.
+\end{enumerate}
+
+\bigskip
+
+% -----------------------------
+\item \textbf{Ratio of uniforms}
+
+Let $X,Y$ be independent $U[0,1]$ random variables and define
+\[
+Z=\frac{X}{Y}.
+\]
+
+\begin{enumerate}[label=(\alph*)]
+\item Compute $F_Z(z)$ for $z\ge0$.
+\item Deduce the density of $Z$.
+\item Does $\mathbb{E}[Z]$ exist? Justify.
+\item Explain briefly why heavy tails appear.
+\end{enumerate}
+
+\bigskip
+
+% -----------------------------
+\item \textbf{Characteristic function and identification}
+
+Let $X$ be a random variable with characteristic function
+\[
+\varphi_X(t)=\frac{1}{1+t^2}.
+\]
+
+\begin{enumerate}[label=(\alph*)]
+\item Show that $\varphi_X$ is integrable.
+\item Identify the distribution of $X$.
+\item Does $\mathbb{E}[X]$ exist?
+\item Compare with the Gaussian case.
+\end{enumerate}
+
+\bigskip
+
+% -----------------------------
+\item \textbf{Censored payoff (option-style)}
+
+Let $X\sim \mathcal{N}(0,1)$ and define
+\[
+Y=\max(X,0).
+\]
+
+\begin{enumerate}[label=(\alph*)]
+\item Compute the cdf of $Y$.
+\item Show that $Y$ has a mixed distribution.
+\item Compute $\mathbb{E}[Y]$.
+\item Interpret $Y$ as a financial payoff.
+\end{enumerate}
+
+\bigskip
+
+% -----------------------------
+\item \textbf{Log-return aggregation}
+
+Let $X_1,\dots,X_n$ be i.i.d.\ $\mathcal{N}(\mu,\sigma^2)$ and define
+\[
+S_n=\sum_{k=1}^n X_k.
+\]
+
+\begin{enumerate}[label=(\alph*)]
+\item Compute the distribution of $S_n$.
+\item Compute $\mathbb{E}[e^{S_n}]$.
+\end{enumerate}
+
+\bigskip
+
+% -----------------------------
+\item \textbf{Censored exponential: mixed distribution}
+
+Let $X\sim \mathrm{Exp}(1)$ and fix $a>0$. Define $Y=\min(X,a)$.
+\begin{enumerate}[label=(\alph*)]
+\item Compute the cdf of $Y$ and sketch it.
+\item Does $Y$ admit a density on $\mathbb{R}$? Explain clearly (continuous part vs atom).
+\item Compute $\mathbb{E}[Y]$ (hint: $Y=X\mathbf{1}_{X\le a}+a\mathbf{1}_{X>a}$).
+\end{enumerate}
+
+\bigskip
+
+% -----------------------------
+\item \textbf{Markov and Chebyshev: basic bounds}
+
+Let $X\ge0$ a.s.\ with $\mathbb{E}[X]=5$.
+Use Markov's inequality to bound $\mathbb{P}(X\ge 20)$.
+
+Now assume $X$ is integrable with $\mathbb{E}[X]=2$ and $\mathrm{Var}(X)=9$.
+Use Chebyshev's inequality to bound $\mathbb{P}(|X-2|\ge 6)$.
+Give one sentence explaining why these bounds can be loose.
+
+\end{enumerate}
+
+\bigskip
+\hrule
+\bigskip
+
+\section*{Part B -- Advanced Exercises}
+
+\begin{enumerate}[leftmargin=*, itemsep=1.2em]
+\setcounter{enumi}{9} % continue numbering
+
+% -----------------------------
+\item \textbf{Limsup/liminf of events and interpretation}
+
+Let $(A_n)_{n\ge 1}$ be events. Recall:
+\[
+\limsup_{n\to\infty}A_n=\bigcap_{n\ge1}\ \bigcup_{k\ge n} A_k,
+\qquad
+\liminf_{n\to\infty}A_n=\bigcup_{n\ge1}\ \bigcap_{k\ge n} A_k.
+\]
+\begin{enumerate}[label=(\alph*)]
+\item Show that $\liminf A_n \subseteq \limsup A_n$.
+\item Explain in words what the events $\limsup A_n$ and $\liminf A_n$ mean.
+\item Give an example of a sequence $(A_n)$ such that $\liminf A_n=\emptyset$ but $\limsup A_n\neq\emptyset$.
+\end{enumerate}
+
+% -----------------------------
+\item \textbf{Monotone sequences of events (continuity of probability)}
+
+Let $(A_n)$ be increasing ($A_n\subseteq A_{n+1}$) and $(B_n)$ decreasing ($B_n\supseteq B_{n+1}$).
+\begin{enumerate}[label=(\alph*)]
+\item Prove that $\mathbb{P}(\cup_{n\ge1}A_n)=\lim_{n\to\infty}\mathbb{P}(A_n)$.
+\item Prove that $\mathbb{P}(\cap_{n\ge1}B_n)=\lim_{n\to\infty}\mathbb{P}(B_n)$.
+\item Example: Let $\Omega=(0,1]$ with $\mathbb{P}$ uniform, and $A_n=(0,1/n]$.
+Compute $\mathbb{P}(A_n)$ and $\mathbb{P}(\cap_{n\ge1}A_n)$, and check consistency with (b).
+\end{enumerate}
+
+% -----------------------------
+\item \textbf{Borel--Cantelli (I) and a concrete example}
+
+Let $(A_n)_{n\ge1}$ be events such that $\sum_{n=1}^\infty \mathbb{P}(A_n)<\infty$.
+\begin{enumerate}[label=(\alph*)]
+\item State precisely the conclusion of Borel--Cantelli (I) in terms of $\limsup A_n$.
+\item Example: let $(X_n)_{n\ge1}$ be i.i.d.\ with $\mathbb{P}(X_n=1)=1/n^2$ and $\mathbb{P}(X_n=0)=1-1/n^2$.
+Let $A_n=\{X_n=1\}$. Show that $\mathbb{P}(A_n\ \text{i.o.})=0$.
+\item Interpret the result informally: what does it say about the number of times $X_n=1$ occurs?
+\end{enumerate}
+
+% -----------------------------
+\item \textbf{Borel--Cantelli (II) under independence}
+
+Assume $(A_n)_{n\ge1}$ are \emph{independent} events and $\sum_{n=1}^\infty \mathbb{P}(A_n)=\infty$.
+\begin{enumerate}[label=(\alph*)]
+\item State Borel--Cantelli (II).
+\item Example: independent coin tosses $(X_n)$ with $\mathbb{P}(X_n=H)=1/2$ and $A_n=\{X_n=H\}$.
+Use (a) to conclude $\mathbb{P}(A_n\ \text{i.o.})=1$.
+\item Now let $A_n=\{X_n=H \ \text{and}\ X_{n+1}=H\}$. Are the events $(A_n)$ independent?
+Can you still argue that $A_n$ happens infinitely often with probability $1$? (Give a short justification.)
+\end{enumerate}
+
+
+% -----------------------------
+\item \textbf{Expectation may not exist (Cauchy)}
+
+Let $X$ have the Cauchy density $f(x)=\frac{1}{\pi(1+x^2)}$.
+\begin{enumerate}[label=(\alph*)]
+\item Show that $\int_{\mathbb{R}} |x| f(x)\,dx = \infty$.
+\item Deduce that $\mathbb{E}[X]$ does not exist (in the Lebesgue sense).
+\item (Optional) Explain why symmetry alone does \emph{not} guarantee existence of $\mathbb{E}[X]$.
+\end{enumerate}
+
+% -----------------------------
+\item \textbf{Jensen: a useful bound}
+
+Let $X\ge 0$ be integrable.
+\begin{enumerate}[label=(\alph*)]
+\item Apply Jensen's inequality to $\varphi(x)=x^2$ and deduce $\mathbb{E}[X]^2\le \mathbb{E}[X^2]$.
+\item Apply Jensen to $\varphi(x)=e^x$ and deduce $e^{\mathbb{E}[X]}\le \mathbb{E}[e^X]$.
+\item Give a one-line interpretation of (b) in terms of ``averaging then exponentiating'' vs.\ ``exponentiating then averaging''.
+\end{enumerate}
+
+% -----------------------------
+\item \textbf{Joint density, marginals, and independence check}
+
+Let $(X,Y)$ have joint density
+\[
+f_{X,Y}(x,y)=6x^2y\,\mathbf{1}_{\{0\le x\le 1,\ 0\le y\le 1\}}.
+\]
+\begin{enumerate}[label=(\alph*)]
+\item Check that $f_{X,Y}$ integrates to $1$ on $[0,1]^2$.
+\item Compute $f_X(x)$ and $f_Y(y)$.
+\item Show that $X$ and $Y$ are independent.
+\item Compute $\mathbb{E}[X]$, $\mathbb{E}[Y]$, and $\mathrm{Var}(X)$.
+\end{enumerate}
+
+% -----------------------------
+\item \textbf{Covariance and correlation basics}
+
+Let $X,Y\in L^2$. Recall
+\[
+\mathrm{Cov}(X,Y)=\mathbb{E}[(X-\mathbb{E}X)(Y-\mathbb{E}Y)].
+\]
+\begin{enumerate}[label=(\alph*)]
+\item Show that $\mathrm{Var}(X+Y)=\mathrm{Var}(X)+\mathrm{Var}(Y)+2\,\mathrm{Cov}(X,Y)$.
+\item Deduce that if $X$ and $Y$ are independent and square-integrable, then
+$\mathrm{Var}(X+Y)=\mathrm{Var}(X)+\mathrm{Var}(Y)$.
+\item Give a counterexample where $\mathrm{Cov}(X,Y)=0$ but $X$ and $Y$ are not independent.
+(Hint: take $X$ symmetric and $Y=X^2$.)
+\end{enumerate}
+
+% -----------------------------
+\item \textbf{Finance: portfolio mean and variance}
+
+Let $R=(R_1,\dots,R_d)$ be a vector of asset returns with mean $\mu=\mathbb{E}[R]$
+and covariance matrix $\Sigma=\mathrm{Cov}(R)$.
+For weights $w\in\mathbb{R}^d$, define the portfolio return $R_p=w^\top R$.
+\begin{enumerate}[label=(\alph*)]
+\item Show that $\mathbb{E}[R_p]=w^\top \mu$.
+\item Show that $\mathrm{Var}(R_p)=w^\top\Sigma w$.
+\item Two-asset case: $d=2$, $\Sigma=\begin{pmatrix}\sigma_1^2&\rho\sigma_1\sigma_2\\ \rho\sigma_1\sigma_2&\sigma_2^2\end{pmatrix}$,
+and $w_2=1-w_1$. Express $\mathrm{Var}(R_p)$ as a quadratic function of $w_1$ and find the minimizer $w_1^\star$.
+\end{enumerate}
+
+% -----------------------------
+\item \textbf{Finding a distribution via cdf (practice)}
+
+Let $X$ be continuous with density $f_X(x)=2x\,\mathbf{1}_{[0,1]}(x)$.
+Define $Y=\sqrt{X}$.
+\begin{enumerate}[label=(\alph*)]
+\item Compute $F_X(t)$ for all $t$.
+\item Compute $F_Y(t)$ for all $t$ by writing $\mathbb{P}(Y\le t)$ in terms of $X$.
+\item Deduce the density $f_Y$.
+\item Compute $\mathbb{E}[Y]$.
+\end{enumerate}
+
+\end{enumerate}
+
+\end{document}

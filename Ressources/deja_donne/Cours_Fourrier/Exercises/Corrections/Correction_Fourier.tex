@@ -1,0 +1,502 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{bm}
+
+\title{Solutions -- Applications of Fourier Analysis}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+This document contains suggested solutions (or solution outlines) to the exercises in the sheet
+\emph{Exercise Sheet -- Applications of Fourier Analysis}.
+
+\bigskip
+\hrule
+\bigskip
+
+\section*{Part A -- Fundamental Exercises}
+
+\begin{enumerate}
+% -----------------------------
+\item \textbf{Even/odd functions and Fourier series structure}
+
+\begin{enumerate}
+\item On $[-\pi,\pi]$, $f(x)=x^2$ satisfies
+\[
+f(-x)=(-x)^2=x^2=f(x),
+\]
+hence $f$ is \emph{even}.
+
+\item For an even function on $[-\pi,\pi]$, the Fourier sine coefficients vanish:
+\[
+b_n = \frac{1}{\pi}\int_{-\pi}^{\pi} f(x)\sin(nx)\,dx = 0,
+\]
+since $f$ is even and $\sin(nx)$ is odd, so the integrand is odd.
+
+Thus all $b_n=0$.
+
+\item The Fourier series of $f$ has only cosine terms:
+\[
+f(x) \sim \frac{a_0}{2} + \sum_{n=1}^{\infty} a_n \cos(nx),
+\]
+with
+\[
+a_0 = \frac{1}{\pi}\int_{-\pi}^{\pi} x^2\,dx,\qquad
+a_n = \frac{1}{\pi}\int_{-\pi}^{\pi} x^2\cos(nx)\,dx.
+\]
+(We are not required to compute these integrals explicitly.)
+\end{enumerate}
+
+\bigskip
+% -----------------------------
+\item \textbf{Fourier series of a square wave}
+
+\begin{enumerate}
+\item For $x\in(-\pi,\pi)$,
+\[
+f(-x)=
+\begin{cases}
+1 & \text{if } 0<-x<\pi \iff -\pi<x<0,\\
+-1 & \text{if } -\pi<-x<0 \iff 0<x<\pi.
+\end{cases}
+\]
+Thus
+\[
+f(-x)=
+\begin{cases}
+1 & \text{if } -\pi<x<0,\\
+-1 & \text{if } 0<x<\pi,
+\end{cases}
+= -f(x).
+\]
+So $f$ is \emph{odd}.
+
+\item Since $f$ is odd, we have $a_0=0$ and $a_n=0$ for all $n$, and the Fourier series reduces to
+\[
+f(x)\sim \sum_{n=1}^{\infty} b_n \sin(nx).
+\]
+
+\item For $n\ge 1$,
+\[
+b_n = \frac{1}{\pi}\int_{-\pi}^{\pi} f(x)\sin(nx)\,dx.
+\]
+Because $f$ and $\sin(nx)$ are both odd, their product is even, so
+\[
+b_n = \frac{2}{\pi}\int_{0}^{\pi} f(x)\sin(nx)\,dx
+     = \frac{2}{\pi}\int_{0}^{\pi} 1\cdot \sin(nx)\,dx.
+\]
+Compute
+\[
+\int_{0}^{\pi} \sin(nx)\,dx
+= \left[-\frac{\cos(nx)}{n}\right]_{0}^{\pi}
+= -\frac{\cos(n\pi)-\cos(0)}{n}
+= -\frac{(-1)^n-1}{n}
+= \frac{1-(-1)^n}{n}.
+\]
+Hence
+\[
+b_n = \frac{2}{\pi}\cdot \frac{1-(-1)^n}{n}.
+\]
+We see that:
+\[
+b_n =
+\begin{cases}
+0 & \text{if } n \text{ is even (then }1-(-1)^n=0),\\[4pt]
+\displaystyle \frac{4}{\pi n} & \text{if }n\text{ is odd (then }1-(-1)^n=2).
+\end{cases}
+\]
+So
+\[
+f(x) \sim \sum_{\substack{n=1 \\ n\ \text{odd}}}^{\infty} \frac{4}{\pi n} \sin(nx)
+= \frac{4}{\pi}\left(\sin x + \frac{1}{3}\sin 3x + \frac{1}{5}\sin 5x + \cdots\right).
+\]
+\end{enumerate}
+
+\bigskip
+% -----------------------------
+\item \textbf{Scaling property for Fourier series}
+
+\begin{enumerate}
+\item The original $f$ is $2\pi$-periodic. For $g(x)=f(2x)$, we have
+\[
+g(x+\pi) = f\big(2(x+\pi)\big)=f(2x+2\pi)=f(2x)=g(x),
+\]
+so the period of $g$ is $\pi$.
+
+\item We start from
+\[
+f(x)\sim \sum_{n=-\infty}^{\infty} c_n e^{inx}.
+\]
+Then
+\[
+g(x)=f(2x) \sim \sum_{n=-\infty}^{\infty} c_n e^{in(2x)} = \sum_{n=-\infty}^{\infty} c_n e^{i(2n)x}.
+\]
+We want to write
+\[
+g(x)\sim \sum_{k=-\infty}^{\infty} d_k e^{ikx}.
+\]
+Comparing, we see that only even integers $k=2n$ appear, and for those
+\[
+d_{2n}=c_n,\qquad d_k=0 \text{ if }k\text{ is odd}.
+\]
+
+\item Compressing the signal in time by a factor $2$ (replacing $x$ by $2x$) multiplies every frequency by $2$. Equivalently, the spectrum is shifted so that the energy moves to higher frequencies: the ``harmonics'' become more closely spaced in the time domain and double in frequency.
+\end{enumerate}
+
+\bigskip
+% -----------------------------
+\item \textbf{Fourier transform of a Gaussian}
+
+\begin{enumerate}
+\item We consider
+\[
+f(x)=e^{-\pi x^2},\qquad
+\hat f(\xi)=\int_{-\infty}^{\infty} e^{-\pi x^2}e^{-2\pi i x\xi}\,dx.
+\]
+We can complete the square in the exponent:
+\[
+-\pi x^2 - 2\pi i x\xi = -\pi\left(x^2 + 2ix\xi\right)
+= -\pi\left[(x+i\xi)^2 - (i\xi)^2\right]
+= -\pi(x+i\xi)^2 - \pi\xi^2.
+\]
+Hence
+\[
+\hat f(\xi)=\int_{-\infty}^{\infty} 
+e^{-\pi(x+i\xi)^2}\, e^{-\pi \xi^2}\,dx
+= e^{-\pi\xi^2}\int_{-\infty}^{\infty}e^{-\pi(x+i\xi)^2}\,dx.
+\]
+Shifting the integration line in the complex plane (justified by analyticity and decay) shows that
+\[
+\int_{-\infty}^{\infty}e^{-\pi(x+i\xi)^2}\,dx
+= \int_{-\infty}^{\infty}e^{-\pi u^2}\,du = 1,
+\]
+the standard Gaussian integral with our normalization (since
+\(\int_{\mathbb{R}} e^{-\pi u^2}\,du=1\)).
+Therefore
+\[
+\hat f(\xi) = e^{-\pi\xi^2}.
+\]
+
+\item The Gaussian is an eigenfunction of the Fourier transform in this convention, with eigenvalue $1$: applying the Fourier transform leaves the functional form unchanged (up to the exchange of $x$ and $\xi$). This is one reason why Gaussians are fundamental in analysis and probability.
+\end{enumerate}
+
+\bigskip
+% -----------------------------
+\item \textbf{Differentiation in the Fourier transform}
+
+\begin{enumerate}
+\item We have
+\[
+\widehat{f'}(\xi)
+= \int_{-\infty}^{\infty} f'(x)e^{-2\pi i x\xi}\,dx.
+\]
+Integrate by parts:
+\[
+\widehat{f'}(\xi)
+= \big[ f(x)e^{-2\pi i x\xi} \big]_{-\infty}^{\infty}
+ - \int_{-\infty}^{\infty} f(x)\cdot(-2\pi i\xi)e^{-2\pi i x\xi}\,dx.
+\]
+Assuming $f(x)\to 0$ fast enough as $|x|\to\infty$, the boundary term vanishes, yielding
+\[
+\widehat{f'}(\xi)
+= 2\pi i\xi\int_{-\infty}^{\infty} f(x)e^{-2\pi i x\xi}\,dx
+= 2\pi i\xi\,\hat f(\xi).
+\]
+
+\item Differentiation in the time/space domain multiplies the Fourier transform by $2\pi i\xi$, which grows linearly in $|\xi|$. Thus, high frequencies (large $|\xi|$) are amplified by differentiation, while low frequencies are less affected. Intuitively, differentiation emphasizes rapid oscillations in the signal.
+\end{enumerate}
+
+\bigskip
+% -----------------------------
+\item \textbf{Convolution and smoothing (basic)}
+
+\begin{enumerate}
+\item By definition,
+\[
+(f*g)(x)
+= \int_{-\infty}^{\infty} f(x-y)g(y)\,dy
+= \int_{-\infty}^{\infty} f(x-y)\frac{1}{2h}\mathbf{1}_{[-h,h]}(y)\,dy.
+\]
+Since $\mathbf{1}_{[-h,h]}(y)$ is zero outside $[-h,h]$, this becomes
+\[
+(f*g)(x)
+= \frac{1}{2h}\int_{-h}^{h} f(x-y)\,dy.
+\]
+
+\item The expression
+\[
+(f*g)(x)
+= \frac{1}{2h}\int_{-h}^{h} f(x-y)\,dy
+\]
+is simply the average of the values of $f$ over the interval of length $2h$ centered at $x$.
+
+\item Averaging nearby values of $f$ tends to smooth out rapid oscillations and noise: local peaks and troughs are ``averaged'' with their neighbors. Therefore, $f*g$ is smoother than $f$ (for reasonable $f$), and convolution with a localized, nonnegative kernel like $g$ is a standard smoothing operation.
+\end{enumerate}
+
+\end{enumerate}
+
+\bigskip
+\hrule
+\bigskip
+
+\section*{Part B -- Advanced Exercises}
+
+\begin{enumerate}
+\setcounter{enumi}{6} % continue numbering
+
+% -----------------------------
+\item \textbf{Periodic extension of a piecewise linear function}
+
+\begin{enumerate}
+\item On $[-\pi,\pi]$, $f(x)=\max(x,0)$ is $0$ for $x\le 0$ and equal to $x$ for $x>0$. One period looks like a straight line from $(0,0)$ to $(\pi,\pi)$ on the right and flat at $0$ on $[-\pi,0]$, extended periodically.
+
+\item We check parity:
+\[
+f(-x)=\max(-x,0).
+\]
+For $x>0$, $f(x)=x$, but $f(-x)=\max(-x,0)=0\neq -x$ and $\neq x$, so $f$ is neither even nor odd.
+
+\item The general Fourier series is
+\[
+f(x)\sim \frac{a_0}{2} + \sum_{n=1}^{\infty}\big(a_n\cos(nx)+b_n\sin(nx)\big),
+\]
+with
+\[
+a_0 = \frac{1}{\pi}\int_{-\pi}^{\pi} f(x)\,dx
+     = \frac{1}{\pi}\int_{0}^{\pi} x\,dx,
+\]
+\[
+a_n = \frac{1}{\pi}\int_{-\pi}^{\pi} f(x)\cos(nx)\,dx
+     = \frac{1}{\pi}\int_{0}^{\pi} x\cos(nx)\,dx,
+\]
+\[
+b_n = \frac{1}{\pi}\int_{-\pi}^{\pi} f(x)\sin(nx)\,dx
+     = \frac{1}{\pi}\int_{0}^{\pi} x\sin(nx)\,dx.
+\]
+(We are not required to evaluate these integrals here.)
+\end{enumerate}
+
+\bigskip
+% -----------------------------
+\item \textbf{Denoising via truncation of a Fourier series}
+
+\begin{enumerate}
+\item If $s(t)=u(t)+\varepsilon(t)$ and $\varepsilon$ is predominantly high-frequency noise, then in the Fourier series of $s$ the coefficients corresponding to large frequencies are mainly due to $\varepsilon$. By keeping only the low-frequency terms (i.e., truncating the series), we effectively remove much of the noise and retain the smooth part $u(t)$.
+
+\item Removing too many high-frequency coefficients may oversmooth the signal: sharp features, edges, transitions, or genuine high-frequency components of $u(t)$ may be lost. This leads to a biased or distorted reconstruction.
+
+\item High-frequency information is important, for instance, when representing signals with sharp edges, discontinuities, or fine details, such as square waves, piecewise constant signals, or images with edges and textures. In such cases, aggressive low-pass filtering can blur or smear important features.
+\end{enumerate}
+
+\bigskip
+% -----------------------------
+\item \textbf{Convolution and the Fourier transform}
+
+\begin{enumerate}
+\item The convolution is
+\[
+(f*g)(x)=\int_{-\infty}^{\infty} f(x-y)g(y)\,dy.
+\]
+
+\item We compute the Fourier transform of $f*g$:
+\[
+\mathcal{F}\{f*g\}(\xi)
+= \int_{-\infty}^{\infty} (f*g)(x)e^{-2\pi i x\xi}\,dx
+= \int_{-\infty}^{\infty}\left(\int_{-\infty}^{\infty} f(x-y)g(y)\,dy\right)e^{-2\pi i x\xi}\,dx.
+\]
+Assuming we can use Fubini's theorem to change the order of integration:
+\[
+\mathcal{F}\{f*g\}(\xi)
+= \int_{-\infty}^{\infty} g(y)\left(\int_{-\infty}^{\infty} f(x-y)e^{-2\pi i x\xi}\,dx\right)dy.
+\]
+Set $u=x-y$, so $x=u+y$ and $dx=du$:
+\[
+\int_{-\infty}^{\infty} f(x-y)e^{-2\pi i x\xi}\,dx
+= \int_{-\infty}^{\infty} f(u)e^{-2\pi i (u+y)\xi}\,du
+= e^{-2\pi i y\xi}\int_{-\infty}^{\infty} f(u)e^{-2\pi i u\xi}\,du
+= e^{-2\pi i y\xi}\hat f(\xi).
+\]
+Thus
+\[
+\mathcal{F}\{f*g\}(\xi)
+= \hat f(\xi)\int_{-\infty}^{\infty} g(y)e^{-2\pi i y\xi}\,dy
+= \hat f(\xi)\,\hat g(\xi).
+\]
+
+\item This shows that convolution in the time domain becomes multiplication in the frequency domain. Conversely, multiplying by a filter $\hat g(\xi)$ in frequency corresponds to convolving with $g$ in time. This principle is used to design filters: for example, choosing $\hat g(\xi)$ that is large for low frequencies and small for high frequencies yields a low-pass filter when applied via convolution.
+\end{enumerate}
+
+\bigskip
+% -----------------------------
+\item \textbf{Fourier transform of an exponential with absolute value}
+
+\begin{enumerate}
+\item We have
+\[
+f(x)=e^{-a|x|},\quad a>0.
+\]
+Then
+\[
+f(-x)=e^{-a|-x|}=e^{-a|x|}=f(x),
+\]
+so $f$ is even.
+
+\item The Fourier transform is
+\[
+\hat f(\xi)=\int_{-\infty}^{\infty} e^{-a|x|}e^{-2\pi i x\xi}\,dx.
+\]
+Using evenness,
+\[
+\hat f(\xi)
+= 2\int_{0}^{\infty} e^{-ax}\cos(2\pi x\xi)\,dx.
+\]
+We use the standard formula (for $a>0$):
+\[
+\int_{0}^{\infty} e^{-ax}\cos(bx)\,dx = \frac{a}{a^2+b^2}.
+\]
+Here $b=2\pi\xi$, so
+\[
+\int_{0}^{\infty} e^{-ax}\cos(2\pi x\xi)\,dx
+= \frac{a}{a^2+(2\pi\xi)^2}.
+\]
+Thus
+\[
+\hat f(\xi) = 2\cdot \frac{a}{a^2+4\pi^2\xi^2}
+= \frac{2a}{a^2+4\pi^2\xi^2}.
+\]
+
+\item As $|\xi|\to\infty$,
+\[
+\hat f(\xi)\sim \frac{2a}{4\pi^2\xi^2} = \mathcal{O}(|\xi|^{-2}).
+\]
+So the transform decays like $1/\xi^2$, which is slower than the Gaussian case (where the transform decays like $e^{-\pi\xi^2}$, much faster than any power). This matches the fact that $f$ has a ``corner'' at $0$ (nonsmooth point), while the Gaussian is infinitely smooth.
+\end{enumerate}
+
+\bigskip
+% -----------------------------
+\item \textbf{Two-dimensional Fourier transform of a Gaussian}
+
+\begin{enumerate}
+\item We use the 2D Fourier transform
+\[
+\hat f(\xi_1,\xi_2)
+= \int_{\mathbb{R}^2} e^{-\pi(x^2+y^2)} e^{-2\pi i (x\xi_1+y\xi_2)}\,dx\,dy.
+\]
+The integrand factorizes:
+\[
+e^{-\pi(x^2+y^2)} e^{-2\pi i (x\xi_1+y\xi_2)}
+= \big(e^{-\pi x^2}e^{-2\pi i x\xi_1}\big)\,
+  \big(e^{-\pi y^2}e^{-2\pi i y\xi_2}\big).
+\]
+So
+\[
+\hat f(\xi_1,\xi_2)
+= \left(\int_{-\infty}^{\infty} e^{-\pi x^2}e^{-2\pi i x\xi_1}\,dx\right)
+  \left(\int_{-\infty}^{\infty} e^{-\pi y^2}e^{-2\pi i y\xi_2}\,dy\right).
+\]
+Each factor is the 1D Gaussian transform:
+\[
+\int_{-\infty}^{\infty} e^{-\pi x^2}e^{-2\pi i x\xi}\,dx = e^{-\pi\xi^2}.
+\]
+Therefore
+\[
+\hat f(\xi_1,\xi_2) = e^{-\pi\xi_1^2} e^{-\pi\xi_2^2}
+= e^{-\pi(\xi_1^2+\xi_2^2)}.
+\]
+
+\item The factorization is
+\[
+\hat f(\xi_1,\xi_2)=\hat f_1(\xi_1)\hat f_1(\xi_2)
+\]
+where $\hat f_1$ is the 1D Gaussian transform.
+
+\item Both $f(x,y)=e^{-\pi(x^2+y^2)}$ and $\hat f(\xi_1,\xi_2)=e^{-\pi(\xi_1^2+\xi_2^2)}$ depend only on the radius
+\(|(x,y)|\) and \(|(\xi_1,\xi_2)|\) respectively, so they are radially symmetric. The Fourier transform preserves radial symmetry in this case.
+\end{enumerate}
+
+\bigskip
+% -----------------------------
+\item \textbf{Heat equation solved by Fourier transform}
+
+\begin{enumerate}
+\item Consider
+\[
+\partial_t u(t,x) = \partial_{xx}u(t,x),\qquad u(0,x)=f(x).
+\]
+Take the Fourier transform in $x$:
+\[
+\hat u(t,\xi)=\int_{\mathbb{R}} u(t,x)e^{-2\pi i x\xi}\,dx.
+\]
+Since
+\[
+\mathcal{F}\{\partial_{xx}u\}(t,\xi)
+= -(2\pi\xi)^2\hat u(t,\xi),
+\]
+we obtain the ODE
+\[
+\partial_t \hat u(t,\xi) = -4\pi^2\xi^2\hat u(t,\xi),
+\]
+with initial condition
+\[
+\hat u(0,\xi)=\hat f(\xi).
+\]
+
+\item This is a first-order linear ODE in $t$:
+\[
+\partial_t \hat u(t,\xi) + 4\pi^2\xi^2\hat u(t,\xi)=0.
+\]
+Its solution is
+\[
+\hat u(t,\xi) = e^{-4\pi^2\xi^2 t}\hat f(\xi).
+\]
+
+\item Taking the inverse Fourier transform,
+\[
+u(t,x)
+= \int_{\mathbb{R}} e^{-4\pi^2\xi^2 t}\hat f(\xi)e^{2\pi i x\xi}\,d\xi.
+\]
+Equivalently, one may write
+\[
+u(t,x) = (G_t * f)(x),
+\]
+where $G_t(x)$ is the heat kernel
+\[
+G_t(x)=\frac{1}{\sqrt{4\pi t}}e^{-x^2/(4t)}.
+\]
+\end{enumerate}
+
+\bigskip
+% -----------------------------
+\item \textbf{Fourier features}
+
+\begin{enumerate}
+\item The functions
+\[
+\phi_k(x)=\cos(2\pi kx),\qquad \psi_k(x)=\sin(2\pi kx)
+\]
+are exactly the real and imaginary parts of the complex exponentials that form the basis of Fourier series. On a domain like $[0,1]$ (with periodic extension), Fourier series expand functions in terms of these sines and cosines.
+
+\item By the theory of Fourier series, any sufficiently regular periodic function on $[0,1]$ can be expanded as a convergent series in sines and cosines. Therefore, linear combinations of the features $\phi_k$ and $\psi_k$ can approximate a wide class of functions on $[0,1]$ to arbitrary accuracy in suitable norms (e.g.\ $L^2$).
+
+\item Functions with sharp transitions, high oscillations, or fine details require significant contributions from high-frequency components (large $|k|$). For example, a square wave or a function with many rapid oscillations needs many high-frequency features for an accurate approximation.
+\end{enumerate}
+
+\bigskip
+% -----------------------------
+\item \textbf{Spectral bias of learning algorithms (conceptual)}
+
+\begin{enumerate}
+\item In Fourier language, the statement means that, when approximating a target function, the learning algorithm tends to fit the low-frequency components (those with small $|\xi|$ in the Fourier transform) before capturing the high-frequency components (large $|\xi|$). In other words, the learned function's Fourier spectrum gradually fills in from low to high frequencies during training.
+
+\item A possible advantage is that low-frequency components often correspond to the global, smooth structure of the data, so learning these first can yield a robust approximation and may help generalization (reducing sensitivity to noise and small-scale fluctuations).
+
+\item A possible drawback is that if important information is encoded in high-frequency components (for instance, sharp spikes, abrupt regime changes, or fine details), the algorithm may learn these more slowly or inadequately. This can cause underfitting of sharp features or delayed convergence in regions where high-frequency behavior matters.
+\end{enumerate}
+
+\end{enumerate}
+
+\end{document}

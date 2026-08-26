@@ -1,0 +1,1501 @@
+% main_calculus_lecture2_metropolis.tex
+\documentclass[aspectratio=169]{beamer}
+
+% --- Language & encoding ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english,french]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% --- Math & tables ---
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{changepage}
+\usepackage{amssymb}
+\newcommand{\R}{\mathbb{R}}
+% --- Metropolis Theme ---
+\usetheme[numbering=fraction,progressbar=frametitle]{metropolis}
+\setbeamertemplate{frame numbering}[fraction]
+
+% --- Colors (keep your palette) ---
+\definecolor{BootcampBlueDark}{HTML}{1A3C68}
+\definecolor{TextBlack}{HTML}{000000}
+\definecolor{AccentGold}{HTML}{DAA520}
+\definecolor{Crimson}{HTML}{990000}
+\definecolor{MatrixGreen}{HTML}{228B22}
+\definecolor{MatrixRed}{HTML}{B22222}
+
+\setbeamercolor{block title example}{bg=BootcampBlueDark!90!black,fg=white}
+\setbeamercolor{block body example}{bg=BootcampBlueDark!5!white,fg=black}
+
+% === Thick frame title band ===
+\setbeamercolor{frametitle}{bg=BootcampBlueDark,fg=white}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamertemplate{frametitle}{
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,ht=3.2ex,dp=1.4ex,leftskip=1em,rightskip=1em]{frametitle}
+    \usebeamerfont{frametitle}\insertframetitle
+  \end{beamercolorbox}
+}
+
+% === Custom Definition Block ===
+\newenvironment{definitionblock}[1]{%
+  \par\vspace{0.4em}%
+  \begin{beamercolorbox}[
+      wd=\textwidth,
+      sep=0.4em,
+      leftskip=0.3em,
+      rightskip=0.6em,
+      rounded=false,
+      shadow=false
+    ]{block title example}%
+    \raisebox{0.15em}{\usebeamerfont{block title example}#1}%
+  \end{beamercolorbox}%
+  \vspace{-0.4em}%
+  \begin{beamercolorbox}[
+      wd=\textwidth,
+      sep=1em,
+      leftskip=0.6em,
+      rightskip=0.6em,
+      rounded=false,
+      shadow=false
+    ]{block body example}%
+    \usebeamerfont{block body example}%
+}{%
+  \end{beamercolorbox}%
+  \par\vspace{0.6em}%
+}
+
+% === Global text formatting ===
+\setbeamercolor{normal text}{fg=TextBlack,bg=white}
+\setbeamercolor{title}{fg=TextBlack}
+\setbeamercolor{structure}{fg=BootcampBlueDark}
+\setbeamercolor{progress bar}{fg=BootcampBlueDark,bg=gray!30}
+
+% --- Course Info ---
+\title{Lecture 2 — Differential Calculus (1D $\to$ Multivariate), Integration, Taylor, \& Optimization Links}
+\institute{NYU Tandon School, Finance and Risk Engineering}
+
+\metroset{
+  sectionpage=progressbar,
+  subsectionpage=progressbar
+}
+
+% --- Section & subsection transitions (plain) ---
+\AtBeginSection{\frame[plain]{\sectionpage}}
+\AtBeginSubsection{\frame[plain]{\subsectionpage}}
+
+\begin{document}
+
+\maketitle
+
+\begin{frame}{Outline}
+  \tableofcontents[hideallsubsections]
+\end{frame}
+
+% ==================================================
+% SECTION 1 — Differential Calculus (1D → nD)
+% ==================================================
+\section{Differential Calculus: From One to Several Variables}
+
+\begin{frame}{Outline}
+  \tableofcontents[currentsection,hideothersubsections]
+\end{frame}
+
+% ======================================================
+\subsection{Univariate Derivatives \& Rules}
+% ======================================================
+
+\begin{frame}{Derivative: Definition, Interpretation, Notation}
+\begin{definitionblock}{Derivative (limit definition)}
+\[
+f'(\textcolor{AccentGold}{x})
+=\lim_{h\to 0}
+\dfrac{f(\textcolor{AccentGold}{x}+h)-f(\textcolor{AccentGold}{x})}{h},
+\qquad\text{if the limit exists}.
+\]
+\end{definitionblock}
+
+\begin{itemize}
+    \item Measures the \textbf{instantaneous rate of change} of \(f\) at \(x\).
+    \item \textbf{Slope} of the tangent line at the point \((x,f(x))\).
+    \item Notations used:
+    \[
+    f'(x),\quad \dfrac{df}{dx}(x),\quad \partial_x f(x).
+    \]
+    \item Differentiability \(\Rightarrow\) continuity, but not conversely.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Differentiation Rules (Complete List)}
+\begin{itemize}
+    \item \textbf{Linearity}
+    \[
+    (af+bg)' = af' + bg', \qquad a,b\in\mathbb{R}.
+    \]
+
+    \item \textbf{Product rule}
+    \[
+    (fg)' = f'g + fg'.
+    \]
+    Example: \( (x^2 e^x)' = 2x e^x + x^2 e^x\).
+
+    \item \textbf{Quotient rule}
+    \[
+    \left(\frac{f}{g}\right)' = 
+    \frac{f'g - fg'}{g^2}, \qquad g(x)\neq 0.
+    \]
+    Example: \( \left(\frac{x}{x+1}\right)' = \frac{1}{(x+1)^2}. \)
+
+    \item \textbf{Chain rule}
+    If \(h(x)=f(g(x))\), then
+    \[
+    h'(x)=f'(g(x))\,g'(x).
+    \]
+    Example: \( \dfrac{d}{dx}\sin(x^2)=\cos(x^2)\cdot 2x.\)
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Classic Derivatives (Useful Table)}
+\begin{itemize}
+    \item Powers: \( \dfrac{d}{dx}(x^n)=n x^{n-1}\).
+    \item Exponential: \( (e^x)' = e^x \).
+    \item Logarithm: \( (\ln x)' = \dfrac{1}{x},\quad x>0.\)
+    \item Trigonometric:
+    \[
+    (\sin x)'=\cos x,\qquad (\cos x)'=-\sin x.
+    \]
+    \item Inverse functions : if $ f \circ f^{-1} (x) = x$, then $ \left. f^{-1} \right.' (x) = \frac{1}{ f' \circ f^{-1}(x)}.$
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Worked Example: Chain Rule with Polynomial Composition}
+\textbf{Goal:} compute the derivative of
+\[
+F(x)=(2x+1)^4.
+\]
+
+\begin{itemize}
+    \item Let \(u(x)=2x+1\).
+    \item Then \(F(x)=u(x)^4\).
+\end{itemize}
+
+\[
+F'(x)=4\,u(x)^3\cdot u'(x)
+     =4(2x+1)^3\cdot 2.
+\]
+
+\[
+\boxed{F'(x)=8(2x+1)^3}.
+\]
+\end{frame}
+
+% ======================================================
+\subsection{Partial Derivatives \& Gradient}
+% ======================================================
+
+\begin{frame}{From Partial Derivatives to the Gradient (Multivariate)}
+
+\begin{definitionblock}{Partial derivatives}
+For \(f:\mathbb{R}^n\to\mathbb{R}\), the partial derivative with respect to \(x_i\) is
+\[
+\partial_{x_i} f(x)
+=
+\lim_{h\to 0}
+\frac{f(x_1,\dots,x_i+h,\dots,x_n)-f(x)}{h},
+\qquad i=1,\dots,n.
+\]
+We then define the \textbf{Gradient} as
+$\nabla f(x)
+=
+\begin{pmatrix}
+\partial_{x_1}f(x)\\[-2pt]
+\vdots\\[-2pt]
+\partial_{x_n}f(x)
+\end{pmatrix}
+\in\mathbb{R}^n.
+$
+We then have $\nabla f : \R^n \rightarrow \R^n$.
+\end{definitionblock}
+\vspace{-5mm}
+\begin{itemize}
+    \item \textbf{Geometric meaning:}  
+    \(\nabla f(x)\) points in the direction of **steepest ascent**;  
+    \(\|\nabla f(x)\|\) is the maximum directional rate of change at \(x\).
+    \item \textbf{Directional derivative:} $
+ D_{\!u}f(x)=\nabla f(x)^\top u,\qquad \|u\|=1.$
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Example: Gradient of a Quadratic Form}
+
+Let
+\[
+f(x)=x^\top Q x,
+\qquad Q\in\mathbb{R}^{n\times n},\; x\in\mathbb{R}^n.
+\]
+
+\textbf{Goal: compute the gradient.}
+
+\medskip
+
+Expand: $
+f(x)=\sum_{i=1}^n\sum_{j=1}^n Q_{ij} x_i x_j.
+$
+Differentiate with respect to \(x_k\):
+\[
+\partial_{x_k} f(x)
+=
+\sum_{j=1}^n Q_{kj} x_j
++
+\sum_{i=1}^n Q_{ik} x_i.
+\]
+Thus, in vector form,
+\[
+\nabla f(x) = (Q+Q^\top)x.
+\]
+
+\begin{itemize}
+    \item If \(Q\) is symmetric, \(\nabla f(x)=2Qx\).
+    \item This example will be essential when we study \textbf{convexity} and \text{Hessian}.
+\end{itemize}
+
+\end{frame}
+
+\subsection{Vector-Valued Functions \& Jacobian}
+
+\begin{frame}{Vector-Valued Functions \& the Jacobian Matrix}
+
+\begin{definitionblock}{Vector-Valued Function}
+A function \(g:\mathbb{R}^n \to \mathbb{R}^m\) maps an \(n\)-dimensional input
+vector to an \(m\)-dimensional output vector:
+\[
+g(x)=
+\begin{pmatrix}
+g_1(x)\\
+\vdots\\
+g_m(x)
+\end{pmatrix},
+\qquad
+x=
+\begin{pmatrix}
+x_1\\
+\vdots\\
+x_n
+\end{pmatrix}.
+\]
+\end{definitionblock}
+
+\begin{itemize}
+    \item Each component \(g_i(x)\) may depend on all variables \(x_1,\ldots,x_n\).
+    \item Examples: $
+        g(x_1,x_2)=\begin{pmatrix}x_1^2+x_2\\ e^{x_1-x_2}\end{pmatrix}
+        \,\, (n=2,\ m=2)$ and $
+        h(x_1,x_2,x_3) =\begin{pmatrix}x_1+x_2+x_3 \\ x_1x_2\end{pmatrix}
+        \,\, (n=3,\ m=2).$
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Jacobian Matrix \(J_g(x)\)}
+
+\begin{definitionblock}{Jacobian of \(g:\mathbb{R}^n\to\mathbb{R}^m\)}
+\[
+J_g(x)=\frac{\partial g(x)}{\partial x}=
+\begin{bmatrix}
+\dfrac{\partial g_1}{\partial x_1} & \cdots & \dfrac{\partial g_1}{\partial x_n}\\
+\vdots & \ddots & \vdots\\
+\dfrac{\partial g_m}{\partial x_1} & \cdots & \dfrac{\partial g_m}{\partial x_n}
+\end{bmatrix}
+\in\mathbb{R}^{m\times n}.
+\]
+\end{definitionblock}
+
+\begin{itemize}
+    \item \(J_g(x)\) is the **matrix of all first-order partial derivatives**.
+    \item Linear approximation around a point \(x_0\):
+    \[
+    g(x_0+h) \approx g(x_0) + J_g(x_0)h.
+    \]
+    So \(J_g(x_0)\) generalizes the slope to multiple dimensions.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Geometric \& Analytic Interpretation}
+
+\begin{itemize}
+    \item \(J_g(x)\) acts as the **best linear map** approximating \(g\) near \(x\):
+    \[
+    g(x+h) \approx g(x) + J_g(x)\,h.
+    \]
+
+    \item The Jacobian describes:
+    \begin{itemize}
+        \item How small changes in inputs affect outputs.
+        \item How a surface/volume in \(\mathbb{R}^n\) is stretched or rotated under \(g\).
+    \end{itemize}
+
+    \item For \(m=n\), \(|\det J_g(x)|\) gives the **local volume-scaling factor**:
+    \[
+    \text{Vol}(g(A)) \approx |\det J_g(x)|\,\text{Vol}(A)
+    \]
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Chain Rule (Matrix Form) \& Example}
+
+\textbf{Chain rule (matrix version).}
+If
+\[
+f:\mathbb{R}^m \to \mathbb{R}^p, \qquad
+g:\mathbb{R}^n \to \mathbb{R}^m,
+\]
+then their composition \(h=f\circ g:\mathbb{R}^n\to\mathbb{R}^p\) satisfies
+\[
+J_h(x)
+= J_f(g(x))\, J_g(x).
+\]
+\textit{(Matrix multiplication, dimension check: \(p\times m\) by \(m\times n\) yields \(p\times n\)).}
+
+\medskip
+
+\textbf{Example.}
+Let \(g(x_1,x_2)=(x_1^2+x_2,\, e^{x_1-x_2})\) and \(f(y_1,y_2)=y_1+y_2^2\). We have 
+$
+J_g(x)
+=
+\begin{bmatrix}
+2x_1 & 1\\
+e^{x_1-x_2} & -e^{x_1-x_2}
+\end{bmatrix}$, $
+J_f(y)
+=
+\begin{bmatrix}
+1 & 2y_2
+\end{bmatrix}$.
+Then
+$
+J_h(x)
+=J_f(g(x))J_g(x)$, then 
+$
+J_h(x)
+=\begin{bmatrix}
+1 & 2e^{x_1-x_2}
+\end{bmatrix}
+\begin{bmatrix}
+2x_1 & 1\\
+e^{x_1-x_2} & -e^{x_1-x_2}
+\end{bmatrix}
+$ and 
+$
+\boxed{J_h(x)
+=\begin{bmatrix}
+2x_1+2e^{2(x_1-x_2)} &
+1-2e^{2(x_1-x_2)}
+\end{bmatrix}.}
+$
+
+\end{frame}
+
+\begin{frame}{Examples \& Applications}
+
+\textbf{Linear map:}  
+If \(g(x)=Ax+b\), \(A\in\mathbb{R}^{m\times n}\), then
+\[
+J_g(x)=A.
+\]
+The Jacobian equals the transformation matrix itself.
+
+\medskip
+
+\textbf{Nonlinear transformation (polar coordinates).}
+\[
+g(r,\theta)=
+\begin{pmatrix}
+r\cos\theta\\[2pt]
+r\sin\theta
+\end{pmatrix}.
+\qquad
+J_g(r,\theta)=
+\begin{bmatrix}
+\cos\theta & -r\sin\theta\\
+\sin\theta & r\cos\theta
+\end{bmatrix}.
+\]
+\[
+\det J_g(r,\theta)=r,
+\]
+the classical **Jacobian determinant** in change of variables
+\((x,y)\leftrightarrow(r,\theta)\).
+\end{frame}
+
+% ======================================================
+\subsection{Second Derivatives \& Schwarz Theorem}
+% ======================================================
+
+\begin{frame}{Second Mixed Derivatives \& Regularity}
+
+\begin{definitionblock}{Second Mixed Partial Derivatives}
+For a function \( f:\mathbb{R}^n \to \mathbb{R} \),
+\[
+\partial_{x_i}\partial_{x_j} f(x)
+=
+\frac{\partial}{\partial x_i}
+\!\left(\frac{\partial f}{\partial x_j}(x)\right),
+\qquad i,j=1,\dots,n.
+\]
+\end{definitionblock}
+
+
+\medskip
+\textbf{Notation:}\quad
+\( f_{x_i x_j}(x) = \partial_{x_i}\partial_{x_j} f(x). \)
+
+\end{frame}
+
+\begin{frame}{Schwarz Theorem}
+
+\begin{definitionblock}{Schwarz (Symmetry of Mixed Partials)}
+If \( f \) has continuous second-order partial derivatives in a neighborhood of \(x\), then
+\[
+\boxed{
+\partial_{x_i}\partial_{x_j} f(x)
+=
+\partial_{x_j}\partial_{x_i} f(x),
+\qquad \forall i,j.
+}
+\]
+\end{definitionblock}
+
+\begin{itemize}
+    \item Key assumption: \( f \in C^2 \) (all second derivatives exist and are continuous).
+\end{itemize}
+
+\medskip
+\textbf{Practical implication:}
+Guarantees the consistency of quadratic (second-order Taylor) approximations used in optimization and PDE models.
+
+\end{frame}
+
+\begin{frame}{Hessian Matrix: Definition \& Structure}
+
+\begin{definitionblock}{Hessian of \( f:\mathbb{R}^n \to \mathbb{R} \)}
+\[
+\nabla^2 f(x)=
+\begin{pmatrix}
+\partial_{x_1x_1}f(x) & \cdots & \partial_{x_1x_n}f(x)\\
+\vdots & \ddots & \vdots\\
+\partial_{x_nx_1}f(x) & \cdots & \partial_{x_nx_n}f(x)
+\end{pmatrix}
+\in \mathbb{R}^{n\times n}.
+\]
+\end{definitionblock}
+
+\begin{itemize}
+    \item If \( f \in C^2 \), then \( \nabla^2 f(x) \) is \textbf{symmetric} (by Schwarz Theorem).
+    \item The Hessian captures the **local curvature** of \(f\).
+    \item Central tool for:
+    \begin{itemize}
+        \item Optimization (minima, maxima, saddle points),
+        \item Convexity analysis,
+        \item Second-order Taylor approximations,
+        \item Quadratic PDEs and control problems.
+    \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+% ----------------------------------------------------------
+\begin{frame}{Example: Hessian of a Quadratic Form}
+
+Consider the quadratic function
+\[
+f(x) = x^\top Q x, \qquad x \in \mathbb{R}^n, \; Q \in \mathbb{R}^{n\times n}.
+\]
+
+\begin{itemize}
+    \item Gradient:
+    \[
+    \nabla f(x) = (Q + Q^\top)x.
+    \]
+    \item Hessian:
+    \[
+    \nabla^2 f(x) = Q + Q^\top.
+    \]
+\end{itemize}
+
+\textbf{Special case:} if \(Q\) is symmetric,
+\[
+\nabla f(x) = 2Qx, 
+\qquad
+\nabla^2 f(x) = 2Q.
+\]
+
+\begin{itemize}
+    \item The Hessian is constant (does not depend on \(x\)).
+    \item Convexity test: \(f\) is convex iff \(Q\succeq 0\).
+\end{itemize}
+
+\end{frame}
+
+% ==================================================
+% SECTION 2 — Integration
+% ==================================================
+\section{Integration}
+
+\begin{frame}{Outline}
+  \tableofcontents[currentsection,hideothersubsections]
+\end{frame}
+
+% ============================================
+\subsection{Recall: 1D Integrals}
+% ============================================
+
+\begin{frame}{1D Integrals: Definition \& Interpretation}
+
+\begin{definitionblock}{Definite Integral}
+For an integrable function \(f:[a,b]\to\mathbb{R}\), the definite integral
+$
+\int_a^b f(x)\,dx
+$
+is the signed area under the curve.
+\end{definitionblock}
+
+\begin{itemize}
+    \item Measures cumulative quantity (area, mass, probability).
+    \item Negative contributions when \(f(x)<0\).
+    \item Additivity:
+    \[
+    \int_a^c f = \int_a^b f + \int_b^c f.
+    \]
+    \item Linearity:
+    \[
+    \int_a^b (\alpha f + \beta g)
+    = \alpha \int_a^b f + \beta \int_a^b g.
+    \]
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Fundamental Theorem of Calculus (FTC)}
+
+\begin{definitionblock}{Fundamental Theorem of Calculus}
+If \(f\) is continuous on \([a,b]\) and
+\[
+F(x)=\int_a^x f(t)\,dt,
+\]
+then
+\[
+F'(x)=f(x), \qquad \text{and} \qquad
+\int_a^b f(x)\,dx = F(b)-F(a).
+\]
+\end{definitionblock}
+
+\begin{itemize}
+    \item Antiderivative \(F\) recovers the integral.
+    \item Differentiation and integration are inverse operations (under regularity).
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Change of Variables (1D)}
+
+\begin{definitionblock}{Change of Variables Formula}
+Let \(u=g(x)\) with \(g\) strictly monotone and differentiable. Then
+\[
+\int_{a}^{b} f(x)\,dx
+=
+\int_{g(a)}^{g(b)} f(g^{-1}(u))\,
+\left|(g^{-1})'(u)\right|\,du.
+\]
+Equivalent formulation:
+\vspace{-3mm}
+\[
+\int f(g(x))\,g'(x)\,dx = \int f(u)\,du.
+\vspace{-6mm}
+\]
+\end{definitionblock}
+\vspace{-6 mm}
+\begin{itemize}
+    \item Most useful when one substitution simplifies the integrand.
+    \item Typical example: Gaussian integrals, logarithmic/exponential substitutions.
+\end{itemize}
+
+\textbf{Example (simple):}  
+Let \(u = 1+x^2\), then \(du = 2x\,dx\):
+\[
+\int_0^1 \frac{2x}{1+x^2}\,dx
+=
+\int_1^2 \frac{1}{u}\,du
+= \ln 2.
+\]
+
+\end{frame}
+
+\begin{frame}{Integration by Parts}
+
+\begin{definitionblock}{Integration by Parts}
+If \(u=u(x)\) and \(v=v(x)\) are differentiable:
+\vspace{-4mm}
+\[
+\int_a^b u(x) v'(x)\,dx
+=
+\big[u(x)v(x)\big]_{a}^{b}
+-
+\int_a^b u'(x) v(x)\,dx.
+\vspace{-6mm}
+\]
+\end{definitionblock}
+\vspace{-3mm}
+\begin{itemize}
+    \item Differentiation “moves” between factors.
+    \item Often used with:
+    \begin{itemize}
+        \item polynomials × exponentials,
+        \item polynomials × trig functions,
+        \item logarithms.
+    \end{itemize}
+\end{itemize}
+
+\textbf{Example:}
+\[
+\int_0^1 x e^x\,dx
+=
+\big[x e^x\big]_0^1 - \int_0^1 1\cdot e^x\,dx
+=
+e - (e-1) = 1.
+\]
+
+\end{frame}
+
+\begin{frame}{Worked Example: Expectation Under a Simple Density}
+
+Let \(X\) have density
+\[
+f_X(x) = 2x, \qquad x\in[0,1].
+\]
+
+\textbf{Check normalization:}
+\[
+\int_0^1 2x\,dx = 1.
+\]
+
+\begin{definitionblock}{Expectation}
+\[
+\mathbb{E}[X] = \int_0^1 x f_X(x)\,dx = \int_0^1 2x^2\,dx.
+\]
+\end{definitionblock}
+
+\[
+\mathbb{E}[X]
+= 2\left[\frac{x^3}{3}\right]_{0}^{1}
+= \frac{2}{3}.
+\]
+
+\begin{itemize}
+    \item Integration computes probability, expectation, and variance.
+    \item Same rules apply for any 1D continuous random variable.
+\end{itemize}
+
+\end{frame}
+
+% ======================================================
+\subsection{Leibniz Rule (Differentiate Under the Integral)}
+% ======================================================
+
+\begin{frame}{Leibniz Rule: General Case (Parameter \(\theta\))}
+
+\begin{definitionblock}{Leibniz Rule (general form)}
+
+Let \(f(x,\theta)\) be a function defined on a domain  
+$
+\{(x,\theta): a(\theta)\le x\le b(\theta),\ \theta\in I\},
+$
+and assume:
+
+\begin{enumerate}
+    \item \(a(\theta), b(\theta)\) are differentiable on \(I\);
+    \item \(f(\cdot,\theta)\) is integrable for each \(\theta\);
+    \item \(f(x,\theta)\) and \(\partial_\theta f(x,\theta)\) are continuous on the domain;
+    \item There exists an integrable dominating function \(M(x)\) such that  
+    \(|\partial_\theta f| \le M(\) for all \(\theta\in I\)
+    \ (Domination ensures one may interchange differentiation and integration).
+\end{enumerate}
+
+Then:
+\[
+\frac{d}{d\theta}\int_{a(\theta)}^{b(\theta)} f(x,\theta)\,dx
+=
+f(b(\theta),\theta)\,b'(\theta)
+-
+f(a(\theta),\theta)\,a'(\theta)
++
+\int_{a(\theta)}^{b(\theta)}\frac{\partial f}{\partial \theta}(x,\theta)\,dx.
+\]
+
+\end{definitionblock}
+
+\begin{itemize}
+    \item This is a consequence of the Dominated Convergence Theorem.  
+    \item Needed whenever both the integrand and the limits depend on a parameter.
+    \item Core tool for sensitivity analysis (Greeks), parametric expectations, and statistical models.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Special Case: Fixed Limits}
+
+If \(a(\theta)=a\) and \(b(\theta)=b\) are constants, then
+\[
+\frac{d}{d\theta} \int_a^b f(x,\theta)\,dx
+=
+\int_a^b \frac{\partial f}{\partial \theta}(x,\theta)\,dx.
+\]
+
+\begin{itemize}
+    \item The derivative “passes inside’’ the integral.
+    \item Holds under mild regularity (continuity of the mixed partial).
+    \item Used in machine learning, statistics, Monte Carlo, physics (Feynman).
+\end{itemize}
+
+\medskip
+
+\textbf{Example (simple):}
+\[
+I(\theta)=\int_0^1 e^{-\theta x}\,dx.
+\]
+
+Then
+\[
+\frac{d}{d\theta}I(\theta)
+=
+\int_0^1 \frac{\partial}{\partial \theta}e^{-\theta x}\,dx
+=
+\int_0^1 -x e^{-\theta x}\,dx.
+\]
+
+\end{frame}
+
+\begin{frame}{The “Feynman Trick”}
+
+\textbf{Idea:}  
+Introduce a parameter \(\theta\) to make the integral easier to differentiate,  
+then integrate the result.
+
+\medskip
+\textbf{Classical example:}
+$I = \int_{\R^+} \frac{\sin(x)}{x} \mathrm{d}x$ can be computed by considering $I(a) =  \int_{\R^+} e^{-ax}\frac{\sin(x)}{x} \mathrm{d}x$
+\begin{itemize}
+    \item Famous technique in probability.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Leibniz Rule with Moving Boundaries: Worked Example}
+
+Let
+$
+I(\theta)=\int_0^{\theta} \sin(\theta x)\,dx.
+$
+Here:
+$
+a(\theta)=0$, $b(\theta)=\theta$ and, $f(x,\theta)=\sin(\theta x).
+$
+Apply Leibniz:
+\[
+\frac{dI}{d\theta}
+=
+f(\theta,\theta)\cdot b'(\theta)
+-
+f(0,\theta)\cdot a'(\theta)
++
+\int_{0}^{\theta}
+\frac{\partial}{\partial \theta}\sin(\theta x)\,dx.
+\]
+Compute:
+\[
+f(\theta,\theta)=\sin(\theta^2), \qquad
+f(0,\theta)=\sin(0)=0,
+\]
+\[
+\frac{\partial}{\partial \theta}\sin(\theta x)=x\cos(\theta x).
+\]
+
+Thus
+\[
+\frac{dI}{d\theta}
+=
+\sin(\theta^2)
++
+\int_{0}^{\theta} x\cos(\theta x)\,dx.
+\]
+
+(Integral can be evaluated by substitution \(u=\theta x\), or left symbolic.)
+
+\end{frame}
+
+\begin{frame}{Application: Sensitivity of Expectations}
+
+If
+\[
+F(\theta) = \mathbb{E}_\theta[g(X,\theta)]
+=
+\int_{\mathbb{R}} g(x,\theta)\,f_\theta(x)\,dx,
+\]
+then under mild assumptions,
+\[
+\frac{dF}{d\theta}
+=
+\int_{\mathbb{R}}
+\left(
+\frac{\partial g}{\partial \theta}(x,\theta)
++
+g(x,\theta)
+\frac{\partial}{\partial \theta}\log f_\theta(x)
+\right) f_\theta(x)\,dx.
+\]
+
+\begin{itemize}
+    \item Used to compute Greeks in quantitative finance.
+    \item Key to likelihood derivatives (score function) in statistics.
+    \item Foundation of the “log-derivative trick’’ in reinforcement learning.
+\end{itemize}
+
+\medskip
+
+\textbf{Example (Greek-like sensitivity):}
+\[
+V(\sigma)=\int_0^\infty \text{Payoff}(x)\,p(x;\sigma)\,dx,
+\qquad
+\frac{dV}{d\sigma}
+=
+\int_0^\infty \text{Payoff}(x)\,\frac{\partial p}{\partial \sigma}(x;\sigma)\,dx.
+\]
+
+\end{frame}
+
+% ======================================================
+\subsection{n-Dimensional Integration \& Vector Calculus Identities}
+% ======================================================
+
+\begin{frame}{Integration in \(\mathbb{R}^n\): Basic Definition}
+
+\begin{definitionblock}{Integral of \(f:\mathbb{R}^n\to\mathbb{R}\)}
+Given a measurable region \(D\subset\mathbb{R}^n\) and an integrable function \(f\),
+\[
+\int_D f(x)\,dx
+=
+\lim_{\text{mesh}\to 0}
+\sum_{k} f(\xi_k)\,\mathrm{Vol}(\Delta_k).
+\]
+\end{definitionblock}
+
+\begin{itemize}
+  \item Generalizes Riemann sums: volume elements \(\mathrm{Vol}(\Delta_k)\) replace lengths/areas.
+  \item In practice: iterated integrals via Fubini (when integrable).
+  \item Volume element: \(dx = dx_1\cdots dx_n\).
+  \item Often evaluated after a suitable change of variables.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Fubini: Iterated Integrals in \(\mathbb{R}^n\)}
+
+\begin{definitionblock}{Fubini's Theorem (informal)}
+If \(f\) is integrable on a rectangular box \(D\),
+\[
+\int_D f(x_1,\dots,x_n)\,dx
+=
+\int_{a_1}^{b_1}\!\!\cdots\!\int_{a_n}^{b_n}
+f(x_1,\dots,x_n)\,dx_n\cdots dx_1.
+\]
+\end{definitionblock}
+
+\begin{itemize}
+  \item Practical computational tool.
+  \item Important for probability: joint densities, expectations.
+  \item Valid for more general “nice’’ regions with indicator functions.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Change of Variables in \(\mathbb{R}^n\)}
+
+\begin{definitionblock}{Change of Variables}
+Let \(x = \Phi(u)\) be a \(C^1\) bijection with invertible Jacobian. Then
+\[
+\int_{\Phi(U)} f(x)\,dx
+= 
+\int_{U} f(\Phi(u))\,\big|\det J_\Phi(u)\big|\,du.
+\]
+\end{definitionblock}
+
+\begin{itemize}
+  \item The Jacobian determinant measures local volume distortion.
+  \item Use to simplify complicated regions or integrands.
+  \item Spherical, polar, cylindrical coordinates = special cases.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Jacobian Determinant: Geometry}
+
+\begin{itemize}
+  \item \(J_\Phi(u)\): matrix of first-order partials.
+  \item \(|\det J_\Phi(u)|\): volume of the parallelepiped spanned by transformed basis vectors.
+\end{itemize}
+
+\[
+|\det J_\Phi(u)| = \frac{\text{volume of small box in }x\text{-space}}
+{\text{volume of small box in }u\text{-space}}.
+\]
+
+\textbf{Examples}
+\begin{itemize}
+  \item Polar: \(|\det J| = r\).
+  \item Spherical: \(|\det J| = r^2 \sin\theta\).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Example: Gaussian Integral via Change of Variables}
+
+Goal:
+$
+I = \int_{0}^{\infty} e^{-x^{2}}\,dx.
+$
+Square the integral:
+\[
+I^2 = \left(\int_0^\infty e^{-x^2}\,dx\right)
+      \left(\int_0^\infty e^{-y^2}\,dy\right)
+    = \int_{0}^{\infty}\!\!\int_{0}^{\infty} e^{-(x^2+y^2)}\,dx\,dy.
+\]
+
+\textbf{Switch to polar coordinates: } 
+ Letting $J(r, \theta) = ( r \cos (\theta), r \sin(\theta))$, we have for \(x = r\cos\theta,\ y = r\sin\theta\), $\det J = r.$
+Thus
+\[
+I^2 = \int_{0}^{\pi/2}\!\int_{0}^{\infty}
+      e^{-r^2}\,r\,dr\,d\theta
+    = \left(\int_0^{\pi/2} d\theta\right)
+      \left(\int_{0}^{\infty} r e^{-r^2}\,dr\right).
+\]
+
+Compute:
+$
+\int_{0}^{\pi/2} d\theta = \frac{\pi}{2},
+$, $
+\int_0^\infty r e^{-r^2}\,dr = \frac12.
+$
+Therefore
+\[
+I^2 = \frac{\pi}{2}\cdot\frac12 = \frac{\pi}{4},
+\qquad 
+I = \frac{\sqrt{\pi}}{2}.
+\]
+
+\textbf{Key principle:} multivariate change of variables simplifies otherwise intractable 1D integrals.
+\end{frame}
+
+
+% ==================================================
+% SECTION 3 — Taylor Expansion + Classical Inequalities
+% ==================================================
+\section{Taylor Expansion \& Classical Inequalities}
+
+\begin{frame}{Outline}
+  \tableofcontents[currentsection,hideothersubsections]
+\end{frame}
+
+% ======================================================
+\subsection{Taylor (1D): Polynomial, Series, Remainder}
+% ======================================================
+
+\begin{frame}{Taylor Expansion in One Dimension}
+
+\begin{definitionblock}{Taylor Polynomial of Degree \(n\) at \(x_0\)}
+If \(f\) has \(n\) derivatives around \(x_0\), its Taylor polynomial is
+\[
+T_n(x)
+=
+\sum_{k=0}^n 
+\frac{f^{(k)}(x_0)}{k!}\,(x-x_0)^k.
+\]
+\end{definitionblock}
+
+\begin{itemize}
+  \item Local approximation of \(f\) near \(x_0\).
+  \item Linear approx = 1st-order; quadratic approx = 2nd-order.
+  \item Used heavily in optimization, risk sensitivities, PDEs.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Taylor Series \& Maclaurin Expansion}
+
+\textbf{Infinite-order Taylor series:}
+\[
+f(x) = \sum_{k=0}^{\infty} \frac{f^{(k)}(x_0)}{k!}(x-x_0)^k
+\quad\text{(if convergent)}.
+\]
+
+\begin{itemize}
+  \item Not all series converge; not all convergent series equal \(f\).
+  \item Important notions:
+        \begin{itemize}
+            \item Radius of convergence \(R\) (from power series theory).
+            \item Interval where polynomial approximations are accurate.
+        \end{itemize}
+  \item Canonical examples: \(\exp(x)\), \(\log(1+x)\), \(\sin x\), \(\cos x\).
+\end{itemize}
+
+% TODO: add a simple expansion: e.g., $\exp(x)=1+x+x^2/2+\cdots$.
+
+\end{frame}
+
+\begin{frame}{Integral Form of the Remainder}
+
+\begin{definitionblock}{Integral Remainder}
+If \(f^{(n+1)}\) is continuous on an interval containing \(x_0,x\), then
+\[
+R_{n+1}(x)
+=
+f(x) - T_n(x)= 
+\frac{1}{n!}\int_{x_0}^{x} (x-t)^n f^{(n+1)}(t)\,dt.
+\]
+\end{definitionblock}
+
+\begin{itemize}
+  \item Equivalent to the Lagrange form by the mean value theorem for integrals.
+  \item \textbf{Useful for analysis:} allows estimates via integral norms.
+  \item If \(|f^{(n+1)}(t)|\le M\), we immediately obtain the bound
+  \[
+  |R_{n+1}(x)|\le \frac{M}{(n+1)!}|x-x_0|^{n+1}.
+  \]
+\end{itemize}
+
+\end{frame}
+
+% ------------------------------------------------------
+
+\begin{frame}{Geometric \& Analytical Interpretation}
+
+\begin{itemize}
+  \item The remainder measures how much the function’s true value
+        deviates from its Taylor polynomial.
+  \item \textbf{Graphically:} it is the “vertical gap’’ between the curve
+        and its local polynomial approximation.
+  \item The order of the remainder tells how quickly this gap shrinks:
+        \[
+        R_{n+1}(x) = o((x-x_0)^n)
+        \quad\Rightarrow\quad
+        \frac{R_{n+1}(x)}{(x-x_0)^n}\to 0.
+        \]
+  \item Smooth functions (\(C^\infty\)) have remainders of arbitrarily high order,
+        forming analytic series when convergence holds.
+\end{itemize}
+
+\end{frame}
+
+% ------------------------------------------------------
+
+\begin{frame}{Examples \& Applications}
+
+\textbf{Example 1 — Exponential function:}
+\[
+e^x = 1 + x + \frac{x^2}{2!} + \cdots + \frac{x^n}{n!}
+      + R_{n+1}(x),
+\qquad
+R_{n+1}(x)=\frac{e^\xi}{(n+1)!}x^{n+1}.
+\]
+Since \(e^\xi \le e^{|x|}\),
+\[
+|R_{n+1}(x)| \le \frac{e^{|x|}}{(n+1)!}|x|^{n+1}.
+\]
+
+\textbf{Example 2 — Sine function:}
+\[
+\sin x = x - \frac{x^3}{3!} + R_5(x),
+\qquad
+|R_5(x)| \le \frac{|x|^5}{5!}.
+\]
+
+\textbf{Application:}
+Error control for truncated series, numerical methods, sensitivity estimates in Greeks, or confidence-interval expansions.
+
+\end{frame}
+
+% ------------------------------------------------------
+
+\begin{frame}{Summary: Remainder Forms Compared}
+
+\begin{table}[]
+\centering
+\begin{tabular}{l|l}
+\textbf{Form} & \textbf{Expression for } \(R_{n+1}(x)\) \\
+\hline
+\textbf{Lagrange} &
+\(\displaystyle \frac{f^{(n+1)}(\xi)}{(n+1)!}(x-x_0)^{n+1}\) \\[4pt]
+\textbf{Integral} &
+\(\displaystyle \frac{1}{n!}\int_{x_0}^{x}(x-t)^n f^{(n+1)}(t)\,dt\) \\[6pt]
+\textbf{Peano} &
+\(o((x-x_0)^n)\) as \(x\to x_0\) \\[4pt]
+\end{tabular}
+\end{table}
+
+\begin{itemize}
+  \item All forms describe the same concept at increasing levels of generality.
+  \item The Lagrange form is most useful for explicit numerical bounds.
+  \item The integral and Peano forms are suited for theoretical analysis.
+\end{itemize}
+
+\end{frame}
+
+% ======================================================
+\subsection{Multivariate Taylor (to 2nd order)}
+% ======================================================
+
+\begin{frame}{Multivariate Taylor \& Linearization}
+
+\begin{definitionblock}{Taylor Expansion of \(f:\mathbb{R}^n\to\mathbb{R}\) at \(x\)}
+For small \(h\in\mathbb{R}^n\),
+\[
+f(x+h)
+=
+f(x)
++ \nabla f(x)^\top h
++ \frac12\, h^\top \nabla^2 f(x)\, h
++ R_3(h),
+\]
+where \(R_3(h) = o(\|h\|^2)\) as \(\|h\|\to 0\).
+\end{definitionblock}
+\vspace{-5mm}
+\begin{itemize}
+  \item \textbf{1st-order approximation:}
+    $
+    f(x+h) \approx f(x) + \nabla f(x)^\top h.
+    $
+    Linearization / sensitivity of \(f\) to small perturbations.
+  \item \textbf{2nd-order (quadratic) approximation:}
+    \[
+    f(x+h) \approx f(x) + \nabla f(x)^\top h
+    + \tfrac12 h^\top H(x) h.
+    \]
+    Incorporates curvature information through the Hessian.
+  \item Crucial in optimization (Newton methods, convexity tests).
+\end{itemize}
+
+% TODO: add example with quadratic form or log-sum-exp.
+
+\end{frame}
+
+\begin{frame}{Interpretation of the Terms}
+
+\textbf{Zeroth order:} value at the base point \(f(x)\).
+
+\textbf{First order:} hyperplane tangent to the graph of \(f\):
+\[
+f_{\text{lin}}(x+h)=f(x)+\nabla f(x)^\top h.
+\]
+
+\textbf{Second order:} quadratic bowl approximation:
+\[
+f_{\text{quad}}(x+h) =
+f(x)+\nabla f(x)^\top h + \tfrac12 h^\top H(x)h.
+\]
+
+\begin{itemize}
+  \item If \(H(x)\succ 0\) → function locally convex ``bowl''.
+  \item If \(H(x)\prec 0\) → concave ``cap''.
+  \item Saddle behavior when Hessian is indefinite.
+\end{itemize}
+
+\textbf{Link to optimization:} classification of stationary points via Hessian eigenvalues.
+
+\end{frame}
+
+\begin{frame}{Remainder Term (Multivariate)}
+
+\begin{definitionblock}{Lagrange-Type Remainder (informal)}
+If \(f\in C^{2}\) and \(H\) is continuous near \(x\), then
+\[
+R_3(h) 
+= \frac{1}{6}\sum_{i,j,k}
+\partial_{ijk} f(x + \theta h)\, h_i h_j h_k,
+\qquad \theta\in(0,1).
+\]
+\end{definitionblock}
+
+\begin{itemize}
+  \item Guarantees that the quadratic model is accurate for small \(h\).
+  \item Useful in Newton method convergence analysis.
+  \item In convex optimization: controls deviation from local quadratic model.
+\end{itemize}
+
+\end{frame}
+
+% ======================================================
+\subsection{Classical Inequalities \& Mean Value Results}
+% ======================================================
+
+\begin{frame}{Mean Value Theorem \& Rolle's Theorem}
+
+\begin{definitionblock}{Rolle's Theorem}
+If \(f\) is continuous on \([a,b]\), differentiable on \((a,b)\),
+and \(f(a)=f(b)\), then \(\exists c\in(a,b)\) such that
+\[
+f'(c)=0.
+\vspace{-3mm}
+\]
+\vspace{-3mm}
+\end{definitionblock}
+
+\begin{definitionblock}{Mean Value Theorem}
+Under the same regularity assumptions,
+\[
+f'(c)=\frac{f(b)-f(a)}{b-a}
+\qquad\text{for some }c\in(a,b).
+\vspace{-3mm}
+\]
+\vspace{-3mm}
+\end{definitionblock}
+\vspace{-3mm}
+\begin{itemize}
+  \item Interpret \(f'(c)\) as ``average rate of change equals instantaneous rate.’’
+  \item Foundation for inequalities, Lipschitz bounds, error estimates.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Consequences of MVT}
+
+\begin{itemize}
+  \item \textbf{Bounded derivative implies Lipschitz continuity:}
+    If \(|f'(x)| \le L\) then
+    \[
+    |f(x)-f(y)| \le L |x-y|.
+    \]
+
+  \item \textbf{Monotonicity:}
+    \[
+    f'(x)\ge 0\ \forall x \rightarrow f\text{ is increasing}.
+    \]
+
+  \item \textbf{Convexity:} 
+    If and only if \(f'\) increasing if and only if \(f''\ge 0\) (when exists).
+
+  \item \textbf{Error control via Taylor:}
+    If \(|f^{(n+1)}|\le M\),
+    \[
+    |R_{n+1}(x)|\le 
+    \frac{M}{(n+1)!}|x-x_0|^{n+1}.
+    \]
+\end{itemize}
+
+Examples:
+\begin{itemize}
+  \item \(\log(1+x) \le x\) from concavity of \(\log\).
+  \item \(\exp(x)\ge 1+x\) from convexity of \(\exp\).
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Classical Inequalities from Taylor/MVT}
+
+\textbf{Bernoulli inequality:} \((1+x)^r \le 1+rx\) for \(r\in(0,1)\).
+
+\textbf{Logarithm bounds:}
+\[
+x - \frac{x^2}{2} \le \log(1+x) \le x \quad (x>-1).
+\]
+
+\textbf{Exponential bounds:}
+\[
+1 + x \le e^x \le 1 + x + \frac{x^2}{2} e^{|x|}.
+\]
+
+\textbf{Sine inequality:}
+\[
+|\sin x| \le |x|.
+\]
+
+\textbf{All obtained from:}
+\begin{itemize}
+  \item MVT (monotonicity/convexity arguments),
+  \item Taylor expansions with sign information on derivatives.
+\end{itemize}
+
+\end{frame}
+
+
+% ==================================================
+% SECTION 4 — Links to Optimization: Convexity \& Hessian
+% ==================================================
+% ======================================================
+\section{Optimization Links: Convexity \& the Hessian}
+% ======================================================
+
+\begin{frame}{Outline}
+  \tableofcontents[currentsection,hideothersubsections]
+\end{frame}
+
+% ------------------------------------------------------
+\subsection{First/Second Order in Optimization}
+% ------------------------------------------------------
+
+\begin{frame}{Stationarity \& Quadratic Approximation}
+
+\begin{definitionblock}{First-Order Optimality Condition}
+For an unconstrained differentiable function \(f:\mathbb{R}^n\to\mathbb{R}\),
+\[
+x^\star \text{ is a local extremum } \Rightarrow \nabla f(x^\star)=0.
+\]
+\end{definitionblock}
+
+\begin{itemize}
+  \item The gradient \(\nabla f(x)\) gives the direction of steepest ascent.
+  \item At a stationary point, all first-order directional derivatives vanish.
+  \item Near \(x^\star\), approximate \(f\) by its \textbf{local quadratic model:}
+  \[
+  m(h)=f(x^\star)+\tfrac{1}{2}h^\top\nabla^2 f(x^\star)h.
+  \]
+\end{itemize}
+
+\end{frame}
+
+% ------------------------------------------------------
+
+\begin{frame}{Second-Order Classification (C\(^2\) Functions)}
+
+\begin{definitionblock}{Second-Order Test (Unconstrained Case)}
+If \(f\in C^2\) and \(\nabla f(x^\star)=0\), then:
+\[
+\begin{cases}
+\nabla^2 f(x^\star) \succ 0 & \Rightarrow \text{local minimum},\\[0.3em]
+\nabla^2 f(x^\star) \prec 0 & \Rightarrow \text{local maximum},\\[0.3em]
+\nabla^2 f(x^\star) \text{ indefinite} & \Rightarrow \text{saddle point.}
+\end{cases}
+\vspace{-6mm}
+\]
+\end{definitionblock}
+
+\begin{itemize}
+  \item Eigenvalues of the Hessian determine the curvature:
+  \[
+  f(x+h)\approx f(x^\star)+\tfrac{1}{2}\sum_i \lambda_i (u_i^\top h)^2.
+  \]
+  \item Positive curvature in all directions → local minimum.
+  \item Mixed curvatures → saddle.
+\end{itemize}
+
+\end{frame}
+
+% ------------------------------------------------------
+\subsection{Convexity via the Hessian}
+% ------------------------------------------------------
+
+\begin{frame}{Convexity Test (C\(^2\))}
+
+\begin{definitionblock}{Convexity \& Hessian Criterion}
+If \(f\in C^2\) on a convex domain and 
+\[
+\nabla^2 f(x)\succeq 0,\ \forall x,
+\]
+then \(f\) is convex.  
+If \(\nabla^2 f(x)\succ 0\) (positive definite), then \(f\) is \textbf{strictly convex}.
+\end{definitionblock}
+
+\begin{itemize}
+  \item \textbf{Geometric meaning:} tangent planes lie below the graph of \(f\).
+  \item \textbf{Implication:} any stationary point is the \emph{global} minimizer.
+  \item \textbf{Stronger:} if \(\nabla^2 f(x)\succeq \mu I\) (\(\mu>0\)) → \emph{strong convexity}.
+\end{itemize}
+
+\[
+f(y)\ge f(x)+\nabla f(x)^\top(y-x)+\frac{\mu}{2}\|y-x\|^2.
+\]
+
+\end{frame}
+
+% ------------------------------------------------------
+\begin{frame}{Convexity \& Global Optimality}
+
+\textbf{First-order convexity test:}
+\[
+f(y)\ge f(x)+\nabla f(x)^\top(y-x)
+\quad \forall x,y.
+\]
+\textbf{Equivalent (for \(C^2\) functions):}
+\[
+\nabla^2 f(x)\succeq 0 \ \forall x.
+\]
+
+\begin{itemize}
+  \item For convex \(f\): any point with \(\nabla f(x^\star)=0\) is a \textbf{global minimizer}.
+  \item If \(f\) is strictly convex: minimizer is \textbf{unique}.
+  \item Strong convexity provides quadratic lower bounds → crucial for convergence rates in optimization algorithms (e.g., gradient descent).
+\end{itemize}
+
+\end{frame}
+
+% ------------------------------------------------------
+\begin{frame}{Examples of Convex/Non-Convex Functions}
+
+\textbf{Convex:}
+\[
+\begin{aligned}
+&f(x)=x^2 &&\Rightarrow \nabla^2 f(x)=2>0,\\
+&f(x)=e^x &&\Rightarrow f''(x)=e^x>0,\\
+&f(x)=\|Ax-b\|_2^2 &&\Rightarrow \nabla^2 f(x)=2A^\top A\succeq 0.
+\end{aligned}
+\]
+
+\textbf{Non-convex:}
+\[
+f(x,y)=x^2-y^2
+\Rightarrow 
+\nabla^2 f(x,y)=
+\begin{pmatrix}
+2 & 0\\[2pt]
+0 & -2
+\end{pmatrix}
+\text{ (indefinite)}.
+\]
+
+\textbf{Implications:}
+- Convex imply all local minima are global.  
+- Non-convex imply saddle points or local minima possible.
+
+\end{frame}
+
+% ------------------------------------------------------
+\begin{frame}{Summary: Role of the Hessian in Optimization}
+
+\begin{itemize}
+  \item The \textbf{gradient} identifies candidate stationary points.
+  \item The \textbf{Hessian} classifies curvature and determines convexity.
+  \item \textbf{Convexity} ensures global optimality and algorithmic stability.
+  \item \textbf{Strong convexity} → faster convergence of gradient-based methods.
+  \item Used extensively in:
+    \begin{itemize}
+      \item Portfolio optimization (quadratic risk functions),
+      \item Calibration of least squares,
+      \item Sensitivity analysis (Taylor–Hessian local model).
+    \end{itemize}
+\end{itemize}
+
+\[
+\boxed{
+\nabla f(x^\star)=0,\quad
+\nabla^2 f(x^\star)\succ 0
+\Rightarrow
+x^\star=\text{local (global if convex) minimum.}
+}
+\]
+
+\end{frame}
+
+
+
+\end{document}

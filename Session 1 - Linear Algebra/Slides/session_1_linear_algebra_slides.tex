@@ -1,0 +1,1032 @@
+\documentclass[aspectratio=169]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+
+\usetheme{Madrid}
+\usecolortheme{default}
+
+\definecolor{BootcampBlue}{HTML}{1A3C68}
+\definecolor{BootcampGold}{HTML}{C69214}
+\definecolor{BootcampRed}{HTML}{9A1B1E}
+\definecolor{BootcampGreen}{HTML}{2F7D32}
+
+\setbeamercolor{structure}{fg=BootcampBlue}
+\setbeamercolor{frametitle}{fg=white,bg=BootcampBlue}
+\setbeamercolor{title}{fg=white,bg=BootcampBlue}
+\setbeamercolor{block title}{fg=white,bg=BootcampBlue}
+\setbeamercolor{block body}{fg=black,bg=BootcampBlue!6}
+\setbeamercolor{alerted text}{fg=BootcampRed}
+
+\newenvironment{resultblock}[1]{%
+  \setbeamercolor{block title}{fg=black,bg=BootcampGold}%
+  \setbeamercolor{block body}{fg=black,bg=BootcampGold!10}%
+  \begin{block}{#1}}{\end{block}}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\M}{\mathcal{M}}
+\newcommand{\rank}{\operatorname{rank}}
+\newcommand{\im}{\operatorname{Im}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\Var}{\operatorname{Var}}
+
+\title[Session 1 -- Linear Algebra]{Summer Bootcamp\\Session 1 -- Linear Algebra}
+\subtitle{Matrices, linear systems, diagonalization, and statistical applications}
+\author{Nathan Sauldubois}
+\institute{NYU Finance and Risk Engineering}
+\date{August 2026}
+
+\AtBeginSection[]{
+\begin{frame}{Section Roadmap}
+  \small
+  \tableofcontents[currentsection,sectionstyle=show/hide,
+    subsectionstyle=show/show/hide]
+\end{frame}
+}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Session Roadmap}
+\begin{block}{Learning goals}
+By the end of the session, students should be able to:
+\begin{itemize}
+  \item manipulate matrices and check dimension compatibility;
+  \item write and solve linear systems in matrix form;
+  \item interpret image, kernel, rank, invertibility, and transposition;
+  \item compute eigenvalues and use diagonalization;
+  \item connect symmetric matrices to covariance, portfolio variance, and PCA.
+\end{itemize}
+\end{block}
+\end{frame}
+
+\section{Algebraic Operations}
+
+\begin{frame}[shrink=5]{Matrices}
+\begin{block}{Definition}
+A matrix is a rectangular array of real numbers:
+\[
+A=(a_{ij})_{1\le i\le n,\ 1\le j\le m}\in \M_{n,m}(\R).
+\]
+It can be interpreted as a linear transformation from $\R^m$ to $\R^n$.
+\end{block}
+\pause
+\begin{exampleblock}{Examples}
+\[
+ A=\begin{pmatrix}1&2&3\\4&5&6\end{pmatrix}\in \M_{2,3}(\R),
+ \qquad
+ x=\begin{pmatrix}7\\8\\9\end{pmatrix}\in \R^3.
+\]
+The dimensions match, so
+\[
+Ax=\begin{pmatrix}50\\122\end{pmatrix}\in\R^2.
+\]
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Addition and Scalar Multiplication}
+Let $A=(a_{ij})$ and $B=(b_{ij})$ have the same size. Then
+\[
+A+B=(a_{ij}+b_{ij}),\qquad
+\lambda A=(\lambda a_{ij}).
+\]
+\pause
+\begin{exampleblock}{Example}
+\[
+A=\begin{pmatrix}1&-2&3\\0&4&-1\end{pmatrix},
+\quad
+B=\begin{pmatrix}2&0&-1\\-3&1&5\end{pmatrix}.
+\]
+\[
+A-2B=
+\begin{pmatrix}
+-3&-2&5\\
+6&2&-11
+\end{pmatrix}.
+\]
+\end{exampleblock}
+\end{frame}
+
+\begin{frame}{Matrix Multiplication}
+If
+\[
+A\in \M_{n,m}(\R),\qquad B\in \M_{m,p}(\R),
+\]
+then $AB\in \M_{n,p}(\R)$ and
+\[
+(AB)_{ij}=\sum_{k=1}^m a_{ik}b_{kj}.
+\]
+\pause
+\begin{block}{Dimension checks}
+\[
+(2\times 3)(3\times 1)\to 2\times 1,\qquad
+(4\times 2)(2\times 5)\to 4\times 5.
+\]
+\[
+(2\times 3)(2\times 5)\quad\text{is not defined.}
+\]
+\end{block}
+\end{frame}
+
+\begin{frame}{Matrix Multiplication: Worked Example}
+\[
+A=\begin{pmatrix}
+1&2&-1\\
+0&3&4
+\end{pmatrix},
+\qquad
+B=\begin{pmatrix}
+2&1\\
+-1&0\\
+3&2
+\end{pmatrix}.
+\]
+\pause
+\[
+AB=
+\begin{pmatrix}
+1\cdot2+2(-1)+(-1)3 & 1\cdot1+2\cdot0+(-1)2\\
+0\cdot2+3(-1)+4\cdot3 & 0\cdot1+3\cdot0+4\cdot2
+\end{pmatrix}
+=
+\begin{pmatrix}-3&-1\\9&8\end{pmatrix}.
+\]
+\end{frame}
+
+\begin{frame}{Order Matters}
+\[
+A=\begin{pmatrix}1&2\\0&1\end{pmatrix},
+\qquad
+B=\begin{pmatrix}0&1\\1&0\end{pmatrix}.
+\]
+\pause
+\[
+AB=\begin{pmatrix}2&1\\1&0\end{pmatrix},
+\qquad
+BA=\begin{pmatrix}0&1\\1&2\end{pmatrix}.
+\]
+\pause
+\[
+\boxed{AB\neq BA}
+\]
+\begin{block}{Message}
+Matrix multiplication is associative and distributive, but not commutative in general.
+\end{block}
+\end{frame}
+
+\begin{frame}{Matrix-Vector Products}
+Let
+\[
+A=\begin{pmatrix}2&-1&3\\0&4&1\end{pmatrix},
+\qquad
+x=\begin{pmatrix}1\\-2\\0\end{pmatrix}.
+\]
+\pause
+\[
+Ax=
+\begin{pmatrix}
+2(1)+(-1)(-2)+3(0)\\
+0(1)+4(-2)+1(0)
+\end{pmatrix}
+=
+\begin{pmatrix}4\\-8\end{pmatrix}.
+\]
+\pause
+\begin{block}{Interpretation}
+Each component of $Ax$ is a dot product between a row of $A$ and the vector $x$.
+\end{block}
+\end{frame}
+
+\section{Associated Operators: Transpose, Trace, and Determinant}
+
+\begin{frame}{Transpose: Definition and Example}
+For $A=(a_{ij})\in\M_{m,n}(\R)$, the transpose $A^\top\in\M_{n,m}(\R)$ is
+defined by
+\[
+(A^\top)_{ij}=a_{ji}.
+\]
+It turns rows into columns and columns into rows.
+\pause
+\[
+\begin{pmatrix}1&3&-2\\0&4&5\end{pmatrix}^{\!\top}
+=\begin{pmatrix}1&0\\3&4\\-2&5\end{pmatrix}.
+\]
+\end{frame}
+
+\begin{frame}{Transpose Rules and Dot Products}
+Whenever dimensions are compatible,
+\[
+(A+B)^\top=A^\top+B^\top,
+\qquad
+(\lambda A)^\top=\lambda A^\top,
+\qquad
+(AB)^\top=B^\top A^\top.
+\]
+\pause
+For vectors $x,y\in\R^d$,
+\[
+x^\top y=\sum_{i=1}^d x_i y_i,
+\qquad
+(Ax)^\top y=x^\top A^\top y.
+\]
+\begin{block}{Why the order reverses}
+The product $AB$ means first apply $B$, then $A$. Transposition reverses this
+composition, hence $(AB)^\top=B^\top A^\top$.
+\end{block}
+\end{frame}
+
+\begin{frame}{Symmetric and Positive Semidefinite Matrices}
+A is symmetric when $A^\top=A$. It is positive semidefinite when
+\[
+x^\top Ax\ge0\qquad\text{for every }x\in\R^n.
+\]
+\pause
+For example,
+\[
+A=\begin{pmatrix}2&1\\1&2\end{pmatrix},
+\qquad
+x^\top Ax=(x_1+x_2)^2+x_1^2+x_2^2>0
+\quad(x\neq0).
+\]
+\begin{block}{Why this matters}
+Covariance matrices are symmetric positive semidefinite, and portfolio
+variances are quadratic forms.
+\end{block}
+\end{frame}
+
+\begin{frame}{Trace: Definition and Main Rules}
+For $A=(a_{ij})\in\M_n(\R)$,
+\[
+\tr(A)=\sum_{i=1}^n a_{ii}.
+\]
+\pause
+The trace is linear and cyclic:
+\[
+\tr(A+B)=\tr(A)+\tr(B),
+\qquad
+\tr(\lambda A)=\lambda\tr(A),
+\qquad
+\tr(AB)=\tr(BA).
+\]
+\pause
+For example,
+\[
+\tr\begin{pmatrix}3&1&0\\2&-4&5\\1&1&7\end{pmatrix}=3-4+7=6.
+\]
+\end{frame}
+
+\begin{frame}{Determinant: Meaning and the $2\times2$ Formula}
+The determinant measures signed volume scaling and detects dimension loss.
+For
+\[
+A=\begin{pmatrix}a&b\\c&d\end{pmatrix},
+\qquad
+\det(A)=ad-bc.
+\]
+\pause
+\begin{block}{Invertibility criterion}
+\[
+A\text{ is invertible}\quad\Longleftrightarrow\quad\det(A)\neq0.
+\]
+If $\det(A)=0$, at least one direction is collapsed.
+\end{block}
+\pause
+\[
+\det\begin{pmatrix}2&3\\1&-4\end{pmatrix}=-11,
+\qquad
+\det\begin{pmatrix}1&2\\2&4\end{pmatrix}=0.
+\]
+\end{frame}
+
+\begin{frame}{The Horrible General Formula for the Determinant}
+For $A=(a_{ij})\in\M_n(\R)$,
+\[
+\boxed{\det(A)=\sum_{\sigma\in\mathfrak S_n}
+\operatorname{sgn}(\sigma)\prod_{i=1}^n a_{i,\sigma(i)}}.
+\]
+\pause
+Here $\mathfrak S_n$ contains all permutations of $\{1,\ldots,n\}$ and
+\[
+\operatorname{sgn}(\sigma)=(-1)^{N(\sigma)},
+\quad
+N(\sigma)=\#\{(i,j):i<j,\ \sigma(i)>\sigma(j)\}.
+\]
+\begin{alertblock}{Computational warning}
+There are $n!$ signed products. The formula is fundamental for theory, but
+elimination or factorization is preferable in practice.
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Laplace Expansion Along a Row or a Column}
+Delete row $i$ and column $j$ to obtain $A_{ij}$. Define
+\[
+M_{ij}=\det(A_{ij}),
+\qquad
+C_{ij}=(-1)^{i+j}M_{ij}.
+\]
+\pause
+Expansion along a fixed row $i$ gives
+\[
+\boxed{\det(A)=\sum_{j=1}^n a_{ij}C_{ij}}
+=\sum_{j=1}^n(-1)^{i+j}a_{ij}\det(A_{ij}).
+\]
+Expansion along a fixed column $j$ gives
+\[
+\boxed{\det(A)=\sum_{i=1}^n a_{ij}C_{ij}}
+=\sum_{i=1}^n(-1)^{i+j}a_{ij}\det(A_{ij}).
+\]
+\begin{block}{Practical choice}
+Expand along a row or column containing many zeros.
+\end{block}
+\end{frame}
+
+\begin{frame}{Computing a $3\times3$ Determinant}
+For
+\[
+A=\begin{pmatrix}a&b&c\\d&e&f\\g&h&i\end{pmatrix},
+\]
+expansion along the first row gives
+\[
+\det(A)=a(ei-fh)-b(di-fg)+c(dh-eg).
+\]
+\pause
+For example,
+\[
+\det\begin{pmatrix}1&2&0\\-1&3&1\\2&0&4\end{pmatrix}
+=12-2(-6)=24.
+\]
+The nonzero determinant proves that the matrix is invertible.
+\end{frame}
+
+\begin{frame}{Determinant Rules}
+For square matrices of the same size,
+\begin{itemize}
+  \item $\det(AB)=\det(A)\det(B)$ and $\det(A^\top)=\det(A)$;
+  \item $\det(A^{-1})=1/\det(A)$ when $A$ is invertible;
+  \item swapping two rows changes the sign;
+  \item multiplying one row by $\lambda$ multiplies the determinant by $\lambda$;
+  \item adding a multiple of one row to another leaves it unchanged.
+\end{itemize}
+\pause
+For a triangular matrix,
+\[
+\det(A)=\prod_{i=1}^n a_{ii}.
+\]
+\end{frame}
+
+\section{Inversion and Linear Systems}
+
+\begin{frame}{Identity and Inverse}
+\begin{block}{Identity matrix}
+\[
+(I_n)_{ij}=
+\begin{cases}
+1,& i=j,\\
+0,& i\neq j.
+\end{cases}
+\]
+It satisfies $AI_n=A$ and $I_nA=A$ when dimensions are compatible.
+\end{block}
+\pause
+\begin{block}{Inverse}
+A square matrix $A\in \M_n(\R)$ is invertible if there exists $A^{-1}$ such that
+\[
+AA^{-1}=A^{-1}A=I_n.
+\]
+If $A$ is invertible, the system $Ax=b$ has the unique solution $x=A^{-1}b$.
+\end{block}
+\end{frame}
+
+\begin{frame}{Inverse of a $2\times2$ Matrix}
+For
+\[
+A=\begin{pmatrix}a&b\\c&d\end{pmatrix},
+\]
+the inverse exists exactly when $\det(A)=ad-bc\neq0$. Then
+\[
+\boxed{
+A^{-1}=\frac{1}{\det(A)}
+\begin{pmatrix}d&-b\\-c&a\end{pmatrix}
+=\frac{1}{ad-bc}
+\begin{pmatrix}d&-b\\-c&a\end{pmatrix}.}
+\]
+\pause
+For the matrix used in the next example,
+\[
+\begin{pmatrix}2&3\\1&-4\end{pmatrix}^{-1}
+=\begin{pmatrix}4/11&3/11\\1/11&-2/11\end{pmatrix}.
+\]
+\end{frame}
+
+\begin{frame}{Worked Example: Solving a Linear System}
+Consider the system $Ax=b$ with
+\[
+A=\begin{pmatrix}2&3\\1&-4\end{pmatrix},
+\qquad b=\begin{pmatrix}5\\-2\end{pmatrix},
+\qquad \det(A)=-11\neq0.
+\]
+\pause
+Substitution gives
+\[
+11x_2=9,
+\qquad x_2=\frac9{11},
+\qquad x_1=-2+4x_2=\frac{14}{11}.
+\]
+\pause
+\[
+\boxed{x=\begin{pmatrix}14/11\\9/11\end{pmatrix}}
+\]
+Direct substitution and the inverse formula give the same solution.
+\end{frame}
+
+\begin{frame}{Triangular Systems and Forward Substitution}
+Suppose
+\[
+L=\begin{pmatrix}
+1&0&0\\
+1&1&0\\
+1&1&1
+\end{pmatrix},
+\qquad
+Ly=
+\begin{pmatrix}P_1\\P_2\\P_3\end{pmatrix}.
+\]
+\pause
+The equations are
+\[
+y_1=P_1,\qquad y_1+y_2=P_2,\qquad y_1+y_2+y_3=P_3.
+\]
+\pause
+\[
+y_1=P_1,\qquad y_2=P_2-P_1,\qquad y_3=P_3-P_2.
+\]
+\end{frame}
+
+\begin{frame}{Finance Example: Discount Factors}
+Zero-coupon prices are observed:
+\[
+P_1=0.97,\qquad P_2=0.92,\qquad P_3=0.855.
+\]
+Write discount factors as partial sums:
+\[
+D(T_1)=y_1,\quad D(T_2)=y_1+y_2,\quad D(T_3)=y_1+y_2+y_3.
+\]
+\pause
+\[
+\begin{pmatrix}
+1&0&0\\
+1&1&0\\
+1&1&1
+\end{pmatrix}
+\begin{pmatrix}y_1\\y_2\\y_3\end{pmatrix}
+=
+\begin{pmatrix}0.97\\0.92\\0.855\end{pmatrix}.
+\]
+\pause
+\[
+y_1=0.97,\qquad y_2=-0.05,\qquad y_3=-0.065.
+\]
+\end{frame}
+
+\section{Injectivity, Surjectivity, Image, Kernel, and Rank}
+
+\begin{frame}{Image and Kernel}
+\small
+Let $A\in\M_{m,n}(\R)$, viewed as a linear map from $\R^n$ to $\R^m$.
+\begin{block}{Image / range}
+\[
+\im(A)=\{Ax:x\in\R^n\}\subset \R^m.
+\]
+It is the subspace reached by $A$.
+\end{block}
+\pause
+\begin{block}{Kernel / null space}
+\[
+\ker(A)=\{x\in\R^n:Ax=0\}.
+\]
+It is the set of directions collapsed by $A$.
+\end{block}
+\pause
+\begin{resultblock}{Result -- Rank--nullity theorem}
+The rank is $\rank(A)=\dim\im(A)$, and
+\[
+\rank(A)+\dim\ker(A)=n.
+\]
+\end{resultblock}
+\end{frame}
+
+\begin{frame}{Invertibility Criteria}
+\begin{resultblock}{Result -- Equivalent invertibility criteria}
+For $A\in \M_n(\R)$, the following statements are equivalent:
+\begin{itemize}
+  \item $A$ is invertible;
+  \item $\ker(A)=\{0\}$;
+  \item $\im(A)=\R^n$;
+  \item $\rank(A)=n$;
+  \item $Ax=b$ has a unique solution for every $b\in\R^n$.
+\end{itemize}
+\end{resultblock}
+\pause
+\begin{alertblock}{Practical warning}
+For numerical work, we usually solve $Ax=b$ directly instead of computing $A^{-1}$ explicitly.
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Orthogonality and Orthogonal Complements}
+Two vectors $x,y\in\R^m$ are orthogonal when
+\[
+x\perp y
+\quad\Longleftrightarrow\quad
+x^\top y=0.
+\]
+\pause
+For a subspace $V\subset\R^m$, define
+\[
+\boxed{V^\perp
+=\{y\in\R^m:y^\top v=0\text{ for every }v\in V\}.}
+\]
+\begin{block}{Geometric meaning}
+$V^\perp$ contains all directions perpendicular to every vector of $V$.
+\end{block}
+\pause
+For $V=\operatorname{span}\{(1,1,1)^\top\}$,
+\[
+V^\perp=\{y\in\R^3:y_1+y_2+y_3=0\}.
+\]
+\end{frame}
+
+\begin{frame}{Image, Kernel, and Orthogonality}
+For $A\in \M_{m,n}(\R)$,
+\[
+\im(A^\top)=(\ker A)^\perp,
+\qquad
+\im(A)=(\ker A^\top)^\perp.
+\]
+\pause
+\begin{block}{Interpretation}
+The row space contains exactly the directions that are visible to the linear map.
+The kernel contains directions that disappear.
+\end{block}
+\end{frame}
+
+\begin{frame}{Example: Kernel and Image}
+Let
+\[
+A=\begin{pmatrix}
+1&-1&0\\
+-1&2&-1\\
+0&-1&1
+\end{pmatrix}.
+\]
+\pause
+Solving $Ax=0$ gives
+\[
+x_1=x_2=x_3,\qquad
+\ker(A)=\operatorname{span}\left\{\begin{pmatrix}1\\1\\1\end{pmatrix}\right\}.
+\]
+\pause
+Since $\dim\ker(A)=1$ and $A$ has three columns,
+\[
+\rank(A)=2.
+\]
+Because $A$ is symmetric, $\im(A)=(\ker A)^\perp$ is the plane
+$y_1+y_2+y_3=0$.
+\end{frame}
+
+\section{Classical Decompositions}
+
+\subsection{Eigenvalue Diagonalization}
+
+\begin{frame}{Eigenvalues and Eigenvectors}
+An eigenvector of $A\in \M_n(\R)$ is a nonzero vector $v$ such that
+\[
+Av=\lambda v.
+\]
+The scalar $\lambda$ is the associated eigenvalue.
+\pause
+\begin{block}{Geometric meaning}
+In an eigenvector direction, the matrix acts by stretching, shrinking, or reversing direction. The direction is preserved.
+\end{block}
+\pause
+Eigenvalues are found by solving
+\[
+\det(A-\lambda I)=0.
+\]
+\end{frame}
+
+\begin{frame}{Diagonalization}
+A matrix $A\in\M_n(\R)$ is diagonalizable if there exist an invertible matrix $P$ and a diagonal matrix $D$ such that
+\[
+A=PDP^{-1}.
+\]
+\pause
+The columns of $P$ are eigenvectors and the diagonal entries of $D$ are eigenvalues:
+\[
+P=\begin{pmatrix}|&&|\\v_1&\cdots&v_n\\|&&|\end{pmatrix},
+\qquad
+D=\diag(\lambda_1,\ldots,\lambda_n).
+\]
+\pause
+\begin{resultblock}{Result -- Powers of a diagonalizable matrix}
+\[
+A^k=PD^kP^{-1},\qquad
+D^k=\diag(\lambda_1^k,\ldots,\lambda_n^k).
+\]
+\end{resultblock}
+\end{frame}
+
+\begin{frame}{Diagonalization: Algorithm}
+\begin{enumerate}
+  \item Compute the characteristic polynomial $p_A(\lambda)=\det(A-\lambda I)$.
+  \item Find the eigenvalues.
+  \item For each eigenvalue, solve $(A-\lambda I)v=0$.
+  \item If there are $n$ linearly independent eigenvectors, build $P$.
+  \item Write $A=PDP^{-1}$.
+\end{enumerate}
+\pause
+\begin{alertblock}{Warning}
+Not every matrix is diagonalizable. A repeated eigenvalue may fail to provide enough independent eigenvectors.
+\end{alertblock}
+\end{frame}
+
+\begin{frame}{Diagonalization: Worked Example}
+Let
+\[
+A=\begin{pmatrix}4&1\\2&3\end{pmatrix}.
+\]
+\pause
+The characteristic polynomial is
+\[
+\det(A-\lambda I)=(\lambda-5)(\lambda-2),
+\qquad \lambda_1=5,\quad \lambda_2=2.
+\]
+\pause
+Eigenvectors:
+\[
+\lambda_1=5:\quad v_1=\begin{pmatrix}1\\1\end{pmatrix},
+\qquad
+\lambda_2=2:\quad v_2=\begin{pmatrix}1\\-2\end{pmatrix}.
+\]
+\pause
+\[
+P=\begin{pmatrix}1&1\\1&-2\end{pmatrix},
+\qquad D=\begin{pmatrix}5&0\\0&2\end{pmatrix},
+\qquad
+A=PDP^{-1}.
+\]
+\end{frame}
+
+\begin{frame}{Triangular Example for the Dynamics}
+For the dynamical application, consider
+\[
+A=\begin{pmatrix}3&1\\0&2\end{pmatrix}.
+\]
+Its eigenvalues are the diagonal entries, with eigenvectors
+\[
+v_1=\begin{pmatrix}1\\0\end{pmatrix},
+\qquad
+v_2=\begin{pmatrix}-1\\1\end{pmatrix}.
+\]
+Hence
+\[
+P=\begin{pmatrix}1&-1\\0&1\end{pmatrix},
+\qquad D=\begin{pmatrix}3&0\\0&2\end{pmatrix},
+\qquad A=PDP^{-1}.
+\]
+\end{frame}
+
+\begin{frame}{Application: A Discrete-Time Dynamical System}
+Consider $x_{k+1}=Ax_k$ with
+\[
+A=\begin{pmatrix}3&1\\0&2\end{pmatrix},
+\qquad x_0=\begin{pmatrix}0\\1\end{pmatrix}.
+\]
+Using the previous diagonalization,
+\[
+A^k=PD^kP^{-1}
+=\begin{pmatrix}
+3^k&3^k-2^k\\
+0&2^k
+\end{pmatrix}.
+\]
+\pause
+Therefore
+\[
+x_k=A^kx_0
+=\begin{pmatrix}3^k-2^k\\2^k\end{pmatrix}.
+\]
+\begin{block}{Interpretation}
+Diagonalization separates the dynamics into two scalar growth modes, $3^k$ and $2^k$.
+\end{block}
+\end{frame}
+
+\subsection{Spectral Decomposition}
+
+\begin{frame}{Symmetric Matrices: Spectral Theorem}
+\begin{resultblock}{Result -- Spectral theorem}
+If $A$ is real and symmetric, then:
+\begin{itemize}
+  \item all eigenvalues are real;
+  \item eigenvectors associated with distinct eigenvalues are orthogonal;
+  \item there exists an orthogonal matrix $Q$ and a diagonal matrix $D$ such that
+  \[
+  A=QDQ^\top.
+  \]
+\end{itemize}
+\end{resultblock}
+\pause
+\begin{block}{Why this is central}
+Covariance matrices are symmetric. Their eigenvectors define orthogonal risk factors or principal components.
+\end{block}
+\end{frame}
+
+\begin{frame}{Application: Common and Spread Risk Factors}
+Consider the covariance matrix
+\[
+C=\begin{pmatrix}1&0.8\\0.8&1\end{pmatrix}.
+\]
+Its spectral decomposition has
+\[
+\lambda_1=1.8,\quad q_1=\frac1{\sqrt2}\begin{pmatrix}1\\1\end{pmatrix},
+\qquad
+\lambda_2=0.2,\quad q_2=\frac1{\sqrt2}\begin{pmatrix}1\\-1\end{pmatrix}.
+\]
+\pause
+The common position $q_1$ has variance $1.8$, whereas the long--short position
+$q_2$ has variance $0.2$.
+\begin{block}{Interpretation}
+The spectral theorem identifies orthogonal portfolios and quantifies the risk carried by each factor.
+\end{block}
+\end{frame}
+
+\subsection{Cholesky Decomposition}
+
+\begin{frame}{Cholesky Decomposition}
+\begin{resultblock}{Result -- Cholesky decomposition}
+If $A$ is symmetric positive definite, there is a unique lower triangular
+matrix $L$ with positive diagonal entries such that
+\[
+\boxed{A=LL^\top.}
+\]
+\end{resultblock}
+\pause
+For the positive-definite matrix
+\[
+A=\begin{pmatrix}4&2\\2&3\end{pmatrix},
+\qquad
+L=\begin{pmatrix}2&0\\1&\sqrt2\end{pmatrix},
+\qquad
+A=LL^\top.
+\]
+\pause
+\begin{block}{Why this matters}
+Cholesky is used to solve positive-definite systems and to simulate correlated
+Gaussian vectors: if $Z\sim N(0,I)$ and $\Sigma=LL^\top$, then $LZ$ has
+covariance $\Sigma$.
+\end{block}
+\end{frame}
+
+\begin{frame}{Application: Simulating Correlated Returns}
+Let $Z_1,Z_2$ be independent standard normal variables and set
+\[
+L=\begin{pmatrix}2&0\\1&\sqrt2\end{pmatrix},
+\qquad
+X=L\begin{pmatrix}Z_1\\Z_2\end{pmatrix}
+=\begin{pmatrix}2Z_1\\Z_1+\sqrt2 Z_2\end{pmatrix}.
+\]
+\pause
+Then
+\[
+\Cov(X)=LL^\top
+=\begin{pmatrix}4&2\\2&3\end{pmatrix}.
+\]
+Thus $X_1$ and $X_2$ have variances $4$ and $3$, covariance $2$, and
+correlation $2/\sqrt{12}=1/\sqrt3$.
+\begin{block}{Practical use}
+Generate independent shocks first, then multiply by $L$ to obtain shocks with the desired covariance.
+\end{block}
+\end{frame}
+
+\section{Statistics and Finance Applications}
+
+\begin{frame}{Covariance Matrix from Data}
+Let $X\in\R^{n\times d}$ be a centered data matrix:
+\[
+X=
+\begin{pmatrix}
+- & x_1^\top & -\\
+- & x_2^\top & -\\
+&\vdots&\\
+- & x_n^\top & -
+\end{pmatrix}.
+\]
+\pause
+The empirical covariance matrix is
+\[
+\widehat{\Sigma}=\frac{1}{n-1}X^\top X.
+\]
+\pause
+\begin{resultblock}{Result -- Covariance matrices are positive semidefinite}
+\[
+\widehat{\Sigma}^\top=\widehat{\Sigma},
+\qquad
+z^\top\widehat{\Sigma}z=\frac{1}{n-1}\|Xz\|^2\ge 0.
+\]
+\end{resultblock}
+\end{frame}
+
+\begin{frame}{Covariance Matrix: Numerical Example}
+Use the centered data matrix
+\[
+X=\begin{pmatrix}
+0.01&-0.03\\
+0.02&0.01\\
+-0.01&0
+\end{pmatrix}.
+\]
+\pause
+Then
+\[
+X^\top X=
+\begin{pmatrix}
+0.0006&-0.0001\\
+-0.0001&0.0010
+\end{pmatrix},
+\qquad
+\widehat\Sigma=\frac1{n-1}X^\top X.
+\]
+The matrix is symmetric and positive semidefinite by construction.
+\end{frame}
+
+\begin{frame}{Portfolio Variance}
+\begin{resultblock}{Result -- Portfolio variance formula}
+Let $w$ be a vector of portfolio weights and $\Sigma$ a covariance matrix of asset returns.
+\[
+R_p=w^\top r,\qquad
+\boxed{\Var(R_p)=w^\top\Sigma w.}
+\]
+\end{resultblock}
+\pause
+Example:
+\[
+\Sigma=
+\begin{pmatrix}
+0.04&0.018\\
+0.018&0.09
+\end{pmatrix},
+\qquad
+w=\begin{pmatrix}0.6\\0.4\end{pmatrix}.
+\]
+\pause
+\[
+w^\top\Sigma w
+=0.6^2(0.04)+2(0.6)(0.4)(0.018)+0.4^2(0.09)
+=0.03744.
+\]
+\end{frame}
+
+\begin{frame}{PCA in One Slide}
+For centered data $X$, PCA diagonalizes
+\[
+\widehat{\Sigma}=\frac{1}{n-1}X^\top X.
+\]
+\pause
+If
+\[
+\widehat{\Sigma}=QDQ^\top,
+\]
+then:
+\begin{itemize}
+  \item columns of $Q$ are principal directions;
+  \item diagonal entries of $D$ are variances along those directions;
+  \item the first principal component is the direction of maximum variance.
+\end{itemize}
+\pause
+Projection onto the first $k$ components:
+\[
+Z=XQ_k.
+\]
+\end{frame}
+
+\begin{frame}{PCA Example}
+Centered data:
+\[
+X=
+\begin{pmatrix}
+-1&-1\\
+0&0\\
+1&1
+\end{pmatrix}.
+\]
+\pause
+\[
+\widehat{\Sigma}
+=\frac{1}{2}X^\top X
+=
+\begin{pmatrix}1&1\\1&1\end{pmatrix}.
+\]
+\pause
+Eigenvalues and principal directions:
+\[
+\lambda_1=2,\quad q_1=\frac{1}{\sqrt 2}\begin{pmatrix}1\\1\end{pmatrix},
+\qquad
+\lambda_2=0,\quad q_2=\frac{1}{\sqrt 2}\begin{pmatrix}1\\-1\end{pmatrix}.
+\]
+All variance lies on the line $x_1=x_2$.
+\end{frame}
+
+\section[Markov Chains]{Markov Chains and Transition Matrices}
+
+\subsection{Transition Matrices}
+
+\begin{frame}{From a Markov Chain to a Matrix}
+For states $\{1,\ldots,m\}$, use the column-vector convention
+\[
+P_{ij}=\mathbb{P}(X_{n+1}=i\mid X_n=j).
+\]
+\pause
+Each column describes the next-state distribution from one current state:
+\[
+P_{ij}\geq0,
+\qquad
+\sum_{i=1}^mP_{ij}=1.
+\]
+\begin{block}{Linear algebra link}
+A transition matrix is a nonnegative matrix that maps probability vectors to
+probability vectors.
+\end{block}
+\end{frame}
+
+\subsection{Distribution Dynamics}
+
+\begin{frame}{Matrix Powers Represent Time}
+\begin{resultblock}{Result -- Distribution dynamics}
+Let $\mu_n$ be the column vector containing the distribution of $X_n$. Then
+\[
+\boxed{\mu_{n+1}=P\mu_n},
+\qquad
+\boxed{\mu_n=P^n\mu_0}.
+\]
+\end{resultblock}
+\pause
+The entry $(P^n)_{ij}$ is the probability of reaching state $i$ after $n$
+steps when starting from state $j$.
+\begin{block}{Key message}
+Matrix multiplication composes transitions; taking the $n$th power advances
+the chain by $n$ time steps.
+\end{block}
+\end{frame}
+
+\begin{frame}{Example: A Two-State Credit Chain}
+States are Good (G) and Bad (B), with
+\[
+P=\begin{pmatrix}0.9&0.4\\0.1&0.6\end{pmatrix},
+\qquad
+\mu_0=\begin{pmatrix}1\\0\end{pmatrix}.
+\]
+\pause
+After one and two years,
+\[
+\mu_1=P\mu_0=\begin{pmatrix}0.9\\0.1\end{pmatrix},
+\qquad
+\mu_2=P^2\mu_0=\begin{pmatrix}0.85\\0.15\end{pmatrix}.
+\]
+\begin{block}{Interpretation}
+Starting from Good, the two-year probability of being in Bad is $15\%$.
+\end{block}
+\end{frame}
+
+\subsection{Stationarity and Diagonalization}
+
+\begin{frame}{Stationary Distribution as an Eigenvector}
+\small
+\begin{resultblock}{Result -- Stationarity condition}
+A stationary distribution satisfies
+\[
+P\pi=\pi,
+\qquad
+\mathbf{1}^\top\pi=1.
+\]
+Thus $\pi$ is an eigenvector for eigenvalue $1$. For the credit chain,
+\end{resultblock}
+\[
+\pi=\begin{pmatrix}0.8\\0.2\end{pmatrix}.
+\]
+\pause
+The other eigenvalue is $0.5$, and for $\mu_0=(1,0)^\top$,
+\[
+\mu_n=
+\begin{pmatrix}0.8\\0.2\end{pmatrix}
++0.2(0.5)^n\begin{pmatrix}1\\-1\end{pmatrix}.
+\]
+The stationary mode persists, while the transient mode decays geometrically.
+\end{frame}
+
+\end{document}

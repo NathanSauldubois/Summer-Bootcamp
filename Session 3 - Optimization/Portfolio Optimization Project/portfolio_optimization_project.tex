@@ -1,0 +1,766 @@
+\documentclass[10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[margin=0.78in]{geometry}
+\usepackage{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage{hyperref}
+
+\definecolor{BootcampBlue}{RGB}{31,78,121}
+\definecolor{BootcampGold}{RGB}{215,155,35}
+\definecolor{BootcampGreen}{RGB}{34,105,72}
+\hypersetup{colorlinks=true,linkcolor=BootcampBlue,urlcolor=BootcampBlue}
+\setlist{itemsep=1pt,topsep=2pt,parsep=0pt,partopsep=0pt}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt}
+\setlength{\abovedisplayskip}{5pt plus 2pt minus 2pt}
+\setlength{\belowdisplayskip}{5pt plus 2pt minus 2pt}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\trans}{^{\mathsf T}}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\diag}{\operatorname{diag}}
+
+\newtcolorbox{definitionbox}[1]{breakable,colback=BootcampBlue!4,
+  colframe=BootcampBlue,boxrule=0.8pt,arc=1mm,
+  title=\textbf{#1},fonttitle=\bfseries}
+\newtcolorbox{checkpointbox}[1]{breakable,colback=BootcampGreen!5,
+  colframe=BootcampGreen,boxrule=0.8pt,arc=1mm,
+  title=\textbf{#1},fonttitle=\bfseries}
+\newtcolorbox{deliverablebox}[1]{breakable,colback=BootcampGold!8,
+  colframe=BootcampGold!80!black,boxrule=0.8pt,arc=1mm,
+  title=\textbf{#1},fonttitle=\bfseries}
+
+\title{Summer Bootcamp -- Session 3\\Portfolio Optimization Project}
+\author{Nathan Sauldubois}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\section*{Optional project}
+
+This optional extension can be completed independently by students who want to
+explore portfolio optimization further. The aim is to build a complete and
+reproducible research pipeline: simulate train and test returns, study the
+covariance structure with PCA, estimate several portfolios, and evaluate
+rebalanced strategies without look-ahead bias. The central question is:
+
+\begin{quote}
+Does a better-conditioned covariance estimate produce more stable weights and
+better realized risk after transaction costs?
+\end{quote}
+
+The stages and self-checks provide a suggested path that students can follow at
+their own pace. They may stop after any stage or select the parts that interest
+them. A partial pipeline with correct validation is more useful than a more
+sophisticated strategy containing look-ahead bias.
+
+\begin{deliverablebox}{Files supplied and suggested outputs}
+The folder contains this statement and
+\texttt{portfolio\_project\_skeleton.py}. A complete implementation can create
+\texttt{returns\_train.csv}, \texttt{returns\_test.csv}, and
+\texttt{true\_parameters.npz}. Store tables and figures in clearly named
+output folders. Do not edit the generated CSV files manually.
+\end{deliverablebox}
+
+\section{Definitions and conventions}
+
+\begin{definitionbox}{Returns, moments, and annualization}
+For $n$ assets, $R_t=(R_{1,t},\ldots,R_{n,t})\trans$ is the random vector of
+daily simple returns. A sample contains rows indexed by date and one column per
+asset. The population daily moments are
+\[
+\mu_d=\E[R_t],\qquad \Sigma_d=\Cov(R_t).
+\]
+Under the usual independent-return annualization convention,
+\[
+\mu=252\mu_d,\qquad \Sigma=252\Sigma_d.
+\]
+This convention is an approximation for arithmetic returns; state it in the
+report rather than treating it as an identity for compounded wealth.
+\end{definitionbox}
+
+\begin{definitionbox}{Portfolio return, risk, and constraints}
+A portfolio is a vector $w\in\R^n$. Full investment means
+$\mathbf1\trans w=1$; long-only means $w_i\geq0$. Its expected return and
+variance are
+\[
+R(w)=\mu\trans w,\qquad \sigma^2(w)=w\trans\Sigma w.
+\]
+Equal weight uses $w_i=1/n$. The Herfindahl concentration index is
+$H(w)=\sum_iw_i^2$; under long-only full investment it ranges from $1/n$ to
+$1$.
+\end{definitionbox}
+
+\begin{definitionbox}{Portfolio optimization problems}
+The global minimum-variance portfolio (GMV) solves
+\[
+\min_w\ \frac12w\trans\Sigma w
+\quad\text{s.t.}\quad \mathbf1\trans w=1
+\]
+with any additional bounds stated in the question. A mean--variance portfolio
+solves
+\[
+\min_w\ \frac12w\trans\Sigma w-\gamma\mu\trans w,
+\quad \gamma\geq0.
+\]
+For annual risk-free rate $r_f$, the Sharpe ratio is
+\[
+\operatorname{SR}(w)=
+\frac{\mu\trans w-r_f}{\sqrt{w\trans\Sigma w}}.
+\]
+A maximum-Sharpe portfolio maximizes this ratio over its feasible set. If the
+denominator is numerically zero, the candidate is invalid.
+\end{definitionbox}
+
+\begin{definitionbox}{Covariance estimators used in the project}
+Let $S=U\diag(\lambda_1,\ldots,\lambda_n)U\trans$, with decreasing
+eigenvalues. The rank-$k$ PCA reconstruction is
+\[
+S_{\mathrm{PCA}}^{(k)}=U_k\diag(\lambda_1,\ldots,\lambda_k)U_k\trans.
+\]
+Use the diagonal-corrected version
+\[
+\widetilde S_{\mathrm{PCA}}^{(k)}=S_{\mathrm{PCA}}^{(k)}+
+\diag\!\left(\diag(S-S_{\mathrm{PCA}}^{(k)})\right)
+\]
+for optimization. Ridge regularization uses
+\[
+S_\delta=S+\delta I,
+\qquad \delta=\tau\,\operatorname{tr}(S)/n.
+\]
+The scale-free parameter $\tau$ makes experiments easier to compare.
+\end{definitionbox}
+
+\section{Suggested Python architecture}
+
+Use the supplied skeleton and implement the functions below in order. Keep the
+function names and return types so that later stages can reuse earlier work.
+Each function should validate its own output before returning it.
+
+\begingroup
+\raggedright
+\begin{enumerate}[label=\textbf{A.\arabic*.}]
+\item \textbf{Data generation.} Implement
+\path{factor_covariance},
+\path{generate_population_parameters},
+\path{theoretical_moments},
+\path{simulate_returns}, and
+\path{generate_and_save_data}.
+The final function should return two data frames and create the two CSV files and
+parameter archive. Add assertions for shapes, dates, column names, finite
+values, and covariance eigenvalues.
+
+\item \textbf{Loading and descriptive checks.} Implement
+\path{load_project_data} and
+\path{annualized_sample_moments}.
+The loader should parse dates, reject overlapping train/test indices, preserve
+asset order, and compare stored dimensions with the configuration.
+
+\item \textbf{PCA.} Implement
+\path{fit_pca_on_train},
+\path{pca_covariance}, \path{pca_scores},
+\path{principal_angles}, and
+\path{plot_pca_diagnostics}.
+Return eigenvalues in decreasing order and use the training mean and loadings
+when transforming test observations.
+
+\item \textbf{Portfolio construction.} Implement
+\path{ridge_covariance}, \path{unconstrained_gmv},
+\path{solve_long_only_gmv},
+\path{solve_max_sharpe},
+\path{solve_mean_variance}, and
+\path{trace_efficient_frontier}.
+Every numerical solver should return both weights and its raw solver result.
+Never silently accept a failed solver.
+
+\item \textbf{Optimality and feasibility checks.} Implement
+\path{portfolio_diagnostics} and
+\path{directional_optimality_check}.
+At minimum report budget error, bound violations, predicted variance,
+concentration, solver status, and whether small feasible perturbations reduce
+the objective.
+
+\item \textbf{Model selection.} Implement
+\path{select_covariance_hyperparameters}.
+Its output should contain one row per candidate, the exact estimation and
+validation dates, realized validation risk, concentration, and the declared
+selection criterion. The function should not accept test data as an argument.
+
+\item \textbf{Backtesting.} Implement
+\path{drift_weights}, \path{frozen_weight_backtest},
+\path{backtest_rebalanced_strategy}, and
+\path{performance_metrics}.
+Return aligned series or data frames for target weights, pre-trade weights,
+gross returns, net returns, turnover, costs, wealth, and drawdown.
+
+\item \textbf{Reporting and robustness.} Implement
+\path{plot_backtest_diagnostics} and \path{run_one_seed}.
+The top-level \path{main} function can call the stages in order and
+regenerate all files from an empty output folder without manual intervention.
+\end{enumerate}
+\endgroup
+
+\begin{checkpointbox}{Recommended coding structure}
+Avoid putting the full project in one notebook cell or one function. Each
+optimizer, estimator, validation rule, metric, and plot should be callable and
+testable independently. Use informative exceptions for invalid inputs and
+store solver diagnostics alongside portfolio weights.
+\end{checkpointbox}
+
+\section{Detailed function contracts}
+
+The following contracts describe a complete implementation. Shapes use
+$T$ for the number of observations, $n$ for assets, $k$ for retained
+components, and $m$ for equality constraints. Unless specified otherwise,
+numeric arrays must be finite and use floating-point values.
+
+\begin{sloppypar}
+\subsection*{Utilities}
+
+\paragraph{\texttt{make\_output\_directories(cfg)}}
+\textbf{Input:} one \texttt{Config}. \textbf{Work:} create the data, figure, and
+table directories with \texttt{parents=True} and \texttt{exist\_ok=True};
+never delete existing results. \textbf{Return:} \texttt{None}.
+\textbf{Check:} every expected path exists and is a directory.
+
+\paragraph{\texttt{asset\_names(n\_assets)}}
+\textbf{Input:} a positive integer. \textbf{Work:} generate zero-padded names
+from \texttt{Asset\_01} through \texttt{Asset\_NN}.
+\textbf{Return:} an ordered list of unique strings of length $n$.
+\textbf{Reject:} nonpositive or noninteger input.
+
+\paragraph{\texttt{check\_covariance(sigma, name, tol)}}
+\textbf{Input:} a candidate matrix, a diagnostic name, and tolerance.
+\textbf{Work:} verify square shape, finite entries, symmetry, and
+$\lambda_{\min}\geq-\texttt{tol}$. \textbf{Return:} \texttt{None} on success.
+\textbf{Failure:} raise an informative \texttt{ValueError} containing
+\texttt{name}, the failed property, and the observed value.
+
+\subsection*{Stage 1: simulation and files}
+
+\paragraph{\texttt{factor\_covariance()}}
+\textbf{Input:} none. \textbf{Work:} create $\mu_f$, factor volatilities, and
+$R_f$, then compute
+$\Sigma_f=\diag(s_f)R_f\diag(s_f)$ in annual units.
+\textbf{Return:} three arrays with shapes $(3,)$, $(3,)$, and $(3,3)$.
+\textbf{Checks:} correlation diagonal equals one, covariance diagonal equals
+$s_f^2$, and covariance is positive semidefinite.
+
+\paragraph{\texttt{generate\_population\_parameters(rng, cfg)}}
+\textbf{Inputs:} a NumPy generator and configuration.
+\textbf{Work:} draw $\alpha$, $B$, and idiosyncratic volatilities with the
+stated distributions; build $D$; attach factor moments.
+\textbf{Return:} a dictionary containing
+\texttt{alpha}, \texttt{B}, \texttt{D}, \texttt{idio\_vol},
+\texttt{mu\_f}, \texttt{factor\_vol}, and \texttt{sigma\_f}.
+\textbf{Checks:} exact shapes, positive volatilities, diagonal $D$, and finite
+values.
+
+\paragraph{\texttt{theoretical\_moments(params)}}
+\textbf{Input:} the population dictionary.
+\textbf{Work:} compute annual
+$\mu_{\mathrm{true}}=\alpha+B\mu_f$ and
+$\Sigma_{\mathrm{true}}=B\Sigma_fB\trans+D$.
+\textbf{Return:} arrays of shapes $(n,)$ and $(n,n)$.
+\textbf{Checks:} expected keys and dimensions, symmetry, and positive
+semidefiniteness.
+
+\paragraph{\texttt{simulate\_returns(rng, n\_obs, params, cfg)}}
+\textbf{Inputs:} generator, positive observation count, population parameters,
+and configuration. \textbf{Work:} draw factor and idiosyncratic shocks in daily
+units and combine them as
+$\alpha/252+f_tB\trans+\varepsilon_t$.
+\textbf{Return:} a $(T,n)$ array of daily simple returns.
+\textbf{Checks:} exact shape, finite values, and no mutation of
+\texttt{params}.
+
+\paragraph{\texttt{returns\_frame(values, start\_date, cfg)}}
+\textbf{Inputs:} a $(T,n)$ array and valid start date.
+\textbf{Work:} attach an increasing business-day index and standard asset
+names. \textbf{Return:} a data frame with named date index.
+\textbf{Checks:} $n$ columns, unique dates, no missing values, and column order
+equal to \texttt{asset\_names(n)}.
+
+\paragraph{\texttt{generate\_and\_save\_data(cfg)}}
+\textbf{Input:} configuration. \textbf{Work:} spawn independent RNG streams,
+draw parameters once, simulate independent train and test shocks, create
+non-overlapping dates, compute true moments, and save both CSV files plus the
+NPZ archive. \textbf{Return:} train and test data frames.
+\textbf{Checks:} reload the saved files, compare shapes and column order, and
+verify that a second run with the same seed reproduces values exactly.
+
+\paragraph{\texttt{load\_project\_data(cfg)}}
+\textbf{Input:} configuration containing file paths.
+\textbf{Work:} read CSV dates, load the NPZ archive, and reconstruct the
+parameter dictionary. \textbf{Return:} train data frame, test data frame, and
+parameter dictionary. \textbf{Reject:} missing files, wrong dimensions,
+overlapping dates, reordered assets, nonnumeric returns, or missing parameter
+keys.
+
+\paragraph{\texttt{annualized\_sample\_moments(returns, cfg)}}
+\textbf{Input:} one return data frame in daily units.
+\textbf{Work:} compute $252\bar r$ and $252$ times the sample covariance with
+the usual $T-1$ denominator. \textbf{Return:} $(n,)$ mean and $(n,n)$
+covariance. \textbf{Checks:} at least two observations, all-numeric columns,
+finite moments, and covariance validity.
+
+\subsection*{Stage 2: PCA}
+
+\paragraph{\texttt{fit\_pca\_on\_train(train)}}
+\textbf{Input:} training returns only. \textbf{Work:} store the training mean,
+center the data, compute daily sample covariance, apply
+\texttt{numpy.linalg.eigh}, and sort eigenpairs decreasingly.
+\textbf{Return:} a dictionary with \texttt{mean}, \texttt{eigenvalues},
+\texttt{eigenvectors}, \texttt{explained\_ratio}, and
+\texttt{empirical\_covariance}. \textbf{Checks:} centered means near zero,
+orthonormal eigenvectors, nonincreasing eigenvalues, explained ratios summing
+to one, and full reconstruction error below tolerance.
+
+\paragraph{\texttt{pca\_covariance(eigenvalues, eigenvectors, n\_components,
+empirical\_covariance, diagonal\_correction)}}
+\textbf{Inputs:} fitted eigenpairs, integer $k$, empirical covariance, and
+correction flag. \textbf{Work:} reconstruct the rank-$k$ covariance and,
+when requested, add the diagonal residual.
+\textbf{Return:} one symmetric $(n,n)$ covariance in the same units as the
+input. \textbf{Checks:} $1\leq k\leq n$, compatible shapes, diagonal
+preservation when corrected, and positive semidefiniteness.
+
+\paragraph{\texttt{pca\_scores(returns, training\_mean,
+training\_eigenvectors, n\_components)}}
+\textbf{Inputs:} train or test returns and PCA quantities fitted on train.
+\textbf{Work:} subtract the training mean and multiply by $U_k$; never refit or
+recenter with the test mean. \textbf{Return:} a $(T,k)$ data frame named
+\texttt{PC\_01}, \ldots, with the original dates.
+\textbf{Checks:} matching asset dimension and valid $k$.
+
+\paragraph{\texttt{principal\_angles(empirical\_vectors,
+theoretical\_vectors, n\_components)}}
+\textbf{Inputs:} two orthonormal bases and $k$.
+\textbf{Work:} compute singular values of
+$U_{\mathrm{true},k}\trans U_{\mathrm{emp},k}$, clip to $[-1,1]$, and take
+arccos. \textbf{Return:} $k$ angles in radians, preferably sorted increasingly.
+\textbf{Checks:} orthonormality and angles in $[0,\pi/2]$ up to tolerance.
+
+\paragraph{\texttt{plot\_pca\_diagnostics(pca, output\_path)}}
+\textbf{Inputs:} PCA dictionary and PNG path.
+\textbf{Work:} make aligned scree and cumulative-explained-variance panels,
+mark $k=3$, label units and axes, and call \texttt{tight\_layout}.
+\textbf{Return:} \texttt{None}. \textbf{Checks:} create the parent directory,
+save a nonempty file, and close the figure.
+
+\subsection*{Stage 3: covariance estimators and portfolios}
+
+\paragraph{\texttt{ridge\_covariance(sigma, tau)}}
+\textbf{Inputs:} covariance and nonnegative $\tau$.
+\textbf{Work:} compute
+$\delta=\tau\operatorname{tr}(\Sigma)/n$ and return $\Sigma+\delta I$.
+\textbf{Checks:} unchanged shape, symmetry, nondecreasing minimum eigenvalue,
+and an informative error for $\tau<0$.
+
+\paragraph{\texttt{equal\_weight(n\_assets)}}
+\textbf{Input:} positive integer $n$.
+\textbf{Return:} $(n,)$ vector with entries $1/n$.
+\textbf{Checks:} finite nonnegative weights and budget error below tolerance.
+
+\paragraph{\texttt{unconstrained\_gmv(sigma)}}
+\textbf{Input:} positive-definite covariance.
+\textbf{Work:} solve $\Sigma x=\mathbf1$ with
+\texttt{numpy.linalg.solve} and normalize $w=x/(\mathbf1\trans x)$; do not form
+an inverse. \textbf{Return:} $(n,)$ weights.
+\textbf{Checks:} nonzero normalization, budget feasibility, and stationarity
+$\Sigma w+\lambda\mathbf1\approx0$ for the implied multiplier.
+
+\paragraph{\texttt{solve\_long\_only\_gmv(sigma, weight\_cap,
+initial\_weights)}}
+\textbf{Inputs:} covariance, cap, and optional feasible start.
+\textbf{Work:} use SLSQP to minimize $\frac12w\trans\Sigma w$ with
+$\mathbf1\trans w=1$ and $0\leq w_i\leq u$.
+\textbf{Return:} weights and raw \texttt{OptimizeResult}.
+\textbf{Reject:} $n\,u<1$, invalid covariance, infeasible start, or failed solver.
+Here $n$ is the number of assets and $u$ the cap.
+
+\paragraph{\texttt{solve\_max\_sharpe(mu, sigma, risk\_free\_rate,
+weight\_cap, initial\_weights)}}
+\textbf{Inputs:} annual moments, annual risk-free rate, bounds, and start.
+\textbf{Work:} minimize negative Sharpe under the budget and bounds; evaluate
+several feasible initializations outside the function.
+\textbf{Return:} best successful weights and solver result.
+\textbf{Checks:} positive predicted variance, finite objective, feasibility,
+and no silent selection of a failed run.
+
+\paragraph{\texttt{solve\_mean\_variance(mu, sigma, gamma, weight\_cap)}}
+\textbf{Inputs:} annual moments, $\gamma\geq0$, and cap.
+\textbf{Work:} minimize
+$\frac12w\trans\Sigma w-\gamma\mu\trans w$ with analytical gradient, budget,
+and bounds. \textbf{Return:} weights and solver result.
+\textbf{Checks:} units consistent, feasible cap, solver success, and
+constraints within tolerance.
+
+\paragraph{\texttt{trace\_efficient\_frontier(mu, sigma, target\_returns,
+weight\_cap)}}
+\textbf{Inputs:} annual moments, ordered target grid, and cap.
+\textbf{Work:} solve bounded minimum variance for every feasible target,
+warm-starting from the preceding solution.
+\textbf{Return:} one data-frame row per target containing requested and achieved
+return, volatility, concentration, weights or a weight key, solver status,
+message, and maximum violation. \textbf{Rule:} keep failed rows; do not hide
+them from the report.
+
+\paragraph{\texttt{portfolio\_diagnostics(weights, mu, sigma, lower, upper)}}
+\textbf{Inputs:} one weight vector, annual moments, and bounds.
+\textbf{Return:} a dictionary containing budget error, lower and upper
+violations, predicted return, variance, volatility, concentration, minimum and
+maximum weights, and finite-value flag.
+\textbf{Checks:} compatible dimensions and variance not materially negative.
+
+\paragraph{\texttt{directional\_optimality\_check(weights, objective, lower,
+upper, n\_directions, step, seed)}}
+\textbf{Inputs:} feasible weights, callable objective, bounds, and diagnostic
+settings. \textbf{Work:} generate reproducible budget-preserving directions,
+retain feasible perturbations, and evaluate objective changes.
+\textbf{Return:} number tested, smallest change, fraction improving, and seed.
+\textbf{Interpretation:} a detected improvement rejects numerical optimality;
+no detected improvement is not a proof.
+
+\subsection*{Stage 4: model selection}
+
+\paragraph{\texttt{select\_covariance\_hyperparameters(train, candidate\_k,
+candidate\_tau, validation\_length)}}
+\textbf{Inputs:} training data only and candidate grids.
+\textbf{Work:} make a chronological estimation/validation split; refit every
+candidate on the estimation block; build GMV weights; evaluate realized
+validation volatility without re-estimating on validation.
+\textbf{Return:} one row per candidate with estimator name, hyperparameter,
+date boundaries, solver status, realized risk, concentration, and selection
+rank. \textbf{Checks:} no test-data argument, nonempty blocks, and deterministic
+tie-breaking.
+
+\subsection*{Stage 5: backtesting}
+
+\paragraph{\texttt{drift\_weights(post\_trade\_weights,
+realized\_asset\_return)}}
+\textbf{Inputs:} two $(n,)$ arrays. \textbf{Work:} apply the self-financing
+drift formula after one realized return. \textbf{Return:} next pre-trade
+weights. \textbf{Checks:} positive portfolio gross return, finite output,
+budget preservation, and unchanged weights when all asset returns are equal.
+
+\paragraph{\texttt{performance\_metrics(net\_returns, turnover, costs,
+risk\_free\_rate, annualization)}}
+\textbf{Inputs:} aligned dated series and annual risk-free rate.
+\textbf{Work:} construct wealth and drawdown; compute compounded annual return,
+annual volatility, Sharpe, maximum drawdown, average rebalance turnover, total
+cost, and final wealth. \textbf{Return:} a scalar dictionary.
+\textbf{Reject:} empty, misaligned, duplicated-date, or nonfinite inputs.
+
+\paragraph{\texttt{frozen\_weight\_backtest(test, weights,
+charge\_initial\_trade, cfg)}}
+\textbf{Inputs:} test returns and one weight vector chosen from train.
+\textbf{Work:} apply constant target weights to every test date, follow the
+declared initial-cost convention, and compute all paths.
+\textbf{Return:} dictionary with gross/net returns, costs, wealth, drawdown,
+weights, and metrics. \textbf{Check:} weights never depend on test observations.
+
+\paragraph{\texttt{backtest\_rebalanced\_strategy(train, test,
+covariance\_estimator, optimizer, cfg, window)}}
+\textbf{Inputs:} separated samples, two callables, configuration, and
+\texttt{rolling} or \texttt{expanding}. \textbf{Work:} at each date build an
+information set ending at $t-1$, rebalance on schedule, compute turnover from
+pre-trade weights, apply post-trade weights to $r_t$, deduct costs, then drift.
+\textbf{Return:} aligned target and pre-trade weights, gross/net returns,
+turnover, costs, wealth, drawdown, solver logs, estimation-window dates, and
+summary metrics. \textbf{Checks:} one-period lag, feasible targets, budget after
+drift, and explicit handling of solver failure.
+
+\paragraph{\texttt{plot\_backtest\_diagnostics(backtests, output\_dir)}}
+\textbf{Input:} dictionary of strategy backtest outputs.
+\textbf{Work:} align dates and create wealth, drawdown, rolling-volatility,
+turnover, and weight-heat-map figures with consistent colors.
+\textbf{Return:} \texttt{None}. \textbf{Checks:} labeled axes and units,
+legends, nonempty files, and closed figures.
+
+\subsection*{Stage 6: orchestration and tests}
+
+\paragraph{\texttt{run\_one\_seed(seed)}}
+\textbf{Input:} one integer seed. \textbf{Work:} run the same generation,
+selection, and backtest pipeline, reselecting hyperparameters inside that
+seed's training sample. \textbf{Return:} one tidy data frame with seed,
+strategy, selected parameters, and all metrics. \textbf{Rule:} never copy a
+choice made using another seed's test result.
+
+\paragraph{\texttt{run\_sanity\_checks()}}
+\textbf{Input:} none. \textbf{Work:} implement the deterministic checks listed
+in the skeleton, including identity-covariance GMV, PCA reconstruction, weight
+drift, invalid covariance rejection, and one-period lag.
+\textbf{Return:} \texttt{None}; raise immediately on failure and print one
+success message only after every check passes.
+
+\paragraph{\texttt{main()}}
+\textbf{Input:} none; read settings from \texttt{CFG}.
+\textbf{Work:} create directories, run sanity checks, generate or load data,
+fit diagnostics, select hyperparameters, construct portfolios, run backtests,
+save tables and plots, and execute multi-seed robustness.
+\textbf{Return:} \texttt{None}. \textbf{Requirement:} one top-to-bottom run
+from an empty data/output directory should reproduce every generated artifact.
+
+\end{sloppypar}
+
+\section{Stage 0 -- Set up a reproducible experiment}
+
+Use \texttt{seed=2026}, $n=10$ assets, $k=3$ factors,
+$T_{\mathrm{train}}=756$, and $T_{\mathrm{test}}=504$ trading days.
+
+\begin{enumerate}[label=\textbf{0.\arabic*.}]
+\item Create a configuration object containing all seeds, dimensions,
+annualization constants, transaction costs, and file paths. Avoid unexplained
+numbers inside functions.
+\item Create separate random-number generators for population parameters,
+training returns, and test returns. Explain why separate streams make debugging
+easier.
+\item Write a validation function that rejects non-finite arrays, unexpected
+dimensions, asymmetric covariance matrices, and materially negative
+eigenvalues.
+\item Run the empty skeleton once and confirm that missing blocks fail with an
+explicit \texttt{NotImplementedError}, not a cryptic downstream error.
+\end{enumerate}
+
+\begin{checkpointbox}{Self-check 0}
+Your report states the software versions, random seed, annualization convention,
+and directory structure. Running the project twice should produce identical data.
+\end{checkpointbox}
+
+\section{Stage 1 -- Generate train and test returns}
+
+Generate returns from the factor model
+\[
+r_t=\alpha+Bf_t+\varepsilon_t,
+\]
+where
+\[
+f_t\sim\mathcal N\!\left(\frac{\mu_f}{252},
+\frac{\Sigma_f}{252}\right),\qquad
+\varepsilon_t\sim\mathcal N\!\left(0,\frac{D}{252}\right).
+\]
+Use annual factor means
+$\mu_f=(0.05,0.025,0.015)\trans$, annual factor volatilities
+$(0.16,0.10,0.07)$, and
+\[
+R_f=\begin{pmatrix}
+1&0.25&-0.10\\0.25&1&0.20\\-0.10&0.20&1
+\end{pmatrix},
+\qquad
+\Sigma_f=\diag(0.16,0.10,0.07)R_f\diag(0.16,0.10,0.07).
+\]
+Draw $B_{ij}\sim\mathcal N(0,0.45^2)$, annual alphas uniformly between
+$-1\%$ and $3\%$, and annual idiosyncratic volatilities uniformly between
+$10\%$ and $22\%$. If these volatilities are $s_i$, set
+$D=\diag(s_1^2,\ldots,s_n^2)$. Use the same population parameters for train
+and test, but independent shocks.
+
+\begin{enumerate}[label=\textbf{1.\arabic*.}]
+\item Construct $\Sigma_f$ from volatilities and correlations. Check symmetry,
+diagonal entries, and smallest eigenvalue before simulating anything.
+\item Generate $\alpha$, $B$, and $D$. Record their shapes and units. Which
+quantities are annual and which are daily?
+\item Derive and compute the theoretical annual moments
+\[
+\mu_{\mathrm{true}}=\alpha+B\mu_f,
+\qquad
+\Sigma_{\mathrm{true}}=B\Sigma_fB\trans+D.
+\]
+\item Simulate train and test shocks independently. Verify that the same
+population parameters, not newly drawn parameters, are used for both samples.
+\item Attach non-overlapping business-day indices. Name columns
+\texttt{Asset\_01}, \ldots, \texttt{Asset\_10} and save exactly two return
+CSV files.
+\item Save the population parameters in \texttt{true\_parameters.npz}. Reload
+all three files and verify exact shapes, ordering, and absence of missing data.
+\item Compare annualized sample means and covariances with theoretical values.
+Report relative Frobenius covariance error
+$\norm{\widehat\Sigma-\Sigma_{\mathrm{true}}}_F/
+\norm{\Sigma_{\mathrm{true}}}_F$ for train and test.
+\item Explain why the test estimates need not be closer to the truth even
+though the data-generating process is unchanged.
+\end{enumerate}
+
+\begin{checkpointbox}{Self-check 1}
+Provide a table with sample sizes, missing-value counts, minimum covariance
+eigenvalue, mean-estimation error, and covariance-estimation error for each
+sample. Do not continue if units or dates are inconsistent.
+\end{checkpointbox}
+
+\section{Stage 2 -- Learn covariance structure with PCA}
+
+Fit PCA only on centered training returns. You may use an eigendecomposition
+of the training covariance or an SVD of the centered data matrix. Never fit a
+transformation on the test sample.
+
+\begin{enumerate}[label=\textbf{2.\arabic*.}]
+\item Compute the training mean, center the training matrix, and verify that
+each centered column has mean numerically close to zero.
+\item Compute eigenvalues and eigenvectors in decreasing order. Verify
+$U\trans U\approx I$ and reconstruct the empirical covariance from all
+components.
+\item Plot eigenvalues and cumulative explained variance. Mark $k=3$. What
+feature of the data-generating process motivates three components?
+\item Construct the rank-three and diagonal-corrected PCA covariances. Check
+symmetry, diagonal preservation, rank, and smallest eigenvalue.
+\item Compare empirical and PCA covariances with
+$\Sigma_{\mathrm{true}}/252$ using Frobenius error. Separate approximation
+error from estimation error in your discussion.
+\item Compare empirical and theoretical leading subspaces. If
+$s_j$ are singular values of $U_{\mathrm{true}}\trans U_{\mathrm{PCA}}$,
+use principal angles $\theta_j=\arccos(\min(1,\max(-1,s_j)))$. Explain why
+eigenvector signs should not be compared directly.
+\item Transform train and test returns using the training mean and loadings.
+Compare score variances without refitting PCA on test data.
+\item Explain why PCA components need not recover the columns of $B$ exactly,
+especially when idiosyncratic variances differ across assets.
+\end{enumerate}
+
+\begin{checkpointbox}{Self-check 2}
+Suggested figures: scree plot, cumulative explained variance, empirical versus
+theoretical eigenvalues, and a heat map of the diagonal-corrected covariance.
+Suggested table: explained variance, principal angles, covariance errors, and
+condition numbers.
+\end{checkpointbox}
+
+\section{Stage 3 -- Construct and validate portfolios}
+
+From training returns compute annualized $\widehat\mu$ and
+$\widehat\Sigma$. Build the following estimators: empirical covariance,
+diagonal-corrected PCA covariance for several $k$, and ridge covariance for a
+grid of $\tau$ values.
+
+\begin{enumerate}[label=\textbf{3.\arabic*.}]
+\item Implement a portfolio validator reporting budget error, minimum weight,
+maximum weight, predicted return, predicted volatility, concentration, and
+all stated constraint violations.
+\item Implement equal weight and the closed-form unconstrained GMV portfolio.
+Check the closed-form stationarity equation before using an optimizer.
+\item Solve long-only GMV with $0\leq w_i\leq0.30$. Report solver status and
+identify active lower and upper bounds using a numerical tolerance.
+\item Solve long-only maximum Sharpe with $r_f=2\%$. Guard against a zero-risk
+denominator and run several feasible initializations to detect local numerical
+issues.
+\item Solve bounded mean--variance problems
+\[
+\min_w\ \frac12w\trans\widehat\Sigma w-\gamma\widehat\mu\trans w,
+\quad \mathbf1\trans w=1,\quad0\leq w_i\leq0.30
+\]
+for at least six logarithmically spaced values of $\gamma$.
+\item Trace a target-return efficient frontier. Before solving, determine a
+feasible target interval under the weight bounds; do not ask the solver to
+reach an impossible return.
+\item Compare empirical, PCA, and ridge covariances through eigenvalues,
+condition numbers, weights, concentration, predicted risk, and solver
+residuals.
+\item Write down the KKT conditions for long-only GMV. If the solver exposes
+multipliers, compute stationarity and complementary-slackness residuals;
+otherwise verify primal feasibility and a directional optimality check.
+\end{enumerate}
+
+\begin{checkpointbox}{Self-check 3}
+No portfolio enters the backtest unless its weights are finite, budget error is
+below $10^{-8}$, bound violations are below $10^{-8}$, predicted variance is
+nonnegative up to tolerance, and the solver reports success.
+\end{checkpointbox}
+
+\section{Stage 4 -- Choose hyperparameters without test leakage}
+
+The number of PCA components $k$, ridge parameter $\tau$, and mean--variance
+parameter $\gamma$ are hyperparameters. Choose them using training information
+only.
+
+\begin{enumerate}[label=\textbf{4.\arabic*.}]
+\item Reserve the final 126 training observations as a chronological validation
+block. Estimate each candidate using only the earlier training observations.
+\item State a selection criterion before examining validation results. A
+reasonable primary criterion is realized validation volatility, with average
+turnover or concentration as a tie-breaker.
+\item Compare at least $k\in\{1,2,3,5\}$ and
+$\tau\in\{10^{-4},10^{-3},10^{-2},10^{-1},1\}$. Explain why selecting the
+smallest in-sample predicted variance would favor overfitting.
+\item Freeze the chosen rule before loading test returns. Store the selected
+parameters and criterion in a results table.
+\item Optional: replace the single validation block with expanding or rolling
+time-series validation and compare the chosen hyperparameters.
+\end{enumerate}
+
+\section{Stage 5 -- Backtest without look-ahead bias}
+
+Begin with a frozen-weight experiment: estimate once on the entire training
+sample, then hold the weights throughout the test sample. Next implement a
+rebalanced strategy.
+
+At decision date $t$, use only observations strictly before $t$. Let $w_t^-$
+be pre-trade weights and $w_t^+$ post-trade weights. Between trades, weights
+drift according to
+\[
+w_{i,t}^-=
+\frac{w_{i,t-1}^+(1+r_{i,t-1})}
+{1+(w_{t-1}^+)\trans r_{t-1}}.
+\]
+At a rebalance,
+\[
+\operatorname{TO}_t=\sum_i|w_{i,t}^+-w_{i,t}^-|,
+\qquad
+r_{p,t}^{\mathrm{net}}=(w_t^+)\trans r_t-c\operatorname{TO}_t,
+\]
+with $c=0.001$. At a non-rebalance date set $w_t^+=w_t^-$ and
+$\operatorname{TO}_t=0$.
+
+\begin{enumerate}[label=\textbf{5.\arabic*.}]
+\item Write a one-period-lag test: changing return $r_t$ must not change the
+weights applied to $r_t$. Include this test in the code.
+\item Rebalance every 21 trading days. Initially use the final 252 training
+observations; later use the most recent 252 observations available before the
+decision date.
+\item Compare frozen weights, a 252-day rolling window, and an expanding
+window. State precisely which dates enter each estimate.
+\item Before every trade, update drifting weights and verify they still sum to
+one. Then compute turnover relative to the new target weights.
+\item Choose and report the initial-trade convention. Either begin from equal
+weight and charge turnover, or treat initial allocation as costless; use the
+same convention for every strategy.
+\item Compute wealth $V_t=V_{t-1}(1+r_{p,t}^{\mathrm{net}})$ with $V_0=1$ and
+drawdown $1-V_t/\max_{s\leq t}V_s$.
+\item Report annualized return, volatility, Sharpe ratio, maximum drawdown,
+average turnover on trade dates, total transaction costs, and final wealth.
+Use daily risk-free return $r_{f,d}=(1+r_f)^{1/252}-1$.
+\item Compare equal weight and empirical-, PCA-, and ridge-covariance GMV.
+Attribute differences separately to estimated risk, realized risk,
+concentration, turnover, and costs.
+\end{enumerate}
+
+\begin{checkpointbox}{Self-check 5}
+Suggested diagnostics: wealth, drawdown, rolling 63-day volatility, turnover,
+weight heat maps, gross/net performance, and evidence that the first test
+weight excludes the first test return.
+\end{checkpointbox}
+
+\section{Stage 6 -- Robustness and interpretation}
+\enlargethispage{\baselineskip}
+
+\begin{enumerate}[label=\textbf{6.\arabic*.}]
+\item Use the non-deployable oracle GMV portfolio from
+$\Sigma_{\mathrm{true}}$ only to quantify estimation error.
+\item Repeat the experiment for at least five additional seeds, reselecting
+hyperparameters within each training sample. Plot the distributions of realized
+volatility, Sharpe ratio, drawdown, turnover, and final wealth; report medians
+and dispersion rather than means alone.
+\item Across seeds, decide whether PCA or ridge consistently improves
+conditioning, weight stability, or realized risk. Discuss limitations from
+Gaussian returns, constant parameters, mean-estimation error, and simplified
+transaction costs.
+\end{enumerate}
+
+\end{document}

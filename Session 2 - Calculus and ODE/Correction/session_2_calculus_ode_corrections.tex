@@ -1,0 +1,418 @@
+\documentclass[10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[margin=0.78in]{geometry}
+\usepackage[most]{tcolorbox}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\definecolor{ResultBlue}{RGB}{27,79,114}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\setlist{itemsep=2pt,topsep=3pt,parsep=1pt,partopsep=0pt}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\dd}{\,\mathrm{d}}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\solution}[1]{\begin{tcolorbox}[breakable,colback=ResultBlue!3,colframe=ResultBlue,
+  boxrule=0.8pt,arc=1mm,title=\textbf{Result},fonttitle=\bfseries]#1\end{tcolorbox}}
+
+\title{Summer Bootcamp -- Session 2\\Corrections to the Calculus and ODE Exercises}
+\author{Nathan Sauldubois}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\section*{Correction Guidelines}
+The solutions follow the numbering of the exercise sheet. Numerical values are
+rounded only at the end. For programming questions, the displayed formulas are
+the reference implementation; a vectorized implementation is equally valid.
+
+\section{Python and Elementary Financial Calculations}
+
+\paragraph{Exercise 1 -- Coupon-bond yield, duration, and repricing.}
+Differentiation gives
+\[
+B'(y)=-4e^{-y}-8e^{-2y}-312e^{-3y},\qquad
+B''(y)=4e^{-y}+16e^{-2y}+936e^{-3y}.
+\]
+Since $B'(y)<0$, the equation $B(y)=96.50$ has at most one solution. Moreover,
+$B(0)=112$ and $B(0.2)\simeq63.03$, so $[0,0.2]$ brackets it. Bisection or
+Newton's iteration
+\[
+y_{n+1}=y_n-\frac{B(y_n)-96.50}{B'(y_n)}
+\]
+gives
+\solution{$y=0.0515698674$, i.e. a continuously compounded yield of
+$5.15699\%$. At this yield,
+\[
+D_{\rm mod}=2.88387666,\qquad \mathcal C=8.49811801.
+\]}
+For a yield move $\Delta y$, duration and duration--convexity give
+\[
+B_{D}=B(1-D_{\rm mod}\Delta y),\qquad
+B_{DC}=B\left(1-D_{\rm mod}\Delta y+\tfrac12\mathcal C(\Delta y)^2\right).
+\]
+\begin{center}
+\begin{tabular}{rrrr}
+\toprule
+$\Delta y$ & Exact price & Duration & Duration--convexity\\
+\midrule
+$-100$ bp & 99.3244 & 99.2829 & 99.3239\\
+$-25$ bp  & 97.1983 & 97.1957 & 97.1983\\
+$+25$ bp  & 95.8068 & 95.8043 & 95.8068\\
+$+100$ bp & 93.7577 & 93.7171 & 93.7581\\
+\bottomrule
+\end{tabular}
+\end{center}
+The quadratic correction is visibly more accurate, especially for $100$ bp.
+
+\section{Explicit Derivatives}
+
+\paragraph{Exercise 2 -- One-dimensional derivatives.}
+The derivatives and domains are
+\[
+f_1'=6x\cos(3x^2-1),\quad \operatorname{Dom}(f_1)=\R,
+\]
+\[
+f_2'=e^{-3x}(2x-3x^2),\qquad
+f_2''=e^{-3x}(2-12x+9x^2),\quad \operatorname{Dom}(f_2)=\R,
+\]
+\[
+f_3'=\frac{(1+x^2)/x-2x\log x}{(1+x^2)^2},
+\quad \operatorname{Dom}(f_3)=(0,\infty),
+\]
+\[
+f_4'=\frac{e^x}{1+e^x},\qquad
+f_4''=\frac{e^x}{(1+e^x)^2},\quad \operatorname{Dom}(f_4)=\R,
+\]
+\solution{$\displaystyle f_5'=\frac{x}{\sqrt{1+x^2}}$ and
+$\operatorname{Dom}(f_5)=\R$.}
+
+\paragraph{Exercise 3 -- Gradient, Hessian, and Jacobian.}
+One obtains
+\[
+\nabla f=\binom{4x-y+4}{-x+6y},\qquad
+H_f=\begin{pmatrix}4&-1\\-1&6\end{pmatrix}.
+\]
+Furthermore,
+\[
+J_g(x,y)=\begin{pmatrix}e^x\cos y&-e^x\sin y\\1&-2y\end{pmatrix}.
+\]
+
+\paragraph{Exercise 4 -- Multivariate chain rule by two methods.}
+Here
+\[
+F(x,y)=(x+y^2)e^{xe^y}.
+\]
+Direct differentiation yields
+\[
+\partial_xF=e^{xe^y}\bigl[1+(x+y^2)e^y\bigr],
+\]
+\[
+\partial_yF=e^{xe^y}\bigl[2y+x(x+y^2)e^y\bigr].
+\]
+On the other hand,
+\[
+J_\Phi=\begin{pmatrix}1&2y\\e^y&xe^y\end{pmatrix},\qquad
+\nabla q(u,v)=\binom{e^v}{ue^v}.
+\]
+Thus $\nabla F=J_\Phi^\top\nabla q(\Phi)$ reproduces the two formulas above.
+Equivalently,
+\[
+D\Phi h=\binom{h_1+2yh_2}{e^yh_1+xe^yh_2},\qquad
+Dq(u,v)k=e^vk_1+ue^vk_2,
+\]
+and substituting $(u,v)=\Phi(x,y)$ gives the same coefficients of $h_1,h_2$.
+
+\section{Explicit Integration}
+
+\paragraph{Exercise 5 -- One-dimensional integrals.}
+Direct integration, substitution, integration by parts, and a trigonometric
+substitution respectively give
+\solution{\[
+I_1=1,\qquad
+I_2=\begin{cases}\dfrac{(1+T)^{1-r}-1}{1-r},&r\ne1,\\[4pt]
+\log(1+T),&r=1,\end{cases}
+\qquad I_3=\frac{e-1}{2},
+\]
+\[
+I_4=-\frac14,\qquad I_5=\frac{\pi}{4}.
+\]}
+For $I_2$, the limit as $r\to1$ follows from
+$\lim_{a\to0}((1+T)^a-1)/a=\log(1+T)$. For $I_4$, the boundary term
+$x^2\log x/2$ tends to zero at the origin.
+
+\paragraph{Exercise 6 -- The Gaussian integral.}
+Tonelli's theorem allows the nonnegative integrand to be written as
+\[
+G^2=\iint_{\R^2}e^{-(x^2+y^2)}\dd x\dd y.
+\]
+With $x=r\cos\theta$, $y=r\sin\theta$ and Jacobian $r$,
+\[
+G^2=\int_0^{2\pi}\int_0^\infty e^{-r^2}r\dd r\dd\theta
+=2\pi\left[-\frac12e^{-r^2}\right]_0^\infty=\pi.
+\]
+Since $G>0$,
+\solution{$\displaystyle G=\sqrt\pi$, and, after $x=\sqrt2\sigma u$,
+\[
+\int_{-\infty}^{\infty}e^{-x^2/(2\sigma^2)}\dd x
+=\sigma\sqrt{2\pi}.
+\]
+Therefore the Gaussian normalizing constant is
+$1/(\sigma\sqrt{2\pi})$.}
+
+\paragraph{Exercise 7 -- Multiple integrals and change of variables.}
+For $J_1$, direct integration gives
+\[
+J_1=\int_{-1}^2\left(6x-\frac92\right)\dd x=-\frac92.
+\]
+Reversing the order, $0\le y\le3$ and $-1\le x\le2$, gives the same value.
+For the triangle $D$,
+\[
+D=\{0\le x\le2,\ 0\le y\le(2-x)/2\}
+=\{0\le y\le1,\ 0\le x\le2-2y\},
+\]
+and either description gives $J_2=4/3$. Finally, polar coordinates give
+\solution{\[
+J_3(R)=\int_0^{2\pi}\int_1^Rr^4r\dd r\dd\theta
+=\frac{\pi}{3}(R^6-1),\qquad J_3(3)=\frac{728\pi}{3}.
+\]}
+
+\section{Black--Scholes Greeks}
+
+\paragraph{Exercise 8 -- Derive the Greeks.}
+Recall that
+\[
+\Phi(x)=\frac{1}{\sqrt{2\pi}}\int_{-\infty}^x e^{-u^2/2}\dd u,
+\qquad
+\phi(x)=\Phi'(x)=\frac{1}{\sqrt{2\pi}}e^{-x^2/2}.
+\]
+With all unmentioned variables held fixed, the Greeks are defined by
+\[
+\Delta=\frac{\partial C}{\partial S},\qquad
+\Gamma=\frac{\partial^2 C}{\partial S^2},\qquad
+\mathrm{Vega}=\frac{\partial C}{\partial\sigma},
+\]
+\[
+\Theta=-\frac{\partial C}{\partial T},\qquad
+\mathrm{Rho}=\frac{\partial C}{\partial r}.
+\]
+Here $T$ is time to maturity, so the market convention for calendar-time
+Theta is $-C_T$.
+
+\textbf{Question 2 -- Key identity.} Since $d_1-d_2=\sigma\sqrt T$ and
+\[
+d_1+d_2=\frac{2(\log(S/K)+rT)}{\sigma\sqrt T},
+\]
+we have
+\[
+\frac{\phi(d_2)}{\phi(d_1)}
+=\exp\left(\frac{d_1^2-d_2^2}{2}\right)
+=\exp\bigl(\log(S/K)+rT\bigr).
+\]
+Therefore
+\solution{$\displaystyle S\phi(d_1)=Ke^{-rT}\phi(d_2)$.}
+
+\textbf{Question 3 -- Closed-form Greeks.}
+
+\emph{Delta and Gamma.} We use
+\[
+\partial_Sd_1=\partial_Sd_2=\frac{1}{S\sigma\sqrt T}.
+\]
+The chain rule gives
+\[
+\frac{\partial C}{\partial S}
+=\Phi(d_1)+\frac{\phi(d_1)}{\sigma\sqrt T}
+-\frac{Ke^{-rT}\phi(d_2)}{S\sigma\sqrt T}.
+\]
+The last two terms cancel by the key identity. Differentiating once more,
+\[
+\boxed{\Delta=\Phi(d_1),\qquad
+\Gamma=\frac{\phi(d_1)}{S\sigma\sqrt T}.}
+\]
+
+\emph{Vega.} Differentiating both normal-distribution terms with respect to
+$\sigma$ and again using the key identity leaves
+\[
+\boxed{\mathrm{Vega}=\frac{\partial C}{\partial\sigma}
+=S\phi(d_1)\sqrt T.}
+\]
+
+\emph{Rho.} Since
+$\partial_rd_1=\partial_rd_2=\sqrt T/\sigma$, the chain-rule terms cancel and
+the derivative of the discount factor remains:
+\[
+\boxed{\mathrm{Rho}=\frac{\partial C}{\partial r}
+=KT e^{-rT}\Phi(d_2).}
+\]
+
+\emph{Theta.} Differentiation with respect to time to maturity yields
+\[
+\frac{\partial C}{\partial T}
+=\frac{S\phi(d_1)\sigma}{2\sqrt T}
++rKe^{-rT}\Phi(d_2).
+\]
+Consequently, calendar-time Theta is
+\[
+\boxed{\Theta=-\frac{\partial C}{\partial T}
+=-\frac{S\phi(d_1)\sigma}{2\sqrt T}
+-rKe^{-rT}\Phi(d_2).}
+\]
+\textbf{Question 4 -- Short-maturity at-the-money approximation.}
+
+\textbf{(a)} At the money forward means $K=Se^{rT}$. Discounting both sides
+shows that this is equivalent to $Ke^{-rT}=S$.
+
+\textbf{(b)} Substitution in the definitions of $d_1$ and $d_2$ gives
+\[
+d_1=\frac{\sigma\sqrt T}{2},\qquad
+d_2=-\frac{\sigma\sqrt T}{2}.
+\]
+
+\textbf{(c)} Since $Ke^{-rT}=S$, the call price becomes
+\[
+C=S\left[\Phi\left(\frac{\sigma\sqrt T}{2}\right)
+-\Phi\left(-\frac{\sigma\sqrt T}{2}\right)\right].
+\]
+Using $\Phi(-z)=1-\Phi(z)$ and
+$\Phi(z)=\frac12+z/\sqrt{2\pi}+O(z^3)$,
+
+\textbf{(d)} With $z=\sigma\sqrt T/2$, the expansion gives
+\[
+C=S\left[
+2\left(\frac12+\frac{\sigma\sqrt T}{2\sqrt{2\pi}}
++O(T^{3/2})\right)-1\right].
+\]
+Therefore
+\solution{$\displaystyle
+C_{\rm ATM,fwd}=S\sigma\sqrt{\frac{T}{2\pi}}+O(T^{3/2})$
+as $T\downarrow0$.}
+
+\textbf{(e) Interpretation of the $\sqrt T$ scale.} Over a short horizon $T$,
+the typical random move of the underlying in a diffusion model is of size
+\[
+S\sigma\sqrt T.
+\]
+An at-the-money option has almost no intrinsic value, so its price is mainly
+the value of the positive part of this uncertain short-horizon move. This is
+why its leading-order time value inherits the same $\sqrt T$ scale:
+\[
+C_{\rm ATM,fwd}\sim
+\frac{1}{\sqrt{2\pi}}S\sigma\sqrt T.
+\]
+The dependence on maturity is therefore not linear. Dividing $T$ by four
+divides the leading-order option value by two; halving $T$ divides it by
+$\sqrt2$, not by two. Equivalently, differentiating the approximation gives
+\[
+\frac{\partial C}{\partial T}
+\sim\frac{S\sigma}{2\sqrt{2\pi T}},
+\qquad
+\Theta=-\frac{\partial C}{\partial T}
+\sim-\frac{S\sigma}{2\sqrt{2\pi T}}.
+\]
+Thus the magnitude of time decay becomes very large as $T\downarrow0$ at the
+money. This singular behavior is specific to the immediate neighborhood of
+the strike; away from the money, the short-maturity asymptotics are different.
+
+\section{Numerical Schemes for ODEs}
+
+\paragraph{Exercise 9 -- Euler accuracy and the classical inequalities.}
+For $y'=-2y$,
+\[
+y_{n+1}^{E}=(1-2h)y_n^E,\qquad
+y_{n+1}^{I}=\frac{1}{1+2h}y_n^I,
+\]
+so
+\solution{\[
+y_n^E=(1-2h)^n,\qquad y_n^I=(1+2h)^{-n},\qquad y(t_n)=e^{-2nh}.
+\]}
+Both methods have global error $O(h)$, so halving $h$ asymptotically halves
+the maximum error. Explicit Euler is stable precisely when
+$|1-2h|<1$, hence $0<h<1$. The implicit multiplier satisfies
+$0<(1+2h)^{-1}<1$ for every $h>0$. Stability controls growth, not the size of
+the discretization error; a large stable step can therefore be inaccurate.
+
+\section{Solving Scalar and Multidimensional ODEs}
+
+\paragraph{Exercise 10 -- Scalar linear equations.}
+Applying variation of constants or the integrating-factor method gives
+\solution{\[
+y_1(t)=\frac{t}{2}-\frac18-\frac78e^{-4t},
+\qquad
+y_2(t)=(1+t)\left(2+t+\frac{t^2}{2}\right),
+\qquad
+y_3(t)=e^{2t}-e^t.
+\]}
+For the second equation, the integrating factor is $(1+t)^{-1}$ and
+$[y/(1+t)]'=1+t$. Direct differentiation verifies all three initial values
+and equations (the second solution is considered on the interval $t>-1$).
+
+\paragraph{Exercise 11 -- Nonlinear scalar equations.}
+Separation of variables gives
+\solution{\[
+y'=y(1-y):\quad
+y(t)=\frac{1}{1+\frac{1-y_0}{y_0}e^{-t}},\qquad t\in\R.
+\]}
+The equilibria are $0$ (unstable) and $1$ (asymptotically stable). Similarly,
+\[
+y'=-y^3:\quad y(t)=\frac{1}{\sqrt{1+2t}},
+\qquad t\in\left(-\frac12,\infty\right).
+\]
+Its only equilibrium is $0$, which is asymptotically stable, although the
+linearization vanishes. Finally,
+\[
+y'=t(1+y^2):\quad \arctan y=\frac{t^2}{2},\qquad
+y(t)=\tan\left(\frac{t^2}{2}\right).
+\]
+The maximal interval containing zero is $(-\sqrt\pi,\sqrt\pi)$. The last
+equation is nonautonomous, so a one-dimensional autonomous phase line is not
+applicable to it.
+
+\paragraph{Exercise 12 -- Linear systems in dimension two.}
+The eigenpairs may be chosen as
+\[
+\lambda_1=-2,\ v_1=(1,0)^\top,\qquad
+\lambda_2=-4,\ v_2=(1,-2)^\top.
+\]
+Since $x(0)=2v_1-v_2$,
+\solution{\[
+x(t)=2e^{-2t}v_1-e^{-4t}v_2
+=\binom{2e^{-2t}-e^{-4t}}{2e^{-4t}}.
+\]}
+This is exactly $e^{tA}x(0)$. The numerical updates are
+\[
+x_{n+1}^{E}=(I+hA)x_n^E,
+\qquad x_{n+1}^{I}=(I-hA)^{-1}x_n^I.
+\]
+Their errors against the displayed exact solution decay linearly with $h$.
+
+\paragraph{Exercise 13 -- Forced multidimensional system.}
+Solving $Ax^\star+b=0$ gives $x^\star=(1,1)^\top$. With
+$z=x-x^\star$, $z'=Az$ and $z(0)=(-1,1)^\top$. Componentwise,
+$z_1=-e^{-2t}$ and $z_2=e^{-2t}$, hence
+\solution{\[
+x(t)=\binom{1-e^{-2t}}{1+e^{-2t}}\longrightarrow\binom11=x^\star.
+\]}
+Explicit Euler uses $x_{n+1}=(I+hA)x_n+hb$; implicit Euler uses
+$x_{n+1}=(I-hA)^{-1}(x_n+hb)$. Both converge to the same equilibrium when
+their stability conditions are respected.
+
+\paragraph{Exercise 14 -- Second-order equation as a system.}
+The characteristic polynomial is $(r+1)(r+3)$, so the initial data yield
+\solution{$\displaystyle y(t)=e^{-t}-e^{-3t}$.}
+With $z=(y,y')^\top$,
+\[
+z'=\begin{pmatrix}0&1\\-3&-4\end{pmatrix}z,
+\qquad z(0)=\binom02.
+\]
+The companion matrix has the same eigenvalues $-1$ and $-3$. Explicit Euler
+is $z_{n+1}=(I+hA_c)z_n$; comparing its first component with
+$e^{-t_n}-e^{-3t_n}$ verifies first-order convergence.
+
+\end{document}

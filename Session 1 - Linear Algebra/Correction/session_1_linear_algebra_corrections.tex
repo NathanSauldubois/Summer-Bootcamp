@@ -1,0 +1,567 @@
+\documentclass[10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{geometry}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\geometry{margin=0.78in}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\setlist{itemsep=2pt,topsep=3pt,parsep=1pt,partopsep=0pt}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\rank}{\operatorname{rank}}
+\newcommand{\im}{\operatorname{Im}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\Span}{\operatorname{span}}
+
+\title{Summer Bootcamp -- Session 1\\Corrections to the Linear Algebra Exercises}
+\author{Nathan Sauldubois}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\section*{Correction Guidelines}
+
+The computations below use the column-vector convention of the exercise sheet.
+For numerical eigendecompositions, an eigenvector and its negative are equivalent;
+small differences in the last displayed decimal are due to rounding.
+
+\section{Core Linear Algebra}
+
+\paragraph{Exercise 1 -- Matrix arithmetic and dimension checks.}
+
+The dimensions are $A:2\times3$, $B:3\times2$, $C:2\times2$,
+$x:3\times1$, and $y:2\times1$. Hence
+\[
+\begin{array}{c|cccccccccc}
+\text{Expression}&AB&BA&AC&CA&Ax&Ay&Bx&By&C^2&A^\top C\\ \hline
+\text{Defined?}&\checkmark&\checkmark&\times&\checkmark&\checkmark&\times&\times&\checkmark&\checkmark&\checkmark\\
+\text{Dimension}&2\times2&3\times3&-&2\times3&2\times1&-&-&3\times1&2\times2&3\times2
+\end{array}
+\]
+The requested products are
+\[
+AB=\begin{pmatrix}-3&-1\\9&8\end{pmatrix},\qquad
+BA=\begin{pmatrix}2&7&2\\-1&-2&1\\3&12&5\end{pmatrix},
+\]
+\[
+Ax=\begin{pmatrix}-3\\-6\end{pmatrix},\qquad
+By=\begin{pmatrix}7\\-3\\11\end{pmatrix},\qquad
+C^2=\begin{pmatrix}3&-3\\3&0\end{pmatrix}.
+\]
+Moreover,
+\[
+A^\top=\begin{pmatrix}1&0\\2&3\\-1&4\end{pmatrix},\qquad
+B^\top=\begin{pmatrix}2&-1&3\\1&0&2\end{pmatrix},
+\]
+\[
+\tr(C)=3,\qquad \det(C)=3,\qquad
+C^{-1}=\frac13\begin{pmatrix}1&1\\-1&2\end{pmatrix}.
+\]
+Since $AB$ is $2\times2$ whereas $BA$ is $3\times3$, they cannot be equal;
+this explicitly shows that multiplication is not commutative. Finally, if
+$a_1,a_2,a_3$ are the columns of $A$, then
+\[
+Ax=a_1-2a_2+0a_3
+=\begin{pmatrix}1\\0\end{pmatrix}
+-2\begin{pmatrix}2\\3\end{pmatrix}
+=\begin{pmatrix}-3\\-6\end{pmatrix}.
+\]
+
+\paragraph{Exercise 2 -- Kernel, image, rank, and geometry.}
+
+The equations $Lx=0$ imply $x_1=x_2=x_3$. Therefore
+\[
+\ker(L)=\Span\{(1,1,1)^\top\},\qquad \dim\ker(L)=1,
+\qquad \rank(L)=3-1=2.
+\]
+Every column has entries summing to zero, hence is orthogonal to
+$\mathbf 1=(1,1,1)^\top$. Thus $\im(L)\subset\mathbf1^\perp$. Both spaces have
+dimension two, so
+\[
+\im(L)=\mathbf1^\perp
+=\{y\in\R^3:y_1+y_2+y_3=0\}.
+\]
+The vector $b_1$ has coordinate sum zero, so solutions exist. One is
+$x_0=(1,0,-1)^\top$, and all solutions are
+\[
+x=(1,0,-1)^\top+t(1,1,1)^\top,\qquad t\in\R.
+\]
+The coordinates of $b_2$ sum to two, so $b_2\notin\im(L)$ and no solution
+exists. Geometrically, $L$ kills the direction $\Span\{\mathbf1\}$ and acts
+non-trivially on the plane $\mathbf1^\perp$.
+
+\paragraph{Exercise 3 -- Linear systems and bootstrapping.}
+
+\textbf{Part A.} Here
+\[
+A=\begin{pmatrix}2&3\\1&-4\end{pmatrix},\qquad
+b=\begin{pmatrix}5\\-2\end{pmatrix},\qquad \det(A)=-11\neq0.
+\]
+The solution is unique. From $x_1=-2+4x_2$, substitution gives
+$11x_2=9$, so
+\[
+x_2=\frac9{11},\qquad x_1=\frac{14}{11}.
+\]
+Also
+\[
+A^{-1}=\begin{pmatrix}4/11&3/11\\1/11&-2/11\end{pmatrix},
+\qquad A^{-1}b=\begin{pmatrix}14/11\\9/11\end{pmatrix}.
+\]
+
+\textbf{Part B.} The pricing system is
+\[
+\underbrace{\begin{pmatrix}
+1.03&0&0\\0.04&1.04&0\\0.05&0.05&1.05
+\end{pmatrix}}_{C}
+\begin{pmatrix}d_1\\d_2\\d_3\end{pmatrix}
+=\begin{pmatrix}1.005\\1.018\\1.025\end{pmatrix}.
+\]
+It is lower triangular because a bond cannot pay after its maturity. Forward
+substitution yields
+\[
+d_1=\frac{1.005}{1.03}=0.975728,
+\]
+\[
+d_2=\frac{1.018-0.04d_1}{1.04}=0.941318,
+\qquad
+d_3=\frac{1.025-0.05d_1-0.05d_2}{1.05}=0.884903.
+\]
+Consequently,
+\[
+(z_1,z_2,z_3)=(0.024571,0.030237,0.040759),
+\]
+i.e. approximately $(2.457\%,3.024\%,4.076\%)$. Each maturity is obtained
+using discount factors already computed at earlier maturities: this sequential
+triangular solve is exactly bootstrapping.
+
+\paragraph{Exercise 4 -- Covariance matrices and portfolio variance.}
+
+Both columns sum to zero. Direct multiplication gives
+\[
+X^\top X=\begin{pmatrix}0.0010&-0.0002\\-0.0002&0.0006\end{pmatrix},
+\qquad
+\widehat\Sigma=\begin{pmatrix}
+0.000333333&-0.000066667\\
+-0.000066667&0.000200000
+\end{pmatrix}.
+\]
+The off-diagonal entries coincide, so the matrix is symmetric. For
+$w=(0.6,0.4)^\top$,
+\[
+w^\top\widehat\Sigma w=0.000120.
+\]
+Indeed,
+\[
+0.6^2(0.000333333)+0.4^2(0.0002)
++2(0.6)(0.4)(-0.000066667)
+=0.000120.
+\]
+A positive covariance increases the cross term; a negative covariance reduces
+it and creates diversification, subject to the covariance matrix remaining
+positive semidefinite.
+
+\paragraph{Exercise 5 -- Diagonalization and covariance interpretation.}
+
+The symmetry of the two coordinates suggests
+\[
+q_+=\frac1{\sqrt2}(1,1)^\top,\qquad
+q_-=\frac1{\sqrt2}(1,-1)^\top.
+\]
+Then
+\[
+C_\rho q_+=(1+\rho)q_+,
+\qquad
+C_\rho q_-=(1-\rho)q_-.
+\]
+For $\rho=0.8$,
+\[
+Q=\frac1{\sqrt2}\begin{pmatrix}1&1\\1&-1\end{pmatrix},
+\qquad D=\diag(1.8,0.2),\qquad C_\rho=QDQ^\top.
+\]
+The first vector is a common long--long direction; the second is a spread or
+long--short direction. When $\rho\to1$, the spread eigenvalue $1-\rho$ becomes
+small. At $\rho=-1$, the eigenvalues are $0$ and $2$; the common direction has
+zero variance and the matrix is singular.
+
+\paragraph{Exercise 6 -- PCA by hand.}
+
+Since $n=3$,
+\[
+\widehat\Sigma=\frac12X^\top X
+=\begin{pmatrix}1&1\\1&1\end{pmatrix}.
+\]
+Its eigenpairs are
+\[
+\lambda_1=2,\quad q_1=\frac1{\sqrt2}(1,1)^\top,
+\qquad
+\lambda_2=0,\quad q_2=\frac1{\sqrt2}(1,-1)^\top.
+\]
+The first component scores are
+\[
+Xq_1=(-\sqrt2,0,\sqrt2)^\top.
+\]
+Reconstruction using one component is
+\[
+(Xq_1)q_1^\top
+=\begin{pmatrix}-1&-1\\0&0\\1&1\end{pmatrix}=X.
+\]
+It is exact because the data have rank one. The common direction is retained;
+the orthogonal spread direction contains zero sample variation and nothing is
+lost.
+
+\section{Hands-On Python}
+
+\paragraph{Exercise 7 -- Empirical covariance and PCA with NumPy.}
+
+One complete implementation is:
+\begin{verbatim}
+mu = R.mean(axis=0)
+Rc = R - mu
+Sigma = Rc.T @ Rc / (len(R) - 1)
+assert np.allclose(Sigma, np.cov(R, rowvar=False))
+
+eigvals, eigvecs = np.linalg.eigh(Sigma)
+idx = np.argsort(eigvals)[::-1]
+eigvals, eigvecs = eigvals[idx], eigvecs[:, idx]
+ratios = eigvals / eigvals.sum()
+Z1 = Rc @ eigvecs[:, :1]
+Z2 = Rc @ eigvecs[:, :2]
+\end{verbatim}
+The numerical results are
+\[
+\mu=(0.002375,0.000375,0.002000,0.003000)^\top,
+\]
+\[
+\widehat\Sigma=\begin{pmatrix}
+0.000100839&0.000011982&0.000059143&0.000109571\\
+0.000011982&0.000015696&0.000008714&0.000009286\\
+0.000059143&0.000008714&0.000035429&0.000063429\\
+0.000109571&0.000009286&0.000063429&0.000121143
+\end{pmatrix}.
+\]
+In decreasing order, the eigenvalues and explained-variance ratios are
+\[
+\lambda=(2.56457\!\times10^{-4},1.5480\!\times10^{-5},
+1.010\!\times10^{-6},1.59\!\times10^{-7}),
+\]
+\[
+r=(0.93904,0.05668,0.00370,0.00058).
+\]
+One possible first eigenvector is
+\[
+q_1=(-0.6265,-0.0708,-0.3667,-0.6841)^\top.
+\]
+The one-component scores are approximately
+\[
+Z_1=(-0.01209,0.01405,-0.01847,0.02165,-0.00899,-0.00054,
+0.01879,-0.01441)^\top.
+\]
+All entries of $q_1$ have the same sign, so the first component is a broad
+market-like factor. Its sign is arbitrary; replacing $q_1$ by $-q_1$ changes
+the scores' signs but not the PCA.
+
+\paragraph{Exercise 8 -- Portfolio risk lab.}
+
+The matrix is symmetric and
+\[
+\operatorname{eigvalsh}(\Sigma)
+=(0.032725,0.050366,0.089182,0.177727),
+\]
+so it is positive definite. For the equal-weight portfolio,
+\[
+\E[R_{w_0}]=0.0825,\qquad
+\Var(R_{w_0})=0.035125,\qquad
+\sigma_{w_0}=0.187417.
+\]
+The minimum-variance weights are obtained without forming the inverse:
+\begin{verbatim}
+ones = np.ones(4)
+v = np.linalg.solve(Sigma, ones)
+w_star = v / (ones @ v)
+\end{verbatim}
+They are
+\[
+w^\star=(0.520739,0.288460,0.102549,0.088252)^\top.
+\]
+Their return, variance, and volatility are
+\[
+0.066049,\qquad 0.0270195,\qquad 0.164376.
+\]
+A reproducible random comparison is:
+\begin{verbatim}
+rng = np.random.default_rng(12345)
+W = rng.random((5000, 4))
+W /= W.sum(axis=1, keepdims=True)
+vol = np.sqrt(np.einsum("ij,jk,ik->i", W, Sigma, W))
+i = np.argmin(vol)
+print(W[i], vol[i])
+\end{verbatim}
+This gives weights approximately $(0.5128,0.3110,0.0950,0.0811)$ and volatility
+$0.164488$. It is close but not identical: random search samples finitely many
+points, whereas the analytic solution finds the exact continuous optimum.
+
+\section{Decomposition Brainteasers and Applications}
+
+\paragraph{Exercise 9 -- Predicting a coupled system without iterating.}
+
+Direct calculation gives
+\[
+x_1=(1,2)^\top,\qquad x_2=(5,4)^\top,\qquad x_3=(19,8)^\top.
+\]
+The eigenvalues are $3$ and $2$, with
+\[
+P=\begin{pmatrix}1&-1\\0&1\end{pmatrix},\quad
+D=\diag(3,2),\quad
+P^{-1}=\begin{pmatrix}1&1\\0&1\end{pmatrix}.
+\]
+Therefore
+\[
+A^k=PD^kP^{-1}
+=\begin{pmatrix}3^k&3^k-2^k\\0&2^k\end{pmatrix},
+\qquad
+x_k=\begin{pmatrix}3^k-2^k\\2^k\end{pmatrix}.
+\]
+The eigenvalue $3$ controls generic long-run growth. If
+$x_0=(-1,1)^\top$, it is already an eigenvector for eigenvalue $2$, so
+$x_k=2^k(-1,1)^\top$ and the $3^k$ mode vanishes.
+
+\paragraph{Exercise 10 -- Finding hidden risk factors.}
+
+The candidates $(1,1)^\top$ and $(1,-1)^\top$ are orthogonal. After
+normalization they are $q_+$ and $q_-$ from Exercise 5, with variances/eigenvalues
+$1.8$ and $0.2$. The first is a common trade; the second is a spread trade.
+The equally weighted long--short portfolio $(1/2,-1/2)^\top$ has variance
+\[
+(1/2,-1/2)C(1/2,-1/2)^\top=0.1,
+\]
+so it is low risk but not riskless. In general the common and spread variances
+are $1+\rho$ and $1-\rho$. As $\rho\to1$ the spread becomes riskless; as
+$\rho\to-1$ the common direction becomes riskless.
+
+\paragraph{Exercise 11 -- Manufacturing a target correlation.}
+
+Matching entries in $LL^\top=\Sigma$ gives
+\[
+L=\begin{pmatrix}2&0\\1&\sqrt2\end{pmatrix}.
+\]
+Thus
+\[
+X_1=2Z_1,\qquad X_2=Z_1+\sqrt2Z_2.
+\]
+Independence gives
+\[
+\Var(X_1)=4,\qquad \Var(X_2)=1+2=3,
+\qquad \Cov(X_1,X_2)=2,
+\]
+and hence $\rho_{12}=2/\sqrt{12}=1/\sqrt3$. For $z=(1,-1)^\top$,
+\[
+Lz=(2,1-\sqrt2)^\top.
+\]
+Multiplying $Z$ by $\Sigma$ would produce covariance
+$\Sigma I\Sigma^\top=\Sigma^2$, not $\Sigma$.
+
+\section{Finance Brainteasers and Theory}
+
+\paragraph{Exercise 12 -- Singular covariance and redundant assets.}
+
+First use bilinearity of covariance:
+\[
+\Cov(R_1,R_3)=\Cov(R_1,R_1+R_2)
+=\Var(R_1)+\Cov(R_1,R_2)=1.2,
+\]
+\[
+\Cov(R_2,R_3)=\Cov(R_2,R_1)+\Var(R_2)=1.2,
+\]
+and
+\[
+\Var(R_3)=\Var(R_1+R_2)
+=\Var(R_1)+\Var(R_2)+2\Cov(R_1,R_2)=2.4.
+\]
+Therefore
+\[
+\Sigma=\begin{pmatrix}
+1&0.2&1.2\\0.2&1&1.2\\1.2&1.2&2.4
+\end{pmatrix}.
+\]
+
+There is also a structural derivation. Set
+\[
+X=\begin{pmatrix}R_1\\R_2\end{pmatrix},\qquad
+M=\begin{pmatrix}1&0\\0&1\\1&1\end{pmatrix}.
+\]
+Then $R=(R_1,R_2,R_3)^\top=MX$, so
+\[
+\Sigma=\Cov(R)=M\Cov(X)M^\top
+=M\begin{pmatrix}1&0.2\\0.2&1\end{pmatrix}M^\top.
+\]
+This factorization already implies $\rank(\Sigma)\le\rank(M)=2$.
+
+Take $w=(-1,-1,1)^\top$. Direct multiplication gives
+\[
+\Sigma w=
+\begin{pmatrix}
+-1-0.2+1.2\\-0.2-1+1.2\\-1.2-1.2+2.4
+\end{pmatrix}
+=\begin{pmatrix}0\\0\\0\end{pmatrix}.
+\]
+The corresponding portfolio return is
+\[
+w^\top R=-R_1-R_2+R_3=0
+\]
+in every outcome, not merely in expectation.
+
+The singularity has three equivalent explanations:
+\begin{itemize}
+\item the returns satisfy the exact relation $R_3-R_1-R_2=0$;
+\item the covariance matrix has the nonzero kernel vector $w$;
+\item $R=MX$ depends on only two underlying random returns and
+$\rank(M)=2<3$.
+\end{itemize}
+Moreover, $\Cov(X)$ has eigenvalues $1.2$ and $0.8$, so it is positive
+definite. Hence $\rank(\Sigma)=2$ and
+\[
+\ker(\Sigma)=\Span\{(-1,-1,1)^\top\}.
+\]
+
+Let $p=(p_1,p_2,p_3)^\top$ be the current price vector. Since $w$ produces the
+zero payoff, no arbitrage requires it to have zero price:
+\[
+w^\top p=-p_1-p_2+p_3=0,
+\qquad\text{so}\qquad
+\boxed{p_3=p_1+p_2}.
+\]
+If $p_3<p_1+p_2$, buy one unit of security 3 and short one unit of each of
+securities 1 and 2. The initial inflow is $p_1+p_2-p_3>0$, while the terminal
+payoff is $R_3-R_1-R_2=0$.
+
+If $p_3>p_1+p_2$, reverse the trade: short security 3 and buy securities 1 and
+2. The initial inflow is $p_3-p_1-p_2>0$, while the terminal payoff is
+$R_1+R_2-R_3=0$. Thus either violation of the price relation creates a
+zero-risk arbitrage.
+
+\paragraph{Exercise 13 -- Short theoretical questions.}
+
+\begin{enumerate}
+\item $(X^\top X)^\top=X^\top X$, and for every $z$,
+$z^\top X^\top Xz=\|Xz\|^2\ge0$. Hence $X^\top X$ is symmetric positive
+semidefinite.
+\item If $A$ is injective and $Ax=0=A0$, then $x=0$. Conversely, if
+$\ker(A)=\{0\}$ and $Ax=Ay$, then $A(x-y)=0$, hence $x=y$.
+\item The statement $b\in\im(A)$ means by definition that there exists an $x$
+such that $b=Ax$. This is exactly solvability of $Ax=b$.
+\item If $Au=\lambda u$, $Av=\mu v$, and $A=A^\top$, then
+$\lambda u^\top v=(Au)^\top v=u^\top Av=\mu u^\top v$. If
+$\lambda\neq\mu$, then $u^\top v=0$.
+\item The Jordan block $J=\begin{pmatrix}1&1\\0&1\end{pmatrix}$ has the
+repeated eigenvalue $1$ but only the one-dimensional eigenspace
+$\Span\{(1,0)^\top\}$, so it is not diagonalizable.
+\item A covariance matrix is real symmetric positive semidefinite, so the
+spectral theorem gives $\widehat\Sigma=QDQ^\top$. The columns of $Q$ are
+orthogonal directions and the diagonal entries of $D$ are the variances after
+projection. Ordering those eigenvalues from largest to smallest is precisely
+PCA; truncation keeps the directions explaining the most variance.
+\end{enumerate}
+
+\section{Markov Chains and Matrix Brainteasers}
+
+\paragraph{Exercise 14 -- Credit migration by matrix powers.}
+
+The entries are nonnegative and each column sums to one. Column G says
+G$\to$G with probability $0.9$ and G$\to$B with probability $0.1$; column B
+says B$\to$G with probability $0.4$ and B$\to$B with probability $0.6$.
+Starting from G,
+\[
+\mu_1=(0.9,0.1)^\top,\qquad \mu_2=(0.85,0.15)^\top.
+\]
+Solving $P\pi=\pi$ and $\mathbf1^\top\pi=1$ gives
+$\pi=(0.8,0.2)^\top$. The eigenvalues are $1$ and $0.5$. One diagonalization is
+\[
+P=SDS^{-1},\qquad
+S=\begin{pmatrix}4&1\\1&-1\end{pmatrix},\quad
+D=\diag(1,0.5),\quad
+S^{-1}=\begin{pmatrix}0.2&0.2\\0.2&-0.8\end{pmatrix}.
+\]
+Therefore
+\[
+\mu_n=\begin{pmatrix}0.8\\0.2\end{pmatrix}
++0.2(0.5)^n\begin{pmatrix}1\\-1\end{pmatrix}.
+\]
+The Bad-state error is $0.2(0.5)^n$. We need it at most $10^{-3}$, or
+$(0.5)^n\le0.005$, whose smallest integer solution is $n=8$.
+
+\paragraph{Exercise 15 -- Waiting time for PPF.}
+
+Use states $0$, P, PP, and the absorbing state PPF. They record the longest
+suffix of the observations that is a prefix of PPF. In the order
+$(0,\mathrm P,\mathrm{PP},\mathrm{PPF})$, with columns denoting the current
+state, the transition matrix is
+\[
+P=\begin{pmatrix}
+1/2&1/2&0&0\\
+1/2&0&0&0\\
+0&1/2&1/2&0\\
+0&0&1/2&1
+\end{pmatrix}.
+\]
+The first-step recurrences are
+\[
+E_0=1+\tfrac12E_P+\tfrac12E_0,
+\]
+\[
+E_P=1+\tfrac12E_{PP}+\tfrac12E_0,
+\qquad
+E_{PP}=1+\tfrac12E_{PP}.
+\]
+Thus $E_{PP}=2$, $E_P=2+E_0/2$, and $E_0=2+E_P$. Solving gives
+\[
+\boxed{E_0=8},\qquad E_P=6,\qquad E_{PP}=2.
+\]
+From state PP, observing another P produces PPP, whose longest suffix that is
+a prefix of PPF is still PP. The useful partial match is therefore not lost.
+
+\paragraph{Exercise 16 -- Waiting time for 564.}
+
+Use states $0$, $5$, $56$, and absorbing state $564$. In this order, the
+column-stochastic transition matrix is
+\[
+P=\begin{pmatrix}
+5/6&4/6&4/6&0\\
+1/6&1/6&1/6&0\\
+0&1/6&0&0\\
+0&0&1/6&1
+\end{pmatrix}.
+\]
+The first-step equations are
+\[
+E_0=1+\tfrac16E_5+\tfrac56E_0,
+\]
+\[
+E_5=1+\tfrac16E_{56}+\tfrac16E_5+\tfrac46E_0,
+\]
+\[
+E_{56}=1+\tfrac16E_5+\tfrac46E_0.
+\]
+The first equation gives $E_0=6+E_5$. Solving the system yields
+\[
+\boxed{E_0=216},\qquad E_5=210,\qquad E_{56}=180.
+\]
+The answer equals $6^3=216$. This equality holds because the word 564 has no
+nontrivial overlap with itself: after a failed completion, no prefix longer
+than the explicitly tracked suffix survives. For patterns with self-overlap,
+the expected waiting time need not equal the reciprocal $6^3$ of the
+single-block probability.
+
+\end{document}

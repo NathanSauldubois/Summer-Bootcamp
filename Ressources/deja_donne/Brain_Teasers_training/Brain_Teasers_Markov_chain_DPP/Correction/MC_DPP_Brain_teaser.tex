@@ -1,0 +1,747 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{mathtools}
+
+\title{Solution Sheet: Markov Chains \& Dynamic Programming (DPP/DP)}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\noindent\textbf{How to use this sheet.}
+For each exercise, I first restate the key idea(s), then carry out the computation step by step.
+All probabilities are exact unless a numerical approximation is explicitly stated.
+
+% =========================================================
+\section*{Easy (9)}
+
+\begin{enumerate}[leftmargin=*, itemsep=1.0em]
+
+\item \textbf{One-step and two-step transitions.}
+
+\textit{Reference: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.1, Fig.\ 5.1, book p.\ 106.}
+
+\medskip
+From Fig.\ 5.1 the transition matrix is
+\[
+P=\begin{pmatrix}
+0 & 0.5 & 0 & 0.5\\
+0.5 & 0 & 0.25 & 0.25\\
+0 & 0.4 & 0.4 & 0.2\\
+0 & 0 & 0 & 1
+\end{pmatrix}.
+\]
+
+\begin{itemize}
+\item One step:
+\[
+\mathbb{P}(X_1=4\mid X_0=1)=p_{14}=0.5.
+\]
+\item Two steps:
+\[
+\mathbb{P}(X_2=4\mid X_0=1)=(P^2)_{14}=\sum_{j=1}^4 p_{1j}p_{j4}.
+\]
+Only $j=2$ and $j=4$ matter (since $p_{11}=p_{13}=0$), hence
+\[
+(P^2)_{14}=p_{12}p_{24}+p_{14}p_{44}
+=0.5\cdot 0.25 + 0.5\cdot 1
+=0.125+0.5=\frac{5}{8}=0.625.
+\]
+\end{itemize}
+
+\item \textbf{State classification (quick).}
+
+\textit{Reference: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.1, ``Classification of states'', book p.\ 106.}
+
+\medskip
+From Fig.\ 5.1 (or the matrix), state $4$ has $p_{44}=1$ and $p_{4j}=0$ for $j\neq 4$, so:
+
+\begin{itemize}
+\item \textbf{Absorbing state(s):} state $4$.
+\item \textbf{A communicating class:} $\{1,2,3\}$. Indeed, $1\to 2$ and $2\to 1$ in one step, and $2\leftrightarrow 3$ as well (e.g.\ $2\to 3$ with prob.\ 0.25 and $3\to 2$ with prob.\ 0.4), hence all three communicate.
+\item \textbf{Transient vs recurrent:} $\{4\}$ is a closed class (absorbing), hence recurrent. States $1,2,3$ are \emph{transient} because they can reach $4$ with positive probability, but $4$ cannot reach them.
+\end{itemize}
+
+\item \textbf{Gambler's ruin (small bankroll).}
+
+\textit{Reference: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.1, ``Gambler's ruin problem'', book p.\ 107.}
+
+\medskip
+Let $M$ be the player who wins each round with probability $p=\tfrac{2}{3}$ (and loses with $q=\tfrac{1}{3}$).
+Total money is $3$, so define the Markov chain $S_t\in\{0,1,2,3\}$ = dollars held by $M$ after $t$ rounds.
+We start at $S_0=1$ and want $\mathbb{P}(\text{hit }3\text{ before }0)$.
+
+For the biased ruin problem ($p\neq q$), the absorption probability is
+\[
+\mathbb{P}_{i}(\text{hit }N\text{ before }0)=\frac{1-(q/p)^i}{1-(q/p)^N}.
+\]
+Here $i=1$, $N=3$, and $q/p=(1/3)/(2/3)=1/2$. Therefore,
+\[
+\mathbb{P}(M\text{ ends with all \$3})=\frac{1-(1/2)^1}{1-(1/2)^3}
+=\frac{1/2}{1-1/8}
+=\frac{1/2}{7/8}
+=\frac{4}{7}.
+\]
+
+\item \textbf{Waiting time for a pattern (HHH).}
+
+\textit{Reference: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.1, ``Coin triplets, Part A'', book pp.\ 109--110.}
+
+\medskip
+Use a Markov chain whose state is the length of the current run of consecutive heads.
+
+Let
+\[
+E_0=\mathbb{E}[\text{flips to reach HHH}\mid \text{current run length}=0],
+\]
+and similarly define $E_1$ (last flip was H) and $E_2$ (last two flips were HH). When we reach HHH, the remaining time is $E_3=0$.
+
+From state $0$: one flip passes, and with prob.\ $1/2$ we go to $1$ (H), with prob.\ $1/2$ we stay at $0$ (T):
+\[
+E_0=1+\tfrac12 E_1+\tfrac12 E_0
+\quad\Longrightarrow\quad
+E_0=2+E_1.
+\]
+From state $1$:
+\[
+E_1=1+\tfrac12 E_2+\tfrac12 E_0.
+\]
+From state $2$:
+\[
+E_2=1+\tfrac12 E_3+\tfrac12 E_0
+=1+\tfrac12 E_0.
+\]
+Substitute $E_2$ into $E_1$:
+\[
+E_1=1+\tfrac12(1+\tfrac12 E_0)+\tfrac12 E_0
+=1+\tfrac12+\tfrac14 E_0+\tfrac12 E_0
+=\tfrac32+\tfrac34 E_0.
+\]
+Then $E_0=2+E_1=2+\tfrac32+\tfrac34 E_0=\tfrac72+\tfrac34 E_0$, so
+\[
+\tfrac14 E_0=\tfrac72
+\quad\Longrightarrow\quad
+E_0=14.
+\]
+So the expected number of flips to see HHH is $\boxed{14}$.
+
+\item \textbf{Waiting time for a pattern (THH).}
+
+\textit{Reference: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.1, ``Coin triplets, Part A'', book pp.\ 109--110.}
+
+\medskip
+Now the target pattern starts with T, so the natural states are the \emph{longest suffix} of the observed sequence that is also a prefix of THH.
+
+Let:
+\begin{itemize}
+\item $E_0$: expected remaining flips from the start state (no useful suffix),
+\item $E_T$: expected remaining flips given the last flip is T,
+\item $E_{TH}$: expected remaining flips given the last two flips are TH,
+\item absorbing after THH.
+\end{itemize}
+
+Transitions:
+\begin{itemize}
+\item From start: H gives no prefix (back to start), T gives state T:
+\[
+E_0=1+\tfrac12 E_0+\tfrac12 E_T \ \Rightarrow\ E_0=2+E_T.
+\]
+\item From state T: T keeps you in T; H moves you to TH:
+\[
+E_T=1+\tfrac12 E_T+\tfrac12 E_{TH}\ \Rightarrow\ E_T=2+E_{TH}.
+\]
+\item From state TH: H completes THH (done); T makes the last flip T, so back to state T:
+\[
+E_{TH}=1+\tfrac12\cdot 0+\tfrac12 E_T=1+\tfrac12 E_T.
+\]
+\end{itemize}
+
+Solve:
+\[
+E_T=2+E_{TH}=2+1+\tfrac12 E_T
+\ \Rightarrow\ 
+\tfrac12 E_T=3
+\ \Rightarrow\
+E_T=6.
+\]
+Then $E_0=2+E_T=8$. Hence the expected number of flips to see THH is $\boxed{8}$.
+
+\item \textbf{Expected time to obtain PPF.}
+
+Let state $0$ mean that no useful suffix is present, state $1$ that the current
+suffix is P, and state $2$ that it is PP. Write $E_i$ for the expected number
+of additional tosses from state $i$. Completion of PPF has value $0$.
+
+Conditioning on the next toss gives
+\[
+\begin{aligned}
+E_0&=1+\tfrac12E_1+\tfrac12E_0,\\
+E_1&=1+\tfrac12E_2+\tfrac12E_0,\\
+E_2&=1+\tfrac12E_2+\tfrac12\cdot0.
+\end{aligned}
+\]
+The last equation reflects the overlap: after PPP, the last two letters are
+still PP. Equivalently,
+\[
+E_0=2+E_1,\qquad E_1=1+\tfrac12E_2+\tfrac12E_0,
+\qquad E_2=2.
+\]
+Thus $E_1=2+\tfrac12E_0$ and
+\[
+E_0=4+\tfrac12E_0,
+\qquad\text{so}\qquad
+\boxed{E_0=8}.
+\]
+
+\item \textbf{Expected time to obtain 564 with a die.}
+
+Use states $0$, $5$, and $56$, according to the longest suffix that is a
+prefix of the target word 564. Let the corresponding expected remaining times
+be $E_0,E_5,E_{56}$. First-step analysis yields
+\[
+\begin{aligned}
+E_0&=1+\tfrac16E_5+\tfrac56E_0,\\
+E_5&=1+\tfrac16E_{56}+\tfrac16E_5+\tfrac46E_0,\\
+E_{56}&=1+\tfrac16\cdot0+\tfrac16E_5+\tfrac46E_0.
+\end{aligned}
+\]
+In the second equation, another 5 preserves state $5$; in the third, a 5
+returns to state $5$, while 1, 2, 3, or 6 returns to state $0$.
+
+The first equation gives $E_0=6+E_5$. Substitution in the other two equations
+gives
+\[
+5E_5=6+E_{56}+4E_0,
+\qquad
+6E_{56}=6+E_5+4E_0.
+\]
+Solving these three linear equations gives
+\[
+E_5=210,\qquad E_{56}=180,qquad
+\boxed{E_0=216}.
+\]
+
+\item \textbf{DP warm-up: last stage of a 3-roll dice game.}
+
+\textit{Reference: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.3, ``Dice game'', book p.\ 123.}
+
+\medskip
+At the third (final) roll you have no choice: you must take the value of a fair die.
+So the value function at the last stage is simply the mean of a fair die:
+\[
+V_{\text{final}}=\mathbb{E}[X]=\frac{1+2+3+4+5+6}{6}=\frac{21}{6}=3.5.
+\]
+
+\item \textbf{DP threshold after the second roll (3-roll dice game).}
+
+\textit{Reference: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.3, ``Dice game'', book p.\ 123.}
+
+\medskip
+After the second roll you observe $x\in\{1,\dots,6\}$ and choose:
+\[
+\text{Stop: get }x
+\qquad\text{vs}\qquad
+\text{Continue: expected value }V_{\text{final}}=3.5.
+\]
+Therefore:
+\[
+\text{Stop iff } x\ge 3.5 \quad\Longleftrightarrow\quad x\in\{4,5,6\}.
+\]
+For $x\in\{1,2,3\}$ you should continue.
+
+\end{enumerate}
+
+% =========================================================
+\section*{Medium (9)}
+
+\begin{enumerate}[leftmargin=*, itemsep=1.0em]
+\setcounter{enumi}{9}
+
+\item \textbf{DP threshold after the first roll (3-roll dice game).}
+
+\textit{Reference: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.3, ``Dice game'', book p.\ 123.}
+
+\medskip
+Work backwards.
+
+\textbf{Step 1: value at the second-roll stage before seeing the second roll.}
+Let $Y$ be the second roll. Under the optimal rule from the previous exercise,
+\[
+\text{if }Y\in\{4,5,6\}\text{ stop and take }Y,\quad
+\text{if }Y\in\{1,2,3\}\text{ continue and get }3.5.
+\]
+Thus the \emph{continuation value} at the start of roll 2 is
+\[
+V_2=\frac{4+5+6}{6}+\frac{3}{6}\cdot 3.5=\frac{15}{6}+\frac{3.5}{2}=2.5+1.75=4.25=\frac{17}{4}.
+\]
+
+\textbf{Step 2: decision after the first roll.}
+After the first roll you see $x$ and choose stop (get $x$) or continue (expected $V_2=4.25$).
+So:
+\[
+\text{Stop iff }x\ge 4.25\quad\Longleftrightarrow\quad x\in\{5,6\}.
+\]
+
+\item \textbf{Dice race: 12 vs two consecutive 7s.}
+
+\textit{Reference: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.1, ``Dice question'', book pp.\ 108--109.}
+
+\medskip
+Let $a=\mathbb{P}(12)=\frac{1}{36}$, $b=\mathbb{P}(7)=\frac{6}{36}=\frac{1}{6}$, and $c=\mathbb{P}(\text{other})=\frac{29}{36}$.
+
+Define two states:
+\begin{itemize}
+\item State 0: the previous roll was \emph{not} 7 (so B has no current streak),
+\item State 1: the previous roll \emph{was} 7 (so B has a streak of length 1).
+\end{itemize}
+Let $p_0$ be the probability A eventually wins starting from state 0, and $p_1$ similarly from state 1.
+
+From state 0:
+\[
+p_0=a\cdot 1+b\cdot p_1+c\cdot p_0
+\quad\Rightarrow\quad
+(1-c)p_0=a+bp_1.
+\]
+Since $1-c=7/36$, this becomes
+\[
+\frac{7}{36}p_0=\frac{1}{36}+\frac{1}{6}p_1
+\quad\Longrightarrow\quad
+7p_0=1+6p_1.
+\]
+From state 1:
+\[
+p_1=a\cdot 1+b\cdot 0+c\cdot p_0
+=\frac{1}{36}+\frac{29}{36}p_0
+\quad\Longrightarrow\quad
+36p_1=1+29p_0.
+\]
+Solve the system:
+\[
+p_1=\frac{1+29p_0}{36}
+\quad\Rightarrow\quad
+7p_0=1+6\cdot\frac{1+29p_0}{36}
+=1+\frac{1+29p_0}{6}.
+\]
+Multiply by 6:
+\[
+42p_0=6+1+29p_0
+\quad\Rightarrow\quad
+13p_0=7
+\quad\Rightarrow\quad
+p_0=\frac{7}{13}.
+\]
+So $\boxed{\mathbb{P}(\text{A wins})=7/13}$.
+
+\item \textbf{Competing patterns: HHH vs THH.}
+
+\textit{Reference: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.1, ``Coin triplets, Part B'', book pp.\ 110--111.}
+
+\medskip
+A key observation: \emph{if a T ever occurs before HHH is completed, then THH will occur before HHH.}
+Why? Because to obtain HHH after some T appears, the first time you see two consecutive H's after that T, you have already formed THH.
+
+So the only way to see HHH \emph{before} THH is to start with HHH immediately:
+\[
+\mathbb{P}(\text{HHH occurs before THH})=\mathbb{P}(\text{first three flips are HHH})=\left(\frac12\right)^3=\frac18.
+\]
+Thus $\boxed{1/8}$.
+
+\item \textbf{Ticket line probability.}
+
+\textit{Reference: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.2, ``Ticket line'', book pp.\ 117--118.}
+
+\medskip
+Encode the queue as a word of length $2n$ consisting of $n$ symbols ``5'' and $n$ symbols ``10''.
+The cashier can always sell tickets if and only if, in every prefix of the word,
+\[
+\#(\text{5's so far})\ \ge\ \#(\text{10's so far}),
+\]
+because each 10-dollar customer requires one 5-dollar bill previously collected as change.
+
+The number of such valid sequences is the \emph{Catalan number}
+\[
+C_n=\frac{1}{n+1}\binom{2n}{n}.
+\]
+Total sequences (all orders) is $\binom{2n}{n}$. Therefore the probability is
+\[
+\mathbb{P}(\text{everyone can buy})=\frac{C_n}{\binom{2n}{n}}=\frac{1}{n+1}.
+\]
+So the answer is $\boxed{\frac{1}{n+1}}$.
+
+\item \textbf{Expected time to get $n$ heads in a row.}
+
+\textit{Reference: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.2, ``Coin sequence'', book p.\ 119.}
+
+\medskip
+Let $T_n$ be the number of flips needed to see $n$ consecutive heads. Define states by the current run length of consecutive heads: $k\in\{0,1,\dots,n\}$.
+Let $E_k=\mathbb{E}[T_n \mid \text{current run length}=k]$. We want $E_0$.
+
+Boundary: $E_n=0$. For $k<n$,
+\[
+E_k = 1 + \tfrac12 E_{k+1} + \tfrac12 E_0,
+\]
+because on the next flip: with probability $1/2$ we add one head (run length increases to $k+1$),
+and with probability $1/2$ we get a tail, which resets the run length to $0$.
+
+Rearrange:
+\[
+E_k - \tfrac12 E_{k+1} = 1 + \tfrac12 E_0.
+\]
+Solve by backward substitution. First, with $k=n-1$:
+\[
+E_{n-1} = 1 + \tfrac12 E_n + \tfrac12 E_0 = 1 + \tfrac12 E_0.
+\]
+With $k=n-2$:
+\[
+E_{n-2}=1+\tfrac12 E_{n-1}+\tfrac12 E_0
+=1+\tfrac12\Bigl(1+\tfrac12 E_0\Bigr)+\tfrac12 E_0
+=\tfrac32+\tfrac34 E_0.
+\]
+Continuing this pattern yields
+\[
+E_{n-m} = \bigl(2-2^{-m+1}\bigr) + \bigl(1-2^{-m+1}\bigr)E_0,
+\]
+and plugging $m=n$ (i.e.\ $E_0$ on the left) gives the closed form
+\[
+E_0 = 2^{n+1}-2.
+\]
+Hence
+\[
+\boxed{\mathbb{E}[T_n]=2^{n+1}-2.}
+\]
+(Check: for $n=1$, gives $2$; for $n=3$, gives $14$, matching the earlier result.)
+
+\item \textbf{A pattern with overlap (PFP).}
+
+Let $E_0,E_P,E_{PF}$ denote the expected remaining tosses when the longest
+useful suffix is respectively empty, P, or PF. First-step conditioning gives
+\[
+\begin{aligned}
+E_0&=1+\tfrac12E_P+\tfrac12E_0,\\
+E_P&=1+\tfrac12E_P+\tfrac12E_{PF},\\
+E_{PF}&=1+\tfrac12\cdot0+\tfrac12E_0.
+\end{aligned}
+\]
+The transition $P\xrightarrow{P}P$ keeps one matched letter. By contrast,
+$PF\xrightarrow{F}0$, since PFF has no nonempty suffix that is a prefix of
+PFP.
+
+The system is equivalent to
+\[
+E_0=2+E_P,
+\qquad E_P=2+E_{PF},
+\qquad E_{PF}=1+\tfrac12E_0.
+\]
+Consequently,
+\[
+E_0=5+\tfrac12E_0
+\qquad\Longrightarrow\qquad
+\boxed{E_0=10}.
+\]
+The answer exceeds $2^3=8$ because PFP overlaps with itself through its final
+P; a mismatch can preserve partial progress, but it also creates longer
+clusters of possible completion times.
+
+\item \textbf{World Series (fair games): replication via DP.}
+
+\textit{Reference: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.3, ``World series'', book pp.\ 123--125.}
+
+\medskip
+Let $f(i,j)$ be the \emph{replication value} (wealth you should hold right now) when Team A has $i$ wins and Team B has $j$ wins. The series ends when someone reaches 4 wins.
+
+Terminal payoffs:
+\[
+f(4,j)=100,\qquad f(i,4)=-100.
+\]
+For a fair game, the next game is a 50/50 coin flip. Therefore the DP pricing recursion is
+\[
+f(i,j)=\frac{f(i+1,j)+f(i,j+1)}{2}.
+\]
+
+\medskip
+\textbf{Replicating bet.}
+Suppose you bet $y(i,j)$ dollars on Team A in the next game with even odds. If A wins, wealth increases by $+y$; if A loses, wealth decreases by $y$.
+To replicate the continuation values we need
+\[
+f(i,j)+y(i,j)=f(i+1,j),\qquad f(i,j)-y(i,j)=f(i,j+1).
+\]
+Solving gives
+\[
+y(i,j)=\frac{f(i+1,j)-f(i,j+1)}{2}.
+\]
+
+\medskip
+\textbf{Compute $y(2,1)$.}
+We compute $f(3,1)$ and $f(2,2)$ first (working backward from the boundary).
+One finds:
+\[
+f(3,1)=75,\qquad f(2,2)=0.
+\]
+Hence
+\[
+y(2,1)=\frac{75-0}{2}=37.5.
+\]
+Interpretation: when the score is $(2,1)$, bet $\boxed{\$37.50}$ on Team A next game.
+
+\item \textbf{Dynamic dice game (optimal stopping with wipeout).}
+
+\textit{Reference: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.3, ``Dynamic dice game'', book p.\ 126.}
+
+\medskip
+Let $n$ be your current accumulated winnings. If you stop, you lock in $n$.
+If you continue for one more roll, then:
+\begin{itemize}
+\item with probability $1/6$ you roll 6 and end with $0$,
+\item with probability $1/6$ you roll $k\in\{1,2,3,4,5\}$ and move to state $n+k$.
+\end{itemize}
+
+Let $V(n)$ be the optimal expected payoff from state $n$. Then the Bellman equation is
+\[
+V(n)=\max\Bigl(n,\ \underbrace{\frac{1}{6}\sum_{k=1}^5 V(n+k)}_{\text{continue value}}\Bigr),
+\]
+(where the roll-6 outcome contributes $0$ and is already included by the $1/6$ weight).
+
+\medskip
+\textbf{Threshold intuition.}
+If you continue one more step and \emph{then} stop immediately, your expected wealth after that roll would be
+\[
+\frac16(n+1)+\cdots+\frac16(n+5)+\frac16\cdot 0
+=\frac56 n + 2.5.
+\]
+Continuing is attractive when this exceeds $n$:
+\[
+\frac56 n + 2.5 > n\quad\Longleftrightarrow\quad n<15.
+\]
+So it is optimal to continue for $n\le 14$ and (at least) stop for $n\ge 15$.
+
+\medskip
+\textbf{Compute the entry price $V(0)$.}
+Using the threshold and backward recursion (as in the book), one obtains $V(0)\approx 6.15$.
+So a risk-neutral player is willing to pay about
+\[
+\boxed{\$6.15}
+\]
+to enter the game, and the optimal policy is \textbf{``keep rolling until you have \$15 or more, then stop.''}
+
+\item \textbf{Optimal stopping (3-step) --- alternative statement.}
+
+\textit{Reference: Heard on the Street, Ch.\ 4 ``Statistics Questions'', Question 4.4, book p.\ 37.}
+
+\medskip
+This is the same \emph{finite-horizon optimal stopping} as the 3-roll dice game above.
+
+\textbf{Step 3 (last roll):} value is $3.5$.
+
+\textbf{Step 2:} stop if $x\ge 3.5$, i.e.\ stop for $x\in\{4,5,6\}$.
+
+\textbf{Step 1:} if you continue from roll 1, your expected value is the roll-2 value $V_2=4.25$ computed earlier.
+So you stop after the first roll iff $x\ge 4.25$, i.e.\ $x\in\{5,6\}$.
+
+\medskip
+\textbf{Game value.}
+At roll 1, if $x\in\{1,2,3,4\}$ you continue (value $4.25$), if $x\in\{5,6\}$ you stop and take $x$.
+Therefore
+\[
+V_1=\frac{4}{6}\cdot 4.25 + \frac{5+6}{6}
+=\frac{17}{6}+\frac{11}{6}
+=\frac{28}{6}=\frac{14}{3}\approx 4.667.
+\]
+So the optimal expected payoff is $\boxed{14/3}$.
+
+\end{enumerate}
+
+% =========================================================
+\section*{Hard (5)}
+
+\begin{enumerate}[leftmargin=*, itemsep=1.0em]
+\setcounter{enumi}{18}
+
+\item \textbf{Penney's game with strategic choice (who wants to go first?).}
+
+\textit{Reference: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.1, ``Coin triplets, Part C'', book pp.\ 111--112.}
+
+\medskip
+\textbf{Conclusion: you prefer to be Player 2.}
+Penney's game is \emph{non-transitive}: there is no single ``best'' pattern.
+
+\medskip
+\textbf{Player 2's winning strategy (length 3).}
+Suppose Player 1 chooses a pattern $ABC$ (each letter is H or T).
+A standard best response for Player 2 is
+\[
+\boxed{\ \overline{B}\,A\,B\ }
+\]
+where $\overline{B}$ is the \emph{opposite} of $B$ (i.e.\ $\overline{H}=T$, $\overline{T}=H$).
+
+\medskip
+\textbf{Why this works (intuition).}
+Player 2's pattern is built so that whenever the coin sequence begins to look like Player 1's pattern, it is also ``primed'' to complete Player 2's pattern sooner due to overlaps of length 2.
+
+A concrete example is Player 1 choosing HHH. Then Player 2 chooses THH, and indeed
+\[
+\mathbb{P}(\text{THH appears before HHH})=1-\mathbb{P}(\text{HHH before THH})=1-\frac18=\frac78.
+\]
+
+\medskip
+\textbf{Guaranteed probability.}
+Across all Player 1 choices, Player 2 can always pick a response with winning probability strictly greater than $1/2$.
+Moreover, the \emph{worst case} for Player 2 (with optimal play) is
+\[
+\boxed{\ \text{Player 2 can guarantee at least } \frac{2}{3} \text{ to win.}\ }
+\]
+So you would rather be Player 2.
+
+\item \textbf{Color balls (expected absorption time).}
+
+\textit{Reference: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.1, ``Color balls'', book pp.\ 113--115.}
+
+\medskip
+Let $N_n$ be the number of steps until all $n$ balls are the same color, starting from $n$ distinct colors.
+
+\textbf{Step 1: symmetry to fix the final color.}
+Let $F_i$ be the event that the final consensus color is color $i$.
+By symmetry, $\mathbb{P}(F_i)=1/n$ and $\mathbb{E}[N_n\mid F_i]$ is the same for all $i$.
+Hence
+\[
+\mathbb{E}[N_n]=\mathbb{E}[N_n\mid F_1].
+\]
+
+\textbf{Step 2: reduce to a 1D Markov chain.}
+Condition on $F_1$ (the process ends with all balls color 1).
+Let $X_k$ be the number of balls of color 1 after $k$ steps (under this conditioning).
+Then $X_k\in\{1,2,\dots,n\}$ and $n$ is absorbing.
+
+Under the conditioned chain, one can compute the transition probabilities (see the book) and set up
+the standard mean-time-to-absorption recursion for
+\[
+Z_i \coloneqq \mathbb{E}[N_n \mid F_1,\ X_0=i].
+\]
+With boundary $Z_n=0$ and a second-order recursion, the system solves to
+\[
+Z_1=(n-1)^2.
+\]
+Since $X_0=1$ in the initial ``all different'' configuration (exactly one ball is color 1),
+\[
+\boxed{\mathbb{E}[N_n]=Z_1=(n-1)^2.}
+\]
+
+\item \textbf{Random walk as a Markov chain (bridge problem).}
+
+\textit{Reference: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.2, ``Drunk man'', book pp.\ 116--117.}
+
+\medskip
+Let $X_t$ be the drunk's position on $\{0,1,\dots,100\}$ with absorbing boundaries at $0$ and $100$.
+He starts at $X_0=17$ and moves $\pm 1$ with equal probability.
+
+\textbf{(i) Probability to hit 100 before 0.}
+For a symmetric random walk with absorbing endpoints, the hitting probability is linear:
+\[
+h(i)=\mathbb{P}_i(\text{hit }100\text{ before }0)
+\]
+satisfies $h(0)=0$, $h(100)=1$, and for $1\le i\le 99$,
+\[
+h(i)=\tfrac12 h(i-1)+\tfrac12 h(i+1).
+\]
+The unique solution is $h(i)=i/100$, hence
+\[
+\boxed{\mathbb{P}(\text{reach 100 first})=h(17)=\frac{17}{100}.}
+\]
+
+\textbf{(ii) Expected absorption time.}
+Let $m(i)=\mathbb{E}_i[\tau]$ where $\tau$ is the hitting time of $\{0,100\}$.
+Then $m(0)=m(100)=0$ and for $1\le i\le 99$,
+\[
+m(i)=1+\tfrac12 m(i-1)+\tfrac12 m(i+1).
+\]
+This second-order difference equation has solution $m(i)=i(100-i)$ for the symmetric case.
+Therefore
+\[
+\boxed{\mathbb{E}[\tau\mid X_0=17]=17\cdot(100-17)=17\cdot 83=1411.}
+\]
+
+\item \textbf{Dynamic card game (DP / optimal stopping in finite deck).}
+
+\textit{Reference: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.3, ``Dynamic card game'', book pp.\ 127--128.}
+
+\medskip
+There are 26 red cards (+\$1 each) and 26 black cards (-\$1 each), drawn without replacement.
+Let $(b,r)$ be the number of black and red cards \emph{remaining} in the deck.
+
+A convenient state variable for current payoff is
+\[
+\text{(red drawn)}-\text{(black drawn)} = (26-r)-(26-b)=b-r.
+\]
+So, if you stop when the remaining deck is $(b,r)$, your payoff is $\boxed{b-r}$.
+
+Let $V(b,r)$ be the optimal expected payoff from state $(b,r)$.
+At $(b,r)$ you either stop (get $b-r$) or continue. If you continue:
+\begin{itemize}
+\item with probability $\frac{b}{b+r}$ you draw a black card, gain $-1$ and move to $(b-1,r)$,
+\item with probability $\frac{r}{b+r}$ you draw a red card, gain $+1$ and move to $(b,r-1)$.
+\end{itemize}
+Because the payoff $b-r$ already tracks the accumulated score, the Bellman recursion can be written directly as in the book:
+\[
+\boxed{
+V(b,r)=\max\!\left(
+b-r,\ 
+\frac{b}{b+r}\,V(b-1,r) + \frac{r}{b+r}\,V(b,r-1)
+\right).
+}
+\]
+Boundary conditions:
+\[
+V(0,r)=0,
+\]
+because, when only red cards remain, continuing to the end yields $0$ in the
+$b-r$ convention. Also,
+\[
+V(b,0)=b.
+\]
+
+Running the recursion (or using the figure/table in the book) gives
+\[
+\boxed{V(26,26)\approx 2.62.}
+\]
+So a risk-neutral player should be willing to pay about \$2.62 to play, under optimal stopping.
+
+\item \textbf{World Series with biased win probabilities (DP hedging).}
+
+\textit{Reference: Based on A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.3, ``World series'' (fair case shown), book pp.\ 123--125.}
+
+\medskip
+Let $f(i,j)$ be the replication value at series state $(i,j)$ (A has $i$ wins, B has $j$).
+Terminal values stay the same:
+\[
+f(4,j)=100,\qquad f(i,4)=-100.
+\]
+
+Assume each game is independent and A wins with probability $p$.
+If the bet you can place each game is \emph{fairly priced} (zero expected gain), then the no-arbitrage DP pricing recursion becomes
+\[
+\boxed{f(i,j)=p\,f(i+1,j)+(1-p)\,f(i,j+1).}
+\]
+
+To replicate the claim, choose a stake $y(i,j)$ on Team A in the next game so that the post-game wealth matches the continuation values.
+With fair odds, ``winning'' a bet of size $y$ should pay $\frac{1-p}{p}\,y$ (so that expected profit is zero), and ``losing'' costs $y$.
+Thus we impose
+\[
+f(i,j)+\frac{1-p}{p}y(i,j)=f(i+1,j),\qquad f(i,j)-y(i,j)=f(i,j+1).
+\]
+Solving:
+\[
+\boxed{
+y(i,j)=p\bigl(f(i+1,j)-f(i,j+1)\bigr),
+\qquad
+f(i,j)=p\,f(i+1,j)+(1-p)\,f(i,j+1).
+}
+\]
+(These are the standard ``value'' and ``hedge'' equations on a binomial tree.)
+
+\end{enumerate}
+
+\end{document}

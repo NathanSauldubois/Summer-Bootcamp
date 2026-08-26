@@ -1,0 +1,1448 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage[most]{tcolorbox}
+
+\geometry{margin=1in}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\dd}{\,\mathrm{d}}
+\newcommand{\norm}[1]{\left\lVert #1\right\rVert}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\theoremstyle{plain}
+\newtheorem{theorem}[definition]{Theorem}
+\newtheorem{proposition}[definition]{Proposition}
+\newtheorem{corollary}[definition]{Corollary}
+\theoremstyle{remark}
+\newtheorem{remark}[definition]{Remark}
+
+\definecolor{PropositionBlue}{RGB}{31,78,121}
+\newtcbtheorem[number within=section]{keyproposition}{Proposition}{
+  enhanced,
+  breakable,
+  colback=PropositionBlue!4,
+  colframe=PropositionBlue,
+  colbacktitle=PropositionBlue,
+  coltitle=white,
+  fonttitle=\bfseries,
+  boxrule=0.9pt,
+  arc=1.5mm,
+  left=2mm,right=2mm,top=1.5mm,bottom=1.5mm
+}{prop}
+
+\tcolorboxenvironment{theorem}{
+  enhanced,breakable,
+  colback=PropositionBlue!4,colframe=PropositionBlue,
+  boxrule=0.9pt,arc=1.5mm,
+  left=2mm,right=2mm,top=1.5mm,bottom=1.5mm
+}
+\tcolorboxenvironment{proposition}{
+  enhanced,breakable,
+  colback=PropositionBlue!4,colframe=PropositionBlue,
+  boxrule=0.9pt,arc=1.5mm,
+  left=2mm,right=2mm,top=1.5mm,bottom=1.5mm
+}
+
+\title{Summer Bootcamp -- Session 2 Notes\\Calculus and Ordinary Differential Equations}
+\author{Nathan Sauldubois}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\section*{Purpose of the Session}
+
+This second three-hour session reviews the calculus tools needed for financial
+models, numerical methods, and optimization. The first part covers differential
+and integral calculus. The second part develops scalar and multidimensional
+linear ordinary differential equations, their numerical resolution, and their
+applications to risk-free growth, continuous discounting, and the Vasicek
+short-rate model.
+
+\section{Landau Notation and Local Approximation}
+
+Landau notation compares the size of two quantities near a limit point. Let
+$f$ and $g$ be defined near $a$, with $g(x)\neq0$ for $x\neq a$.
+
+\begin{definition}[Big $O$ and small $o$ in one dimension]
+We write $f(x)=O(g(x))$ as $x\to a$ if there exist $C,\delta>0$ such that
+\[
+0<|x-a|<\delta\quad\Longrightarrow\quad |f(x)|\leq C|g(x)|.
+\]
+We write $f(x)=o(g(x))$ as $x\to a$ if
+\[
+\frac{f(x)}{g(x)}\longrightarrow0.
+\]
+\end{definition}
+
+Thus $O(g)$ means ``at most the scale of $g$'', whereas $o(g)$ means
+``negligible compared with $g$''. For example, as $h\to0$,
+\[
+h^3=o(h^2),\qquad 3h^2-h^3=O(h^2),\qquad
+\sin h=h+O(h^3).
+\]
+Note that $h^2=O(h^2)$ but $h^2\neq o(h^2)$.
+
+For maps $F:\R^d\to\R^m$ and $G:\R^d\to[0,\infty)$, the same definitions
+use norms:
+\[
+F(h)=O(G(h))\iff \norm{F(h)}\leq CG(h)\quad\text{near }0,
+\]
+\[
+F(h)=o(G(h))\iff \frac{\norm{F(h)}}{G(h)}\longrightarrow0.
+\]
+For $h=(h_1,h_2)$, one has
+\[
+h_1h_2=O(\norm h^2),
+\qquad h_1^2h_2=o(\norm h^2).
+\]
+These notations encode the remainders in differentiability and Taylor
+expansions throughout the session.
+
+\section{One-Dimensional Differentiation}
+
+For $f:\R\to\R$, the derivative at $x$ is
+\[
+f'(x)=\lim_{h\to0}\frac{f(x+h)-f(x)}{h},
+\]
+when this limit exists. It measures the instantaneous rate of change of $f$ and
+the slope of the tangent line at $(x,f(x))$.
+
+\subsection{Derivative and Local Linear Approximation}
+
+If $h$ is small, then
+\[
+f(x+h)\approx f(x)+f'(x)h.
+\]
+This is the first example of a central idea in applied mathematics: replace a
+complicated nonlinear object by a simpler local approximation.
+
+More precisely, differentiability at $x$ means that there is a remainder
+$r(h)$ such that
+\[
+f(x+h)=f(x)+f'(x)h+r(h),
+\qquad
+\frac{r(h)}{|h|}\longrightarrow0.
+\]
+This formulation, rather than the difference quotient alone, generalizes
+directly to several variables.
+
+\begin{definition}[$C^1$ regularity in one dimension]
+Let $I\subset\R$ be an open interval. A function $f:I\to\R$ belongs to
+$C^1(I)$ if it is differentiable on $I$ and its derivative $f'$ is continuous
+on $I$.
+\end{definition}
+
+Differentiability alone does not imply $C^1$ regularity. For example,
+$x\mapsto e^x$ and $x\mapsto|x|^3$ are in $C^1(\R)$, whereas
+$x\mapsto|x|$ is not differentiable at the origin.
+
+\subsection{One-Dimensional Derivative Toolkit}
+
+For differentiable functions $f,g$ and constants $a,b$,
+\[
+(af+bg)'=af'+bg',
+\qquad
+(fg)'=f'g+fg',
+\]
+\[
+\left(\frac{f}{g}\right)'=\frac{f'g-fg'}{g^2},
+\qquad g(x)\neq0.
+\]
+\begin{keyproposition}{Chain rule in one dimension}{chain-rule-1d}
+Let $g:I\to J$ be differentiable at $x$ and let $f:J\to\R$ be
+differentiable at $g(x)$. Then $f\circ g$ is differentiable at $x$ and
+\[
+\boxed{(f\circ g)'(x)=f'(g(x))\,g'(x).}
+\]
+The outer derivative is evaluated at the inner function, then multiplied by
+the derivative of the inner function.
+\end{keyproposition}
+
+For example,
+\[
+\frac{\dd}{\dd x}(2x+1)^4=4(2x+1)^3\cdot2=8(2x+1)^3.
+\]
+
+The complete one-dimensional toolkit used throughout the course is therefore
+\[
+\boxed{
+\begin{aligned}
+(af+bg)'&=af'+bg',
+& (fg)'&=f'g+fg',\\
+\left(\frac fg\right)'&=\frac{f'g-fg'}{g^2},
+& (f\circ g)'&=(f'\circ g)g',\\
+(g^\alpha)'&=\alpha g^{\alpha-1}g',
+& (e^g)'&=e^g g',\\
+(\log g)'&=\frac{g'}{g}.
+\end{aligned}}
+\]
+The elementary derivatives most frequently used in this course are summarized
+below:
+\[
+\begin{array}{c|c@{\qquad}c|c}
+f(x)&f'(x)&f(x)&f'(x)\\ \hline
+x^\alpha&\alpha x^{\alpha-1}&e^{ax}&ae^{ax}\\
+\log x&1/x&\log(g(x))&g'(x)/g(x)\\
+\sin x&\cos x&\cos x&-\sin x\\
+a^x&a^x\log a&g(x)^\alpha&\alpha g(x)^{\alpha-1}g'(x)
+\end{array}
+\]
+The power formulas are understood on domains where the expressions are
+well-defined.
+
+\subsection{Rolle's Theorem and the Mean Value Theorem}
+
+\begin{theorem}[Rolle's theorem]
+If $f$ is continuous on $[a,b]$, differentiable on $(a,b)$, and
+$f(a)=f(b)$, then there exists $c\in(a,b)$ such that
+\[
+f'(c)=0.
+\]
+\end{theorem}
+
+\begin{proof}
+By continuity, $f$ attains a minimum and a maximum on $[a,b]$. If both are
+equal, $f$ is constant and every interior point works. Otherwise, at least one
+extremum is attained at an interior point because $f(a)=f(b)$. Fermat's
+theorem then gives $f'(c)=0$ at that interior extremum.
+\end{proof}
+
+Geometrically, a differentiable curve that starts and ends at the same height
+must have a horizontal tangent somewhere in between. For example,
+$f(x)=x^2-4x$ satisfies $f(0)=f(4)=0$, and Rolle's point is $c=2$.
+
+\begin{theorem}[Mean value theorem]
+If $f$ is continuous on $[a,b]$ and differentiable on $(a,b)$, then there
+exists $c\in(a,b)$ such that
+\[
+f(b)-f(a)=f'(c)(b-a).
+\]
+\end{theorem}
+
+\begin{proof}
+Let $\ell(x)$ be the affine function joining $(a,f(a))$ and $(b,f(b))$, and set
+$g=f-\ell$. Then $g(a)=g(b)=0$. Rolle's theorem gives a point $c$ with
+$g'(c)=0$. Since
+\[
+\ell'(x)=\frac{f(b)-f(a)}{b-a},
+\]
+the equality $g'(c)=0$ is exactly the desired formula.
+\end{proof}
+
+\begin{keyproposition}{Monotonicity consequences of the mean value theorem}{mvt-monotonicity}
+Let $f$ be differentiable on an interval $I$. Then
+\[
+\boxed{
+\begin{aligned}
+f'\geq0\text{ on }I&\Longrightarrow f\text{ is nondecreasing},\\
+f'>0\text{ on }I&\Longrightarrow f\text{ is strictly increasing},\\
+f'\leq0\text{ on }I&\Longrightarrow f\text{ is nonincreasing},\\
+f'=0\text{ on }I&\Longrightarrow f\text{ is constant}.
+\end{aligned}}
+\]
+The analogous strict condition $f'<0$ implies that $f$ is strictly decreasing.
+\end{keyproposition}
+
+Indeed, if $x<y$, the mean value theorem gives $c\in(x,y)$ such that
+\[
+f(y)-f(x)=f'(c)(y-x).
+\]
+Since $y-x>0$, the sign of the increment is controlled by the sign of the
+derivative.
+
+\begin{keyproposition}{Derivative bound and uniqueness}{mvt-lipschitz}
+If $|f'(x)|\leq L$ for every $x$ in an interval $I$, then
+\[
+\boxed{|f(y)-f(x)|\leq L|y-x|\qquad\text{for all }x,y\in I.}
+\]
+Thus $f$ is $L$-Lipschitz on $I$. Moreover, if $f'>0$ everywhere or $f'<0$
+everywhere, then $f$ is one-to-one; in particular,
+\[
+\boxed{f(x)=0\text{ has at most one solution in }I.}
+\]
+\end{keyproposition}
+
+\section{Multivariate Calculus}
+
+\subsection{Differentiability, Partial Derivatives, and Gradient}
+
+For $f:\R^n\to\R$, the partial derivative with respect to $x_i$ is
+\[
+\partial_{x_i}f(x)
+=
+\lim_{h\to0}
+\frac{f(x_1,\ldots,x_i+h,\ldots,x_n)-f(x)}{h}.
+\]
+The gradient is the vector of partial derivatives:
+\[
+\nabla f(x)=
+\begin{pmatrix}
+\partial_{x_1}f(x)\\
+\vdots\\
+\partial_{x_n}f(x)
+\end{pmatrix}.
+\]
+The directional derivative in a unit direction $u$ is
+\[
+D_uf(x)=\nabla f(x)^\top u.
+\]
+The gradient points in the direction of steepest ascent, and its norm is the
+maximal instantaneous rate of increase.
+
+The existence of all partial derivatives is not, by itself, enough to ensure a
+good linear approximation. The correct multivariate definition is the
+following.
+
+\begin{definition}[Fréchet differentiability]
+A map $g:\R^n\to\R^m$ is differentiable at $x$ if there is a linear map
+$Dg(x):\R^n\to\R^m$ such that
+\[
+g(x+h)=g(x)+Dg(x)h+r(h),
+\qquad
+\frac{\norm{r(h)}}{\norm{h}}\longrightarrow0.
+\]
+In canonical coordinates, the matrix of $Dg(x)$ is the Jacobian $J_g(x)$.
+For scalar-valued $f$, $Df(x)h=\nabla f(x)^\top h$.
+\end{definition}
+
+\begin{definition}[$C^1$ regularity in several dimensions]
+Let $U\subset\R^n$ be open. A map $g:U\to\R^m$ belongs to
+$C^1(U;\R^m)$ if it is differentiable on $U$ and
+\[
+x\longmapsto Dg(x)\in\mathcal L(\R^n,\R^m)
+\]
+is continuous. Equivalently, all first-order partial derivatives
+$\partial_{x_j}g_i$ exist and are continuous on $U$.
+\end{definition}
+
+The word \emph{linear} is essential. Once the base point $x$ is fixed, the
+differential acts linearly on increments: for all $h,k\in\R^n$ and scalars
+$\alpha,\beta$,
+\[
+\boxed{
+Dg(x)(\alpha h+\beta k)
+=\alpha Dg(x)h+\beta Dg(x)k.}
+\]
+Equivalently, because $Dg(x)$ is represented by the Jacobian,
+\[
+J_g(x)(\alpha h+\beta k)
+=\alpha J_g(x)h+\beta J_g(x)k.
+\]
+The original map $g$ need not be linear. Differentiability means that its
+first-order variation around the fixed point $x$ is described by this linear
+map. The derivative is also unique: two linear maps satisfying the defining
+remainder condition must coincide.
+
+If the partial derivatives exist and are continuous in a neighborhood of $x$,
+then the function is differentiable at $x$. This is the regularity criterion
+used throughout the course.
+
+\subsection{Computing a Gradient: Partials and Increments}
+
+The differential of $g$ at $x$ is the linear map
+\[
+\dd g_x(h)=Dg(x)h=J_g(x)h.
+\]
+For a scalar function, this becomes
+\[
+\dd f_x(h)=\nabla f(x)^\top h.
+\]
+The notation emphasizes that the differential is linear in the increment
+$h$, even when the original function is nonlinear.
+
+Consider the example used in the slides:
+\[
+f(x,y)=x^2+3xy+2y^2.
+\]
+The coordinate calculation gives
+\[
+\partial_xf=2x+3y,
+\qquad
+\partial_yf=3x+4y,
+\]
+and hence
+\[
+\boxed{\nabla f(x,y)=\begin{pmatrix}2x+3y\\3x+4y\end{pmatrix}.}
+\]
+
+\subsection{Core Gradient and Jacobian Formulas}
+
+For constant vectors $a,b$, matrices $A,Q$, and a differentiable scalar
+function $\phi$, the following formulas are fundamental:
+\[
+\begin{aligned}
+\nabla(a^\top x)&=a,\\
+\nabla(b^\top Ax)&=A^\top b,\\
+\nabla\!\left(\tfrac12\norm{Ax-b}^2\right)&=A^\top(Ax-b),\\
+\nabla(x^\top Qx)&=(Q+Q^\top)x,\\
+\nabla\phi(a^\top x)&=\phi'(a^\top x)a.
+\end{aligned}
+\]
+
+\subsubsection*{Scalar product: two calculations}
+
+Let $p(x,y)=x^\top y$ for $x,y\in\R^n$. Coordinatewise,
+\[
+\partial_{x_i}p=y_i,
+\qquad
+\partial_{y_i}p=x_i,
+\qquad
+\nabla p(x,y)=\begin{pmatrix}y\\x\end{pmatrix}.
+\]
+For increments $(h,k)$,
+\[
+p(x+h,y+k)-p(x,y)
+=y^\top h+x^\top k+h^\top k.
+\]
+The last term is quadratic in the increments. Therefore
+\[
+\boxed{Dp(x,y)(h,k)=y^\top h+x^\top k.}
+\]
+The coordinate calculation and the increment calculation identify the same
+linear map.
+
+\subsubsection*{Quadratic form: two calculations}
+
+Let
+\[
+f(x)=x^\top Qx,
+\qquad Q\in\R^{n\times n}.
+\]
+Writing the expression in coordinates and differentiating gives
+\[
+\nabla f(x)=(Q+Q^\top)x.
+\]
+The increment calculation gives
+\[
+f(x+h)-f(x)=x^\top Qh+h^\top Qx+h^\top Qh.
+\]
+Hence
+\[
+Df(x)h=((Q+Q^\top)x)^\top h,
+\]
+which recovers the same gradient. If $Q$ is symmetric, then
+$\nabla f(x)=2Qx$.
+This formula is important in
+least squares, portfolio variance, and quadratic optimization.
+
+\subsubsection*{Jacobian of a vector-valued map}
+
+For a vector-valued function $g:\R^n\to\R^m$,
+\[
+g(x)=
+\begin{pmatrix}
+g_1(x)\\
+\vdots\\
+g_m(x)
+\end{pmatrix},
+\]
+the Jacobian matrix is
+\[
+J_g(x)=
+\begin{pmatrix}
+\partial_{x_1}g_1(x)&\cdots&\partial_{x_n}g_1(x)\\
+\vdots&\ddots&\vdots\\
+\partial_{x_1}g_m(x)&\cdots&\partial_{x_n}g_m(x)
+\end{pmatrix}.
+\]
+It is the matrix of the best local linear approximation of $g$.
+
+\subsubsection*{Jacobian example}
+
+For
+\[
+\Phi(u,v)=(ue^v,u^2+v),
+\]
+we have
+\[
+J_\Phi(u,v)=
+\begin{pmatrix}
+e^v&ue^v\\
+2u&1
+\end{pmatrix},
+\qquad
+\det J_\Phi(u,v)=e^v(1-2u^2).
+\]
+The determinant measures local area distortion. When it is close to zero, the
+mapping is locally close to singular.
+
+\clearpage
+\subsection{Multivariate Chain Rule}
+
+\begin{keyproposition}{Multivariate chain rule}{chain-rule-multivariate}
+Let $g:\R^n\to\R^m$ be differentiable at $x$ and let
+$f:\R^m\to\R^p$ be differentiable at $g(x)$. Then $f\circ g$ is
+differentiable at $x$ and
+\[
+\boxed{J_{f\circ g}(x)=J_f(g(x))\,J_g(x).}
+\]
+For a scalar-valued outer function $f:\R^m\to\R$, this becomes
+\[
+\boxed{\nabla(f\circ g)(x)=J_g(x)^\top\nabla f(g(x)).}
+\]
+\end{keyproposition}
+
+This form is used constantly in sensitivity analysis, automatic
+differentiation, and optimization.
+
+\begin{proof}[Proof of the chain rule]
+Write
+\[
+g(x+h)=g(x)+J_g(x)h+r_g(h),
+\qquad \norm{r_g(h)}=o(\norm h).
+\]
+Apply the differentiability expansion of $f$ at $g(x)$ to the increment
+$J_g(x)h+r_g(h)$. The linear term is
+$J_f(g(x))J_g(x)h$; all remaining terms are $o(\norm h)$. The coefficient of
+the first-order term is therefore the product of the two Jacobians.
+\end{proof}
+
+The same formula can be read coordinatewise. Writing
+$g=(g_1,\ldots,g_m)$, for every $j$,
+\[
+\boxed{
+\partial_{x_j}(f\circ g)(x)
+=\sum_{i=1}^m
+\partial_{y_i}f(g(x))\,\partial_{x_j}g_i(x).}
+\]
+This is the $j$-th component of
+$J_g(x)^\top\nabla f(g(x))$.
+
+\section{Implicit and Inverse Function Theorems}
+
+\subsection{Implicit Function Theorem}
+
+Suppose a relation $F(x,y)=0$ defines $y$ indirectly as a function of $x$.
+The implicit function theorem gives a local existence criterion and a formula
+for the derivative without requiring an explicit solution.
+
+\begin{theorem}[Implicit function theorem, scalar form]
+Let $F:\R^2\to\R$ be continuously differentiable near $(x_0,y_0)$, with
+\[
+F(x_0,y_0)=0,
+\qquad
+\partial_yF(x_0,y_0)\neq0.
+\]
+Then, near $x_0$, there is a unique differentiable function $y=\varphi(x)$
+such that $\varphi(x_0)=y_0$ and
+\[
+F(x,\varphi(x))=0.
+\]
+Moreover,
+\[
+\boxed{\varphi'(x)=-\frac{\partial_xF(x,\varphi(x))}
+{\partial_yF(x,\varphi(x))}}.
+\]
+\end{theorem}
+
+The existence statement is deeper than the derivative formula. Once existence
+is known, the formula follows immediately by differentiating
+$F(x,\varphi(x))=0$ and applying the chain rule:
+\[
+0=\partial_xF+\partial_yF\,\varphi'.
+\]
+
+\subsection{Implicit Differentiation on the Unit Circle}
+
+For the unit circle $F(x,y)=x^2+y^2-1$, every point with $y\neq0$ satisfies
+the condition $\partial_yF=2y\neq0$. Hence the circle is locally a graph and
+\[
+\frac{\dd y}{\dd x}=-\frac{x}{y}.
+\]
+At $(1,0)$ the condition fails: the tangent is vertical, so $y$ cannot be a
+single differentiable function of $x$ near that point.
+
+\subsection{Inverse Function Theorem and Newton's Method}
+
+\begin{theorem}[Inverse function theorem]
+Let $g:\R^n\to\R^n$ be continuously differentiable near $x_0$. If
+$J_g(x_0)$ is invertible, then $g$ has a differentiable local inverse near
+$g(x_0)$, and
+\[
+J_{g^{-1}}(g(x_0))=J_g(x_0)^{-1}.
+\]
+\end{theorem}
+
+The inverse problem starts from a target $y\in\R^n$ and asks for $x$ such that
+\[
+\boxed{g(x)=y.}
+\]
+Set $F(x)=g(x)-y$. At an iterate $x_k$, linearization gives
+\[
+F(x_k+s)\approx F(x_k)+J_g(x_k)s.
+\]
+Imposing the linearized equation yields Newton's algorithm:
+\[
+\boxed{J_g(x_k)s_k=y-g(x_k)},
+\qquad
+\boxed{x_{k+1}=x_k+s_k}.
+\]
+One solves this linear system directly and never forms $J_g(x_k)^{-1}$.
+Newton converges rapidly near a regular solution, but a poor initial guess or
+a nearly singular Jacobian can cause failure.
+
+In one dimension, bisection provides a robust alternative. If $F$ is
+continuous and $F(a)F(b)<0$, repeat the following steps:
+\begin{enumerate}
+\item compute $m=(a+b)/2$;
+\item if $F(a)F(m)\leq0$, replace $b$ by $m$;
+\item otherwise, replace $a$ by $m$;
+\item stop when the interval length or the residual is sufficiently small.
+\end{enumerate}
+After $k$ iterations,
+\[
+|x_k-x^\star|\leq\frac{b-a}{2^{k+1}}.
+\]
+Bisection is guaranteed but only linearly convergent; Newton is locally
+quadratic but needs a derivative and a good initial point.
+
+\subsubsection*{Implied volatility as a function of strike and maturity}
+
+For a call with spot $S$, strike $K$, maturity $T$, constant rate $r$, and
+volatility $\sigma$, the Black--Scholes price is
+\[
+C_{\mathrm{BS}}(S,K,T,r,\sigma)
+=S\Phi(d_1)-Ke^{-rT}\Phi(d_2),
+\]
+where
+\[
+d_1=\frac{\log(S/K)+(r+\tfrac12\sigma^2)T}{\sigma\sqrt T},
+\qquad
+d_2=d_1-\sigma\sqrt T.
+\]
+For every quoted pair $(K,T)$, implied volatility is defined by
+\[
+\boxed{C_{\mathrm{BS}}(S,K,T,r,\sigma_{\mathrm{imp}}(K,T))
+=C^{\mathrm{mkt}}(K,T).}
+\]
+Define
+\[
+F(K,T,\sigma)
+=C_{\mathrm{BS}}(S,K,T,r,\sigma)-C^{\mathrm{mkt}}(K,T).
+\]
+Since
+\[
+\partial_\sigma F=\mathrm{Vega}>0
+\]
+for $T>0$ in the nondegenerate Black--Scholes setting, the implicit function
+theorem applies. It provides a locally unique differentiable function
+$(K,T)\mapsto\sigma_{\mathrm{imp}}(K,T)$ satisfying $F=0$.
+The map $K\mapsto\sigma_{\mathrm{imp}}(K,T)$ is generally not flat in market
+data. A U-shaped cross-section is called a volatility smile; a systematically
+downward-sloping cross-section is called a volatility skew.
+
+\section{Second Derivatives and Hessians}
+
+\subsection{Hessian and Symmetry of Mixed Derivatives}
+
+For $f:\R^n\to\R$, the Hessian matrix is
+\[
+H_f(x)=
+\begin{pmatrix}
+\partial_{x_1x_1}^2f(x)&\cdots&\partial_{x_1x_n}^2f(x)\\
+\vdots&\ddots&\vdots\\
+\partial_{x_nx_1}^2f(x)&\cdots&\partial_{x_nx_n}^2f(x)
+\end{pmatrix}.
+\]
+If $f$ is sufficiently regular, Schwarz theorem gives
+\[
+\partial_{x_ix_j}^2f=\partial_{x_jx_i}^2f,
+\]
+so the Hessian is symmetric.
+
+\begin{theorem}[Schwarz--Clairaut theorem]
+If the second partial derivatives of $f$ are continuous in a neighborhood of
+$x$, then
+\[
+\partial_{x_ix_j}^2f(x)=\partial_{x_jx_i}^2f(x).
+\]
+Consequently $H_f(x)$ is symmetric.
+\end{theorem}
+
+\begin{proof}[Proof idea in two dimensions]
+Apply the fundamental theorem of calculus twice to the rectangular increment
+\[
+f(x+h,y+k)-f(x+h,y)-f(x,y+k)+f(x,y).
+\]
+Integrating first in $x$ and then in $y$ represents it as the double integral
+of $f_{xy}$; reversing the order represents the same increment using $f_{yx}$.
+Continuity and shrinking the rectangle to $(x,y)$ give $f_{xy}=f_{yx}$.
+\end{proof}
+
+\subsection{Convexity and Second-Order Classification}
+
+\begin{proposition}[Hessian criterion for convexity]
+Let $f$ be twice continuously differentiable on a convex open set. If
+$H_f(x)$ is positive semidefinite for every $x$, then $f$ is convex. If it is
+positive definite everywhere, then $f$ is strictly convex.
+\end{proposition}
+
+\begin{proof}
+Fix $x,y$ and define the one-dimensional function
+$g(t)=f(x+t(y-x))$ for $t\in[0,1]$. The chain rule gives
+\[
+g''(t)=(y-x)^\top H_f(x+t(y-x))(y-x)\geq0.
+\]
+Thus $g$ is convex on every line segment, which is exactly convexity of $f$.
+\end{proof}
+
+At a critical point $x^\star$, a positive definite Hessian implies a strict
+local minimum, a negative definite Hessian implies a strict local maximum, and
+an indefinite Hessian implies a saddle point.
+
+\subsubsection*{Worked example}
+
+Let
+\[
+f(x,y)=x^4+2x^2y^2+y^4=(x^2+y^2)^2.
+\]
+Then
+\[
+\nabla f(x,y)=
+\begin{pmatrix}
+4x(x^2+y^2)\\
+4y(x^2+y^2)
+\end{pmatrix}
+\]
+and
+\[
+H_f(x,y)=
+\begin{pmatrix}
+12x^2+4y^2&8xy\\
+8xy&4x^2+12y^2
+\end{pmatrix}.
+\]
+This Hessian is positive semidefinite, which is consistent with the convexity of
+$f$.
+
+\subsection{Hands-On Example: Least Squares}
+
+For data matrix $A\in\R^{m\times n}$ and observations $b\in\R^m$, define
+\[
+L(x)=\frac12\norm{Ax-b}^2.
+\]
+Then
+\[
+\nabla L(x)=A^\top(Ax-b),
+\qquad
+H_L(x)=A^\top A.
+\]
+Critical points solve the normal equations
+\[
+A^\top Ax=A^\top b.
+\]
+For
+\[
+A=\begin{pmatrix}1&0\\1&1\\1&2\end{pmatrix},
+\qquad
+b=\begin{pmatrix}1\\2\\2\end{pmatrix},
+\]
+one obtains
+\[
+A^\top A=\begin{pmatrix}3&3\\3&5\end{pmatrix},
+\qquad
+A^\top b=\begin{pmatrix}5\\6\end{pmatrix},
+\qquad
+x^\star=\begin{pmatrix}7/6\\1/2\end{pmatrix}.
+\]
+Because $A$ has full column rank, $A^\top A$ is positive definite, so this
+critical point is the unique global minimizer.
+
+\section{Taylor Expansion}
+
+\subsection{One-Dimensional Taylor Theorem}
+
+If $f$ is sufficiently smooth near $x$, then
+\[
+f(x+h)=f(x)+f'(x)h+\frac{1}{2}f''(x)h^2+\cdots+
+\frac{1}{k!}f^{(k)}(x)h^k+R_k(h).
+\]
+The most important approximations for this bootcamp are
+\[
+f(x+h)\approx f(x)+f'(x)h
+\]
+and
+\[
+f(x+h)\approx f(x)+f'(x)h+\frac{1}{2}f''(x)h^2.
+\]
+
+\begin{theorem}[Taylor theorem with Lagrange remainder]
+If $f$ is $(k+1)$ times continuously differentiable between $x$ and $x+h$,
+then for some $\xi$ between these two points,
+\[
+f(x+h)=\sum_{j=0}^k\frac{f^{(j)}(x)}{j!}h^j
++\frac{f^{(k+1)}(\xi)}{(k+1)!}h^{k+1}.
+\]
+\end{theorem}
+
+The theorem gives an error bound. If $|f^{(k+1)}|\leq M$ on the interval, then
+\[
+|R_k(h)|\leq\frac{M}{(k+1)!}|h|^{k+1}.
+\]
+
+\subsection{Standard Expansions and Error Control}
+
+\[
+e^x=1+x+\frac{x^2}{2}+\frac{x^3}{6}+\cdots,
+\]
+\[
+\log(1+x)=x-\frac{x^2}{2}+\frac{x^3}{3}-\cdots,
+\]
+\[
+\sin x=x-\frac{x^3}{6}+\frac{x^5}{120}-\cdots.
+\]
+
+For instance, the second-order approximation $e^{0.1}\approx1+0.1+0.1^2/2$
+gives $1.105$. Since the third derivative of $e^x$ is at most $e^{0.1}$ on
+$[0,0.1]$, the error is bounded by
+\[
+\frac{e^{0.1}}{6}(0.1)^3<1.85\times10^{-4}.
+\]
+
+\subsection{Multivariate Taylor Expansion and Critical Points}
+
+\begin{keyproposition}{Second-order multivariate Taylor expansion}{taylor-order-two}
+Let $f:\R^n\to\R$ be twice continuously differentiable in a neighborhood
+of $x$. As $h\to0$,
+\[
+\boxed{
+f(x+h)=f(x)+\nabla f(x)^\top h
++\frac{1}{2}h^\top H_f(x)h+o(\norm h^2).}
+\]
+Equivalently, the remainder divided by $\norm h^2$ converges to zero. If the
+third derivatives are bounded locally, the remainder is $O(\norm h^3)$.
+\end{keyproposition}
+
+The first-order term measures local sensitivity. The second-order term measures
+curvature. This formula is the bridge to second-order optimization methods.
+
+If $\nabla f(x^\star)=0$, then
+\[
+f(x^\star+h)\approx f(x^\star)+\frac{1}{2}h^\top H_f(x^\star)h.
+\]
+If $H_f(x^\star)$ is positive definite, $x^\star$ is a local minimum. If it is
+negative definite, $x^\star$ is a local maximum. If it is indefinite,
+$x^\star$ is a saddle point.
+
+\section{Integration}
+
+\subsection{Fundamental Theorem and Main Techniques}
+
+\begin{theorem}[Fundamental theorem of calculus]
+If $f$ is continuous on $[a,b]$ and
+\[
+F(x)=\int_a^x f(t)\dd t,
+\]
+then $F$ is differentiable and
+\[
+\boxed{F'(x)=\frac{\dd}{\dd x}\int_a^x f(t)\dd t=f(x).}
+\]
+Consequently, if $G'=f$, then
+\[
+\boxed{\int_a^bf(x)\dd x=G(b)-G(a).}
+\]
+\end{theorem}
+
+\begin{proof}[Proof of the derivative statement]
+For $h\neq0$,
+\[
+\frac{F(x+h)-F(x)}{h}=\frac1h\int_x^{x+h}f(t)\dd t.
+\]
+The right-hand side is the average value of $f$ over a shrinking interval.
+Continuity implies that this average converges to $f(x)$.
+\end{proof}
+
+If $F'(x)=f(x)$, then
+\[
+\int_a^b f(x)\dd x=F(b)-F(a).
+\]
+For example,
+\[
+\int_0^T e^{rt}\dd t=
+\begin{cases}
+\dfrac{e^{rT}-1}{r},& r\neq0,\\
+T,& r=0.
+\end{cases}
+\]
+
+\subsubsection*{Change of variables}
+
+If $u=\phi(x)$ and $\phi$ is differentiable, then
+\[
+\int_a^b f(\phi(x))\phi'(x)\dd x
+=
+\int_{\phi(a)}^{\phi(b)}f(u)\dd u.
+\]
+For example,
+\[
+\int_0^1\frac{1}{\sqrt{1-x^2}}\dd x.
+\]
+Use $x=\sin u$. Then $\dd x=\cos u\dd u$, and $u$ goes from $0$ to $\pi/2$.
+Therefore
+\[
+\int_0^1\frac{1}{\sqrt{1-x^2}}\dd x
+=
+\int_0^{\pi/2}1\dd u
+=\frac{\pi}{2}.
+\]
+
+\subsubsection*{Change of variables in arbitrary dimension}
+
+The one-dimensional derivative is replaced by the determinant of the
+Jacobian. It measures the local change of volume produced by the map.
+
+A bijection has a unique inverse. A $C^1$ diffeomorphism is a bijection
+$\Phi$ such that both $\Phi$ and $\Phi^{-1}$ are continuously differentiable.
+
+\begin{theorem}[Change of variables in $\R^n$]
+Let $U,V\subset\R^n$ be open sets and let
+$\Phi:U\to V$ be a continuously differentiable bijection whose inverse is
+continuously differentiable. For every integrable function $f:V\to\R$,
+\[
+\boxed{
+\int_V f(y)\dd y
+=\int_U f(\Phi(x))\left|\det J_\Phi(x)\right|\dd x.}
+\]
+Equivalently, for a measurable domain $D\subset U$,
+\[
+\boxed{
+\int_{\Phi(D)} f(y)\dd y
+=\int_D f(\Phi(x))\left|\det J_\Phi(x)\right|\dd x.}
+\]
+\end{theorem}
+
+The absolute value is essential: integration measures unsigned volume, while
+$\det J_\Phi$ is negative when the transformation reverses orientation. The
+formula is the multidimensional version of
+$\dd u=|\phi'(x)|\dd x$.
+
+\begin{proof}[Geometric derivation]
+Near a point $x$, differentiability gives
+\[
+\Phi(x+h)=\Phi(x)+J_\Phi(x)h+o(\|h\|).
+\]
+Thus a sufficiently small box near $x$ is transformed, to first order, by the
+linear map $J_\Phi(x)$. A linear map multiplies volumes by the absolute value
+of its determinant. Summing these local approximations and passing to the
+limit gives the integral formula.
+\end{proof}
+
+\paragraph{Polar coordinates.}
+For
+\[
+\Phi(r,\theta)=(r\cos\theta,r\sin\theta),
+\]
+the Jacobian is
+\[
+J_\Phi(r,\theta)=
+\begin{pmatrix}
+\cos\theta&-r\sin\theta\\
+\sin\theta&r\cos\theta
+\end{pmatrix},
+\qquad
+|\det J_\Phi|=r.
+\]
+Hence, for example,
+\[
+\iint_{x^2+y^2\le R^2}(x^2+y^2)\dd x\dd y
+=\int_0^{2\pi}\int_0^R r^2\,r\dd r\dd\theta
+=\frac{\pi R^4}{2}.
+\]
+
+\subsubsection*{Integration by parts}
+
+\begin{keyproposition}{Integration by parts}{integration-by-parts}
+Let $u,v\in C^1([a,b])$. Integrating the product rule
+$(uv)'=u'v+uv'$ gives
+\[
+\boxed{
+\int_a^b u(x)v'(x)\dd x
+=\left[u(x)v(x)\right]_a^b
+-\int_a^b u'(x)v(x)\dd x.}
+\]
+Equivalently, $\int_a^b u\dd v=[uv]_a^b-\int_a^b v\dd u$.
+\end{keyproposition}
+
+For $a>0$,
+\[
+\int_0^T te^{-at}\dd t
+=
+\frac{1-e^{-aT}(1+aT)}{a^2}.
+\]
+
+\clearpage
+\subsection{Parameter-Dependent Integrals and Leibniz Rule}
+
+\begin{keyproposition}{Differentiation under the integral sign}{differentiate-integral}
+Let $F(\theta)=\int_a^b f(x,\theta)\dd x$. Assume that
+$\partial_\theta f(x,\theta)$ exists near $\theta_0$ and that there is an
+integrable function $g$ such that
+\[
+|\partial_\theta f(x,\theta)|\leq g(x)
+\]
+for all nearby $\theta$. Then $F$ is differentiable at $\theta_0$ and
+\[
+\boxed{
+F'(\theta_0)=\int_a^b\partial_\theta f(x,\theta_0)\dd x.}
+\]
+The domination assumption justifies exchanging differentiation and integration.
+\end{keyproposition}
+
+\begin{keyproposition}{Leibniz rule with moving boundaries}{leibniz-rule}
+Let
+\[
+F(\theta)=\int_{a(\theta)}^{b(\theta)} f(x,\theta)\dd x.
+\]
+If $a,b$ are differentiable, $f$ is continuous, and differentiation under the
+integral sign is justified, then
+\[
+\boxed{
+F'(\theta)
+=
+f(b(\theta),\theta)b'(\theta)
+-f(a(\theta),\theta)a'(\theta)
++\int_{a(\theta)}^{b(\theta)}
+\partial_\theta f(x,\theta)\dd x.}
+\]
+\end{keyproposition}
+
+This is the main tool behind differentiating option-pricing integrals with
+respect to model parameters.
+
+\subsubsection*{Sensitivity of an expectation}
+
+If a price or quantity can be written as
+\[
+P(\theta)=\E[g(X_\theta)]
+=\int_\R g(x)p(x,\theta)\dd x,
+\]
+then, when regularity conditions justify the interchange,
+\[
+\frac{\partial P}{\partial\theta}
+=
+\int_\R g(x)\partial_\theta p(x,\theta)\dd x.
+\]
+This is a calculus view of Greeks.
+
+\section{Ordinary Differential Equations}
+
+\subsection{Theoretical Framework: Initial Value Problems and Existence}
+
+An ordinary differential equation describes the time evolution of a function:
+\[
+y'(t)=f(t,y(t)),
+\qquad y(0)=y_0.
+\]
+The derivative tells us the instantaneous direction of motion. The initial
+condition selects one trajectory among all possible solutions.
+
+\begin{keyproposition}{Picard--Lindelöf existence and uniqueness theorem}{picard-lindelof}
+If $f(t,y)$ is continuous near $(t_0,y_0)$ and locally Lipschitz in $y$, then
+the initial value problem
+\[
+\boxed{y'(t)=f(t,y(t)),\qquad y(t_0)=y_0}
+\]
+has a unique solution on some interval around $t_0$.
+\end{keyproposition}
+
+Local Lipschitz continuity in $y$ means that near every $(t_0,y_0)$ there
+exist a neighborhood and $L<\infty$ such that
+\[
+|f(t,y_1)-f(t,y_2)|\leq L|y_1-y_2|
+\]
+for points in that neighborhood. A continuous derivative $\partial_yf$ is a
+standard sufficient condition.
+
+The continuity assumption gives existence; the Lipschitz condition prevents
+two different solution curves from leaving the same initial point. For
+example, $y'=\sqrt{|y|}$ with $y(0)=0$ illustrates why uniqueness can fail
+when local Lipschitz continuity is absent.
+
+\subsection{General Calculations for Scalar Linear Equations}
+
+An equation is linear in the unknown function if it can be written
+\[
+y'(t)=a(t)y(t)+b(t).
+\]
+The term $b(t)$ is the forcing term. We first solve the homogeneous equation
+\[
+y'(t)=a(t)y(t),
+\qquad y(0)=y_0.
+\]
+
+\subsubsection*{Fundamental solution}
+
+Define
+\[
+\boxed{\Phi(t,0)=\exp\left(\int_0^t a(u)\dd u\right).}
+\]
+Then
+\[
+\partial_t\Phi(t,0)=a(t)\Phi(t,0),
+\qquad \Phi(0,0)=1,
+\]
+and the homogeneous solution is
+\[
+\boxed{y(t)=\Phi(t,0)y_0.}
+\]
+For a constant coefficient $a(t)=k$, this reduces to
+$\Phi(t,0)=e^{kt}$. Positive $k$ gives growth and negative $k$ gives decay.
+
+\subsubsection*{Variation of the constant}
+
+For the forced equation, seek
+\[
+y(t)=c(t)\Phi(t,0).
+\]
+Differentiating gives
+\[
+y'=c'\Phi+c\,a(t)\Phi.
+\]
+After substitution, the homogeneous terms cancel and
+\[
+c'(t)\Phi(t,0)=b(t).
+\]
+Since $c(0)=y_0$,
+\[
+c(t)=y_0+\int_0^t\Phi(s,0)^{-1}b(s)\dd s.
+\]
+Introducing
+\[
+\Phi(t,s)=\Phi(t,0)\Phi(s,0)^{-1}
+=\exp\left(\int_s^t a(u)\dd u\right),
+\]
+we obtain the main solution formula.
+
+\begin{keyproposition}{Variation of constants for a scalar linear ODE}{scalar-variation-constants}
+If $a,b$ are continuous, the initial value problem
+\[
+y'(t)=a(t)y(t)+b(t),\qquad y(0)=y_0,
+\]
+has the unique solution
+\[
+\boxed{
+y(t)=\Phi(t,0)y_0+\int_0^t\Phi(t,s)b(s)\dd s.}
+\]
+Here
+\[
+\boxed{\Phi(t,s)=\exp\left(\int_s^t a(u)\dd u\right)}
+\]
+propagates the state from time $s$ to time $t$.
+\end{keyproposition}
+
+This is the integrating-factor method written so that the propagation of
+initial data and forcing is explicit.
+
+\subsubsection*{Worked forced equation}
+Solve
+\[
+y'(t)-2y(t)=t,
+\qquad y(0)=1.
+\]
+Here $\alpha=2$ and $g(t)=t$, hence
+\[
+y(t)=e^{2t}\left(1+\int_0^tse^{-2s}\dd s\right)
+=\frac54e^{2t}-\frac{1+2t}{4}.
+\]
+Direct differentiation verifies both the ODE and the initial condition.
+
+\subsubsection*{Worked variable-coefficient equation}
+For
+\[
+y'(t)+\frac{2}{1+t}y(t)=1+t,
+\qquad y(0)=1,
+\]
+the integrating factor is $M(t)=(1+t)^2$. Therefore
+\[
+y(t)=\frac{1}{(1+t)^2}
+\left(1+\int_0^t(1+s)^3\dd s\right)
+=\frac{(1+t)^4+3}{4(1+t)^2}.
+\]
+
+\subsection{Linear Systems in Several Dimensions}
+
+The multidimensional analogue of a scalar linear equation is
+\[
+\boxed{x'(t)=A(t)x(t)+g(t),\qquad x(t_0)=x_0,}
+\]
+where $x(t)\in\R^d$, $A(t)\in\R^{d\times d}$, and $g(t)\in\R^d$. If
+$A$ and $g$ are continuous, the right-hand side is continuous in $t$ and
+Lipschitz in $x$ on every compact time interval. The initial value problem
+therefore has a unique solution on that interval.
+
+\subsubsection*{Homogeneous constant-coefficient systems}
+
+For $A$ constant in time, define the matrix exponential by
+\[
+\boxed{e^{tA}=I+tA+\frac{t^2A^2}{2!}+\frac{t^3A^3}{3!}+\cdots.}
+\]
+Term-by-term differentiation yields
+\[
+\frac{\dd}{\dd t}e^{tA}=Ae^{tA}=e^{tA}A,
+\qquad e^{0A}=I.
+\]
+\begin{keyproposition}{Constant-coefficient linear systems}{linear-system-solution}
+For continuous $g$ and a constant matrix $A$, the initial value problem
+\[
+x'(t)=Ax(t)+g(t),\qquad x(0)=x_0,
+\]
+has the unique solution
+\[
+\boxed{x(t)=e^{tA}x_0+\int_0^t e^{(t-s)A}g(s)\dd s.}
+\]
+In particular, for the homogeneous system $g=0$,
+\[
+\boxed{x(t)=e^{tA}x_0.}
+\]
+\end{keyproposition}
+
+This simple exponential formula relies on $A$ being constant. For a general
+time-dependent $A(t)$, the expression $e^{\int_0^tA(s)\dd s}$ is not usually
+valid because matrices at different times need not commute.
+If $A=PDP^{-1}$ is diagonalizable, then
+\[
+e^{tA}=Pe^{tD}P^{-1},
+\qquad
+e^{tD}=\operatorname{diag}(e^{\lambda_1t},\ldots,e^{\lambda_dt}).
+\]
+Diagonalization therefore separates the coupled system into scalar
+exponential modes. Eigenvalues with negative real parts generate decay,
+positive real parts generate growth, and nonzero imaginary parts generate
+oscillation.
+
+\subsubsection*{Variation of constants in $\R^d$}
+
+For the forced system $x'(t)=Ax(t)+g(t)$, set $x(t)=e^{tA}c(t)$. Then
+$c'(t)=e^{-tA}g(t)$, which proves the formula above.
+This is the multidimensional variation-of-constants, or Duhamel, formula. If
+$g(t)=b$ is constant and $A$ is invertible, the equilibrium is
+$x^\star=-A^{-1}b$, and
+\[
+\boxed{x(t)=x^\star+e^{tA}(x_0-x^\star).}
+\]
+
+\subsubsection*{Worked two-dimensional system}
+
+Consider
+\[
+x'(t)=\begin{pmatrix}-1&1\\0&-2\end{pmatrix}x(t),
+\qquad x(0)=\begin{pmatrix}0\\1\end{pmatrix}.
+\]
+The eigenpairs are
+\[
+\lambda_1=-1,\quad v_1=(1,0)^\top,
+\qquad
+\lambda_2=-2,\quad v_2=(-1,1)^\top.
+\]
+Since $x_0=v_1+v_2$,
+\[
+x(t)=e^{-t}v_1+e^{-2t}v_2
+=\boxed{\begin{pmatrix}e^{-t}-e^{-2t}\\e^{-2t}\end{pmatrix}}.
+\]
+Both modes decay, and the slower mode $e^{-t}$ dominates at long horizons.
+
+\subsection{Second-Order Linear Equations and First-Order Systems}
+
+For a homogeneous constant-coefficient equation
+\[
+y''+ay'+by=0,
+\]
+try $y(t)=e^{rt}$. The characteristic equation is
+\[
+r^2+ar+b=0.
+\]
+Two distinct real roots $r_1,r_2$ give
+$y=C_1e^{r_1t}+C_2e^{r_2t}$; a repeated root $r$ gives
+$y=(C_1+C_2t)e^{rt}$; complex roots $\gamma\pm i\omega$ give damped
+oscillations
+\[
+y=e^{\gamma t}(C_1\cos\omega t+C_2\sin\omega t).
+\]
+
+Every scalar second-order equation can also be written as a first-order system.
+With $x_1=y$ and $x_2=y'$, the equation
+\[
+y''+ay'+by=f(t)
+\]
+becomes
+\[
+\boxed{
+\begin{pmatrix}x_1'\\x_2'\end{pmatrix}
+=\begin{pmatrix}0&1\\-b&-a\end{pmatrix}
+\begin{pmatrix}x_1\\x_2\end{pmatrix}
++\begin{pmatrix}0\\f(t)\end{pmatrix}.}
+\]
+The characteristic roots of the scalar equation are exactly the eigenvalues
+of the companion matrix.
+
+For example,
+\[
+y''+3y'+2y=0,
+\qquad y(0)=1,
+\qquad y'(0)=0,
+\]
+has roots $-1$ and $-2$. The initial conditions give
+\[
+\boxed{y(t)=2e^{-t}-e^{-2t}}.
+\]
+
+\subsection{Numerical Methods: Explicit and Implicit Euler}
+
+For $y'=f(t,y)$ on the grid $t_n=t_0+nh$, integrate over one time step:
+\[
+y(t_{n+1})=y(t_n)+\int_{t_n}^{t_{n+1}}f(s,y(s))\dd s.
+\]
+Approximating the integral by its left endpoint gives explicit Euler,
+\[
+\boxed{y_{n+1}=y_n+h f(t_n,y_n)}.
+\]
+Approximating it by its right endpoint gives implicit Euler,
+\[
+\boxed{y_{n+1}=y_n+h f(t_{n+1},y_{n+1})}.
+\]
+
+\begin{keyproposition}{First-order convergence of Euler schemes}{euler-convergence}
+If $f$ is continuous in $t$, Lipschitz in $y$, and sufficiently smooth along
+the exact solution, then on a fixed interval $[0,T]$ there is a constant $C_T$
+independent of $h$ such that
+\[
+\boxed{
+\max_{0\leq n\leq N}|y(t_n)-y_n|\leq C_T h.
+}
+\]
+Thus both schemes are first-order convergent. If $f$ is $L$-Lipschitz in $y$,
+the condition $hL<1$ is a simple sufficient condition for the implicit step
+to define a unique $y_{n+1}$.
+\end{keyproposition}
+
+For a linear system $x'=Ax+g(t)$, the vector updates are
+\[
+\boxed{x_{n+1}=(I+hA)x_n+h g(t_n)}
+\]
+for explicit Euler, and
+\[
+\boxed{(I-hA)x_{n+1}=x_n+h g(t_{n+1})}
+\]
+for implicit Euler. Thus the implicit method requires a linear solve at each
+step. If $A$ and $h$ are constant, one can factorize $I-hA$ once and reuse the
+factorization throughout the time grid.
+
+\subsubsection*{Stability on the linear test equation}
+
+For $y'=\lambda y$, explicit Euler gives
+\[
+y_{n+1}=(1+h\lambda)y_n.
+\]
+When $\lambda<0$, numerical decay requires
+\[
+|1+h\lambda|<1,
+\qquad\text{equivalently}\qquad
+0<h<-\frac{2}{\lambda}.
+\]
+Implicit Euler gives
+\[
+y_{n+1}=\frac{1}{1-h\lambda}y_n.
+\]
+For every $h>0$ and every real $\lambda<0$, the update multiplier has
+modulus below one. This unconditional decay stability explains its usefulness
+for stiff equations.
+
+\section{Financial Models}
+
+\subsection{Risk-Free Growth and Discounting}
+
+A risk-free bank account $B_t$ with a prescribed short-rate curve $r(t)$ satisfies
+\[
+\frac{\dd B_t}{\dd t}=r(t)B_t,
+\qquad B_0>0.
+\]
+Solving this linear ODE gives
+\[
+B_t=B_0\exp\left(\int_0^t r(s)\dd s\right).
+\]
+For a constant rate $r$,
+\[
+B_t=B_0e^{rt}.
+\]
+Here $r(t)$ is a fixed input known as a function of time, which is why the
+calculation is an ODE. If the short rate is random, its dynamics require an
+SDE and pricing generally involves conditional expectations.
+
+\subsubsection*{Continuous discounting}
+
+The discount factor from time $0$ to time $T$ is
+\[
+D(0,T)=\frac{B_0}{B_T}
+=\exp\left(-\int_0^T r(s)\dd s\right).
+\]
+For a constant rate,
+\[
+D(0,T)=e^{-rT}.
+\]
+Thus the present value of a deterministic payoff $X_T$ is
+\[
+X_0=D(0,T)X_T.
+\]
+
+\subsection{Mean Reversion and the Vasicek Mean Path}
+
+The mean-reverting ODE
+\[
+r'(t)=a(b-r(t)),
+\qquad a>0.
+\]
+The solution is
+\[
+r(t)=b+(r_0-b)e^{-at}.
+\]
+The integral of the rate is
+\[
+\int_0^T r(t)\dd t
+=
+bT+\frac{r_0-b}{a}(1-e^{-aT}).
+\]
+If this solution is used as a prescribed short-rate curve, discounting along
+the mean path gives
+\[
+D(0,T)=
+\exp\left(
+-bT-\frac{r_0-b}{a}(1-e^{-aT})
+\right).
+\]
+This is not the stochastic Vasicek zero-coupon bond price: in the stochastic
+model one must take an expectation of the random discount factor.
+
+\subsubsection*{Stochastic Vasicek model}
+
+The full Vasicek short-rate model adds Brownian noise:
+\[
+\dd r_t=a(b-r_t)\dd t+\sigma\dd W_t.
+\]
+This is a stochastic differential equation, so a full treatment belongs to
+stochastic calculus. However, ordinary calculus still explains the conditional
+mean. For $t\ge s$,
+\[
+\frac{\dd}{\dd t}\E[r_t\mid r_s]
+=a\left(b-\E[r_t\mid r_s]\right),
+\]
+so
+\[
+\E[r_t\mid r_s]
+=b+(r_s-b)e^{-a(t-s)}.
+\]
+The parameter $a$ controls how quickly the expected short rate moves back
+toward $b$, while $\sigma$ controls random fluctuations around that mean.
+
+\end{document}

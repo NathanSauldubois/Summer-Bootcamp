@@ -1,0 +1,139 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+\title{Practice Sheet: Markov Chains \& Dynamic Programming (DPP/DP)}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\noindent\textbf{Instructions.} Solve the following \textbf{23} exercises (no solutions included).  
+Each exercise includes a reference to the original source PDF/section.
+
+\vspace{0.5em}
+
+% =========================================================
+\section*{Easy (9)}
+
+\begin{enumerate}[leftmargin=*, itemsep=0.9em]
+
+\item \textbf{One-step and two-step transitions.}  
+Consider the 4-state Markov chain shown in Figure 5.1 (transition graph / matrix). Compute:
+\[
+\mathbb{P}(X_1=4\mid X_0=1), \qquad \mathbb{P}(X_2=4\mid X_0=1).
+\]
+\textit{Source: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.1, Fig.\ 5.1, book p.\ 106.}
+
+\item \textbf{State classification (quick).}  
+Using Figure 5.1, identify (i) the absorbing state(s), (ii) one communicating class, and (iii) which states are transient.  
+\textit{Source: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.1, ``Classification of states'', book p.\ 106.}
+
+\item \textbf{Gambler's ruin (small bankroll).}  
+Two players start with \$1 and \$2. Each round transfers \$1 from loser to winner. Player $M$ wins each round with probability $2/3$. They play until someone is bankrupt. What is the probability that $M$ ends up with all \$3?  
+\textit{Source: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.1, ``Gambler's ruin problem'', book p.\ 107.}
+
+\item \textbf{Waiting time for a pattern (HHH).}  
+You flip a fair coin until you see three consecutive heads (HHH). Find the expected number of flips.  
+\textit{Source: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.1, ``Coin triplets, Part A'', book pp.\ 109--110 .}
+
+\item \textbf{Waiting time for a pattern (THH).}  
+You flip a fair coin until you see the pattern THH. Find the expected number of flips.  
+\textit{Source: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.1, ``Coin triplets, Part A'', book pp.\ 109--110.}
+
+\item \textbf{Expected time to obtain PPF.}  
+A fair coin is tossed repeatedly. In French notation, P denotes \emph{pile} (heads) and F denotes \emph{face} (tails). Let $T$ be the first time the consecutive pattern PPF appears. Introduce states that record the longest useful suffix, write the first-step recurrences for the expected remaining times, and solve the resulting linear system to compute $\mathbb{E}[T]$.
+\textit{Source: Original exercise; hitting-time/first-step analysis.}
+
+\item \textbf{Expected time to obtain 564 with a die.}  
+A fair six-sided die is rolled repeatedly. Let $T$ be the first time three consecutive rolls are 5, then 6, then 4. Introduce states that record how much of the target word has currently been matched, write the first-step recurrences, and solve the resulting linear system to compute $\mathbb{E}[T]$.
+\textit{Source: Original exercise; hitting-time/first-step analysis.}
+
+\item \textbf{DP warm-up: last stage of a 3-roll dice game.}  
+In the DP dice game (up to 3 rolls), suppose you are already at the \emph{third} (final) roll stage. What is the expected payoff \emph{before} seeing the final roll outcome?  
+\textit{Source: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.3, ``Dice game'', book p.\ 123.}
+
+\item \textbf{DP threshold after the second roll (3-roll dice game).}  
+Same 3-roll dice game: after the \emph{second} roll you observe a value $x\in\{1,\dots,6\}$ and may stop and take \$x, or continue to the last roll (forgetting prior values). For which $x$ should you stop?  
+\textit{Source: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.3, ``Dice game'', book p.\ 123.}
+
+\end{enumerate}
+
+% =========================================================
+\section*{Medium (9)}
+
+\begin{enumerate}[leftmargin=*, itemsep=0.9em]
+\setcounter{enumi}{9}
+
+\item \textbf{DP threshold after the first roll (3-roll dice game).}  
+Same 3-roll dice game: after the \emph{first} roll you observe $x$. For which $x$ should you stop immediately?  
+\textit{Source: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.3, ``Dice game'', book p.\ 123.}
+
+\item \textbf{Dice race: 12 vs two consecutive 7s.}  
+Two players repeatedly roll the sum of two fair dice. Player A wins if a sum of 12 occurs before Player B sees \emph{two consecutive} sums of 7. Compute $\mathbb{P}(\text{A wins})$.  
+\textit{Source: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.1, ``Dice question'', book pp.\ 108--109.}
+
+\item \textbf{Competing patterns: HHH vs THH.}  
+Flip a fair coin until either HHH or THH appears as a consecutive length-3 substring. What is the probability that HHH occurs \emph{before} THH?  
+\textit{Source: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.1, ``Coin triplets, Part B'', book pp.\ 110--111.}
+
+\item \textbf{Ticket line probability.}  
+At a ticket booth, $2n$ people are in random order: $n$ have only \$5 bills and $n$ have only \$10 bills. Each ticket costs \$5 and the cashier starts with no change. What is the probability everyone can buy a ticket without swapping positions?  
+\textit{Source: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.2, ``Ticket line'', book pp.\ 117--118.}
+
+\item \textbf{Expected time to get $n$ heads in a row.}  
+Let $T_n$ be the number of flips needed to observe $n$ consecutive heads (fair coin). Derive a recursion for $\mathbb{E}[T_n]$ and solve it in closed form.  
+\textit{Source: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.2, ``Coin sequence'', book p.\ 119.}
+
+\item \textbf{A pattern with overlap (PFP).}  
+A fair coin is tossed until the consecutive pattern PFP appears. Compute the expected waiting time by tracking the longest suffix that is also a prefix of PFP. Explain in particular why, after observing PFP's first two letters and then F, the process returns to the empty-prefix state, whereas after a partial mismatch ending in P it retains one matched letter. Solve the resulting system.
+\textit{Source: Original exercise; pattern automaton and hitting-time recursion.}
+
+\item \textbf{World Series (fair games): replication via DP.}  
+A best-of-7 series ends when a team reaches 4 wins. You have \$100 and you can bet an amount (positive/negative allowed) \emph{each game} on Team A. Construct bets so that your final wealth is +\$100 if Team A wins the series and -\$100 otherwise, assuming each game is a 50/50 coin flip. Compute the required bet when the series score is $(i,j)=(2,1)$ (A has 2 wins, B has 1 win).  
+\textit{Source: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.3, ``World series'', book pp.\ 123--125.}
+
+\item \textbf{Dynamic dice game (optimal stopping with wipeout).}  
+You roll a fair die repeatedly. If 1 appears you gain \$1, if 2 then \$2, \dots, if 5 then \$5; if 6 appears you lose \emph{all} accumulated winnings and the game ends. After any roll of 1--5 you may stop and take the accumulated amount. Find the optimal stopping rule and the fair entry price (risk-neutral).  
+\textit{Source: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.3, ``Dynamic dice game'', book p.\ 126.}
+
+\item \textbf{Optimal stopping (3-step) --- alternative statement.}  
+You may roll one fair die up to three times. You can choose to stop after the 1st or 2nd roll; if you stop, you receive the last observed face value in dollars. If you do not stop early, you must take the 3rd roll value. Find the optimal stopping strategy and the game value.  
+\textit{Source: Heard on the Street, Ch.\ 4 ``Statistics Questions'', Question 4.4, book p.\ 37.}
+
+\end{enumerate}
+
+% =========================================================
+\section*{Hard (5)}
+
+\begin{enumerate}[leftmargin=*, itemsep=0.9em]
+\setcounter{enumi}{18}
+
+\item \textbf{Penney's game with strategic choice (who wants to go first?).}  
+Player 1 chooses a length-3 coin pattern (e.g., HTH). Player 2 then chooses a different length-3 pattern. A fair coin is tossed until one of the two patterns appears; the first to appear wins. If both players are perfectly rational, should you prefer to be Player 1 or Player 2? If you are Player 2, what winning probability can you guarantee?  
+\textit{Source: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.1, ``Coin triplets, Part C'', book pp.\ 111--112.}
+
+\item \textbf{Color balls (expected absorption time).}  
+A box contains $n$ balls, all initially of different colors. Each step: pick two balls uniformly at random (ordered selection), repaint the first ball to match the second, then return both. Let $N$ be the number of steps until all balls share the same color. Compute (or derive a system to compute) $\mathbb{E}[N]$ as a function of $n$.  
+\textit{Source: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.1, ``Color balls'', book p.\ 113.}
+
+\item \textbf{Random walk as a Markov chain (bridge problem).}  
+A ``drunk'' stands at meter 17 on a 100-meter bridge. Each step he moves +1 or -1 with probability 1/2. He stops upon hitting 0 or 100. Compute (i) the probability he reaches 100 before 0, and (ii) the expected number of steps to stop.  
+\textit{Source: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.2, ``Drunk man'', book pp.\ 116--117.}
+
+\item \textbf{Dynamic card game (DP / optimal stopping in finite deck).}  
+A shuffled standard deck has 26 red and 26 black cards. Cards are revealed one-by-one without replacement. You may stop at any time. Each red revealed is +\$1, each black is -\$1. Let $(b,r)$ be the number of black and red cards \emph{remaining}. Write the Bellman equation for the optimal expected payoff $V(b,r)$, and compute (numerically or with reasoning) the fair entry price $V(26,26)$.  
+\textit{Source: A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.3, ``Dynamic card game'', book pp.\ 127--128.}
+
+\item \textbf{World Series with biased win probabilities (DP hedging).}  
+Same setup as the World Series replication problem, but now Team A wins each individual game with probability $p\neq 1/2$ (independent across games). You can still bet each game. Formulate the DP recursion for the replication value $f(i,j)$ and the optimal bet $y(i,j)$ at state $(i,j)$.  
+\textit{Source: Based on A Practical Guide to Quantitative Finance Interviews, Ch.\ 5 \S5.3, ``World series'' (fair case shown), book pp.\ 123--125.}
+
+
+\end{enumerate}
+
+\end{document}

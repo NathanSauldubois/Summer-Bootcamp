@@ -1,0 +1,498 @@
+\documentclass[10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[margin=0.78in]{geometry}
+\usepackage{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage{hyperref}
+
+\definecolor{BootcampBlue}{RGB}{31,78,121}
+\definecolor{BootcampGold}{RGB}{215,155,35}
+\hypersetup{colorlinks=true,linkcolor=BootcampBlue,urlcolor=BootcampBlue}
+\setlist{itemsep=1pt,topsep=2pt,parsep=0pt,partopsep=0pt}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt}
+\setlength{\abovedisplayskip}{5pt plus 2pt minus 2pt}
+\setlength{\belowdisplayskip}{5pt plus 2pt minus 2pt}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\trans}{^{\mathsf T}}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\argmin}{\operatorname*{arg\,min}}
+\newcommand{\argmax}{\operatorname*{arg\,max}}
+\newcommand{\proj}{\operatorname{proj}}
+\newcommand{\diag}{\operatorname{diag}}
+
+\newtcolorbox{deliverablebox}[1]{breakable,colback=BootcampGold!8,
+  colframe=BootcampGold!80!black,boxrule=0.8pt,arc=1mm,
+  title=\textbf{#1},fonttitle=\bfseries}
+\newtcolorbox{conceptbox}[1]{breakable,colback=BootcampBlue!4,
+  colframe=BootcampBlue,boxrule=0.8pt,arc=1mm,
+  title=\textbf{#1},fonttitle=\bfseries}
+
+\title{Summer Bootcamp -- Session 3\\Hands-On Optimization Exercises}
+\author{Nathan Sauldubois}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\section*{Instructions}
+
+Exercises 1--3 concern one-dimensional unconstrained optimization. Exercises
+4--6 move to several variables. Exercises 7--9 introduce equality and
+inequality constraints. Exercises 10--11 are algorithmic implementations.
+Exercises 12--14 apply the theory to portfolio choice. The integrated Python
+project is provided separately in the
+\texttt{Portfolio Optimization Project} folder.
+
+For analytical exercises, justify every candidate and distinguish necessary
+from sufficient conditions. For Python work, use \texttt{NumPy},
+\texttt{pandas}, \texttt{matplotlib}, and, where explicitly allowed,
+\texttt{scipy.optimize}. Set all random seeds and report convergence criteria.
+Do not use future test observations when estimating a portfolio.
+
+\begin{conceptbox}{Notation and supplemental definitions}
+The following notation completes the material explicitly introduced in the
+session notes.
+\begin{itemize}
+  \item $\mathbf1=(1,\ldots,1)\trans\in\R^d$ is the vector of ones.
+  For a symmetric positive-definite matrix $Q$, write
+  $\lambda_{\min}(Q)$ and $\lambda_{\max}(Q)$ for its smallest and largest
+  eigenvalues, and
+  $\kappa(Q)=\lambda_{\max}(Q)/\lambda_{\min}(Q)$ for its spectral condition
+  number.
+  \item A matrix $A\in\R^{m\times d}$ has \emph{full row rank} when
+  $\operatorname{rank}(A)=m$. Its singular values are the nonnegative square
+  roots of the eigenvalues of $A\trans A$.
+  \item For a descent direction $p_k$, Armijo backtracking starts from a trial
+  step $\alpha>0$ and repeatedly replaces $\alpha$ by $\rho\alpha$, with
+  $0<\rho<1$, until
+  \[
+    f(x_k+\alpha p_k)
+    \leq f(x_k)+c\alpha\nabla f(x_k)\trans p_k,
+    \qquad 0<c<1.
+  \]
+  \item A centered finite-difference approximation of the $j$th gradient
+  component is
+  \[
+    \partial_j f(x)\approx
+    \frac{f(x+he_j)-f(x-he_j)}{2h},
+  \]
+  where $e_j$ is the $j$th coordinate vector and $h>0$ is small.
+  \item A first-order perturbation keeps only terms linear in a small change.
+  In particular,
+  \[
+    (\Sigma+E)^{-1}
+    \approx\Sigma^{-1}-\Sigma^{-1}E\Sigma^{-1}
+  \]
+  when $E$ is small and $\Sigma$ is invertible.
+  \item \emph{In-sample} data are used to estimate or select a model;
+  \emph{out-of-sample} data are held back and used only for final evaluation.
+  A hat, as in $\widehat\mu$ or $\widehat\Sigma$, denotes an estimate.
+\end{itemize}
+\end{conceptbox}
+
+% -----------------------------------------------------------------------------
+\section{Part 1 -- One-Dimensional Unconstrained Optimization}
+
+\paragraph{Exercise 1 -- Critical points are only candidates.}
+For each function below, find every critical point, classify it as a local
+minimum, local maximum, or neither, and determine whether a global optimizer
+exists on the stated domain:
+\[
+f_1(x)=x^4-4x^2+3,\quad x\in\R,
+\]
+\[
+f_2(x)=x^3-3x+1,\quad x\in[-2,2],
+\qquad
+f_3(x)=\log(1+e^x)-\frac34x,\quad x\in\R.
+\]
+\begin{enumerate}
+\item Use first- and second-order conditions where they apply.
+\item For $f_2$, include the boundary points in the global comparison.
+\item Prove that $f_3$ is strictly convex and compute its unique minimizer.
+\item Sketch the three functions and mark all candidates.
+\end{enumerate}
+\paragraph{Exercise 2 -- A parameter changes the number of local optima.}
+Let
+\[
+f_a(x)=\frac14x^4-\frac a2x^2+x,
+\qquad a>0.
+\]
+\begin{enumerate}
+\item Show that stationary points solve $x^3-ax+1=0$.
+\item Study the derivative of this cubic and determine for which values of
+$a$ the objective has one stationary point and for which values it has three.
+\item In the three-point regime, classify the stationary points without
+solving the cubic explicitly.
+\item Without computing decimal approximations, explain how the sign pattern
+of $f_a'$ orders the local extrema in the three-point regime.
+\item Explain why $f_a'(x)=0$ alone cannot identify the global solution and
+give a rigorous comparison strategy.
+\end{enumerate}
+
+\paragraph{Exercise 3 -- Newton's method as a local model.}
+Consider
+\[
+f(x)=e^x-3x+\frac14x^2.
+\]
+\begin{enumerate}
+\item Prove that $f$ has a unique global minimizer.
+\item Write Newton's iteration for solving $f'(x)=0$.
+\item Express the Newton direction as the minimizer of the local quadratic
+model of $f$ at $x_k$.
+\item Determine conditions on $x_k$ under which the full Newton step is a
+descent direction.
+\item Explain how Armijo backtracking modifies the update and why it improves
+global robustness. Numerical trajectories belong to Exercise 10.
+\end{enumerate}
+
+% -----------------------------------------------------------------------------
+\section{Part 2 -- Multidimensional Unconstrained Optimization}
+
+\paragraph{Exercise 4 -- Quadratic optimization and conditioning.}
+Let
+\[
+f(x)=\frac12x\trans Qx-c\trans x,\qquad
+Q=Q\trans\succ0,\qquad x,c\in\R^d.
+\]
+\begin{enumerate}
+\item Compute $\nabla f$ and $\nabla^2f$.
+\item Proceed in three steps:
+\begin{enumerate}[label=(\alph*)]
+  \item use $Q\succ0$ to prove that $f$ is strictly convex;
+  \item write the stationarity equation as the linear system
+  $Qx^\star=c$;
+  \item explain why $Q\succ0$ implies that $Q$ is invertible and conclude that
+  this system has exactly one solution.
+\end{enumerate}
+The notation $x^\star=Q^{-1}c$ may be used for the theoretical formula, but a
+numerical implementation should solve $Qx=c$ rather than form $Q^{-1}$.
+\item Complete the square to express $f(x)-f(x^\star)$ as a quadratic form.
+\item In an orthonormal eigenbasis of $Q$, interpret the eigenvalues as
+principal curvatures.
+\item Let $e_k=x_k-x^\star$ and consider gradient descent with a constant step
+$\alpha$. Detail the role of the condition number as follows:
+\begin{enumerate}[label=(\alph*)]
+  \item show in an orthonormal eigenbasis of $Q$ that each error coordinate
+  satisfies
+  \[
+    (e_{k+1})_i=(1-\alpha\lambda_i)(e_k)_i;
+  \]
+  \item explain why a large ratio
+  $\kappa(Q)=\lambda_{\max}(Q)/\lambda_{\min}(Q)$ produces elongated level
+  sets and very different contraction factors across directions;
+  \item recall the stability condition $0<\alpha<2/\lambda_{\max}(Q)$ and
+  compare qualitatively the cases $\kappa(Q)\approx1$ and
+  $\kappa(Q)\gg1$.
+\end{enumerate}
+\end{enumerate}
+
+\paragraph{Exercise 5 -- Least squares, ridge regression, and conditioning.}
+Let $A\in\R^{n\times d}$ and $b\in\R^n$.
+\begin{enumerate}
+\item Minimize $\frac12\norm{Ax-b}_2^2$ by deriving the normal equations.
+\item Give a necessary and sufficient condition for uniqueness. Interpret the
+residual geometrically when the normal equations hold.
+\item For $\lambda>0$, solve
+\[
+\min_x\ \frac12\norm{Ax-b}_2^2+\frac\lambda2\norm{x}_2^2.
+\]
+\item Here, \emph{rank deficient} means that $A$ does not have full column
+rank:
+\[
+  \operatorname{rank}(A)<d.
+\]
+Equivalently, the columns of $A$ are linearly dependent and $A\trans A$ is
+singular. Show that ridge regression nevertheless has a unique solution by
+proving that $A\trans A+\lambda I\succ0$ for every $\lambda>0$.
+\item Use the singular values of $A$ to explain how regularization changes the
+condition number and creates a bias--stability trade-off.
+\end{enumerate}
+
+\paragraph{Exercise 6 -- Second-order conditions in several dimensions.}
+For each function, find all stationary points and classify them:
+\[
+f_1(x,y)=x^2+xy+y^2-4x+2y,
+\]
+\[
+f_2(x,y)=x^4+y^4-2x^2-4y^2,
+\qquad
+f_3(x,y)=x^2-y^2+2xy.
+\]
+\begin{enumerate}
+\item Compute each Hessian and use its eigenvalues or principal minors.
+\item For degenerate candidates of $f_2$, inspect the objective along useful
+directions when the Hessian test is inconclusive.
+\item Identify which local minima are also global and justify the answer.
+\item Plot contours for the three objectives on a domain of your choice.
+\end{enumerate}
+
+% -----------------------------------------------------------------------------
+\section{Part 3 -- Multidimensional Constrained Optimization}
+
+\paragraph{Exercise 7 -- Projection onto an affine constraint.}
+Let $z,a\in\R^d$, with $a\neq0$, and
+$C=\{x\in\R^d:a\trans x=b\}$.
+\begin{enumerate}
+\item Formulate $\proj_C(z)$ as a constrained quadratic problem.
+\item Solve it with a Lagrange multiplier.
+\item Obtain a closed formula for $\proj_C(z)$ and verify that it returns $z$
+when $z\in C$.
+\item Verify geometrically that $z-\proj_C(z)$ is normal to $C$.
+\item Extend the derivation to $C=\{x\in\R^d:Ax=b\}$, where
+$A\in\R^{m\times d}$. The matrix $A$ has \emph{full row rank} when
+\[
+  \operatorname{rank}(A)=m,
+\]
+meaning that its $m$ rows are linearly independent. Explain why this implies
+that $AA\trans$ is invertible, then derive the projection formula.
+\end{enumerate}
+
+\paragraph{Exercise 8 -- Equality constraints, duality, and a saddle point.}
+Consider the generic equality-constrained quadratic problem
+\[
+\min_{x\in\R^d}\ \frac12x\trans Qx+c\trans x
+\quad\text{subject to}\quad Ax=b,
+\]
+where $Q\in\R^{d\times d}$ is symmetric positive definite and
+$A\in\R^{m\times d}$ has full row rank.
+\begin{enumerate}
+\item Write the Lagrangian and the KKT linear system.
+\item Eliminate $x$ and derive formulas for $\lambda^\star$ and $x^\star$.
+\item Compute the dual function
+\[
+q(\lambda)=\inf_x\mathcal L(x,\lambda)
+\]
+explicitly and show directly that it is concave.
+\item Prove weak duality for every feasible $x$ and every multiplier
+$\lambda$.
+\item Verify strong duality and the saddle inequalities symbolically.
+\item With the convention
+$\mathcal L(x,\lambda)=f(x)+\lambda\trans(Ax-b)$, show that the first-order
+sensitivity of the optimal value to $b$ is $-\lambda^\star$.
+\end{enumerate}
+
+\paragraph{Exercise 9 -- Projection onto a half-space with KKT.}
+Let $z,a\in\R^d$, $a\neq0$, and solve
+\[
+\min_x\ \frac12\norm{x-z}_2^2
+\quad\text{subject to}\quad a\trans x\leq b.
+\]
+\begin{enumerate}
+\item Draw the geometry in dimension two and identify the unconstrained
+minimizer.
+\item Write every KKT condition, including dual feasibility and
+complementary slackness.
+\item Treat separately the cases $a\trans z\leq b$ and $a\trans z>b$.
+Derive the optimizer and multiplier in each case.
+\item Explain why the KKT conditions are sufficient here.
+\item Show that the projection map can be written using the positive part
+$(u)_+=\max(u,0)$ and interpret the active-set change.
+\end{enumerate}
+
+% -----------------------------------------------------------------------------
+\section{Part 4 -- Python Algorithms}
+
+\paragraph{Exercise 10 -- Implement gradient descent from scratch.}
+Implement
+\[
+x_{k+1}=x_k-\alpha_k\nabla f(x_k)
+\]
+without calling an optimization routine. For the quadratic test, set a random
+seed and construct $Q=M\trans M+0.1I$ and $c$ with $d=20$; retain the exact
+solution from Exercise 4 as a benchmark. Also test the Rosenbrock function
+\[
+r(x,y)=100(y-x^2)^2+(1-x)^2.
+\]
+\begin{enumerate}
+\item Write a reusable function accepting \texttt{f}, \texttt{grad}, an
+initial point, a step-size rule, a tolerance, and a maximum iteration count.
+\item Return the entire history of iterates, objective values, gradient
+norms, and accepted step sizes.
+\item For the quadratic, compare constant steps $1/\lambda_{\max}(Q)$,
+$2/(\lambda_{\min}(Q)+\lambda_{\max}(Q))$, and one unstable step satisfying
+$\alpha>2/\lambda_{\max}(Q)$.
+\item Add Armijo backtracking with $c=10^{-4}$ and $\rho=1/2$, then test the
+code on Rosenbrock from $(-1.2,1)\trans$.
+\item Plot objective gap and gradient norm on logarithmic axes. Plot the
+iterates over objective contours.
+\item Check the analytical gradient with centered finite differences before
+running the optimizer.
+\end{enumerate}
+
+\begin{deliverablebox}{Algorithmic deliverable}
+Submit the implementation, two convergence tables, and four diagnostic plots.
+State the stopping rule explicitly. A plot alone is not evidence of
+convergence: compare with the known solution whenever one is available.
+\end{deliverablebox}
+
+\paragraph{Exercise 11 -- Implement primal--dual gradient descent--ascent.}
+Use the equality-constrained quadratic from Exercise 8. Generate a reproducible
+instance with $d=20$, $m=3$, $Q=M\trans M+0.1I$, and a full-row-rank matrix
+$A$. Draw $c$ and a reference point $x^{\mathrm{ref}}$, then set
+$b=Ax^{\mathrm{ref}}$ so feasibility is guaranteed. Its Lagrangian is
+\[
+\mathcal L(x,\lambda)
+=\frac12x\trans Qx+c\trans x+\lambda(Ax-b).
+\]
+Implement the simultaneous iteration
+\[
+x_{k+1}=x_k-\alpha\bigl(Qx_k+c+A\trans\lambda_k\bigr),
+\qquad
+\lambda_{k+1}=\lambda_k+\beta(Ax_k-b).
+\]
+\begin{enumerate}
+\item Start from $x_0=0$, $\lambda_0=0$ and test several pairs
+$(\alpha,\beta)$.
+\item At every iteration record the primal error, feasibility, and stationarity
+residuals
+\[
+\norm{x_k-x^\star},\qquad
+\norm{Ax_k-b},\qquad
+\norm{Qx_k+c+A\trans\lambda_k},
+\]
+as well as the Lagrangian value.
+\item Find one stable and one oscillatory parameter choice. Plot the
+trajectories and explain the difference.
+\item Implement the augmented Lagrangian
+\[
+\mathcal L_\rho(x,\lambda)=\mathcal L(x,\lambda)
++\frac\rho2\norm{Ax-b}_2^2
+\]
+and its descent--ascent updates. Study $\rho=0.1,1,10$.
+\item Compare all numerical solutions with the exact KKT solution from
+Exercise 8.
+\item Optional: define $z=(x,\lambda)$ and the saddle operator
+$F(z)=(\nabla_x\mathcal L,-\nabla_\lambda\mathcal L)$. Implement the
+extragradient update
+\[
+  \widetilde z_k=z_k-\eta F(z_k),
+  \qquad z_{k+1}=z_k-\eta F(\widetilde z_k),
+\]
+then compare its stability with simultaneous descent--ascent.
+\end{enumerate}
+
+% -----------------------------------------------------------------------------
+\section{Part 5 -- Portfolio Optimization}
+
+Let $R\in\R^d$ be the random vector of annual asset returns, with
+mean $\mu=\E[R]$ and covariance matrix $\Sigma=\Cov(R)$. Unless otherwise
+stated, portfolio weights satisfy $\mathbf1\trans w=1$. For risk-free rate
+$r_f$, define
+\[
+R(w)=\mu\trans w,
+\qquad \sigma(w)=\sqrt{w\trans\Sigma w},
+\qquad \operatorname{SR}(w)=\frac{R(w)-r_f}{\sigma(w)}.
+\]
+
+\paragraph{Exercise 12 -- Risk, return, and the Sharpe ratio.}
+Let $\mu\in\R^d$, $\Sigma\succ0$, and $r_f\in\R$.
+\begin{enumerate}
+\item Prove the formulas for portfolio return and variance from the random
+return vector $R$.
+\item Derive the global minimum-variance portfolio allowing short sales:
+\[
+w_{\rm GMV}=\frac{\Sigma^{-1}\mathbf1}
+{\mathbf1\trans\Sigma^{-1}\mathbf1}.
+\]
+\item Show that the tangency direction is proportional to
+$\Sigma^{-1}(\mu-r_f\mathbf1)$ and explain how full investment fixes its
+normalization when the denominator is nonzero.
+\item Compare the objectives answered by equal weight, GMV, and tangency
+portfolios. State when each is a sensible benchmark.
+\item Explain why long-only constraints can invalidate the closed formulas
+and identify the KKT conditions required instead.
+\end{enumerate}
+
+\paragraph{Exercise 13 -- Derive the efficient frontier.}
+Consider
+\[
+\min_w\ \frac12w\trans\Sigma w
+\quad\text{subject to}\quad
+\mathbf1\trans w=1,\qquad \mu\trans w=m
+\]
+for a feasible target return $m$.
+\begin{enumerate}
+\item Derive the KKT system for a fixed target $m$.
+\item With
+\[
+C=\begin{pmatrix}\mathbf1\trans\\\mu\trans\end{pmatrix},
+\qquad d_m=\begin{pmatrix}1\\m\end{pmatrix},
+\]
+derive
+$w(m)=\Sigma^{-1}C\trans(C\Sigma^{-1}C\trans)^{-1}d_m$.
+\item Show that the optimal variance is a quadratic function of $m$ and
+deduce the shape of the frontier in mean--standard-deviation space.
+\item Explain qualitatively why long-only constraints and position caps create
+kinks and active-set changes.
+\item State the feasibility and positive-semidefiniteness checks a numerical
+solver should perform before tracing a frontier.
+\end{enumerate}
+
+\paragraph{Exercise 14 -- Estimation error and robust weights.}
+Suppose an estimate $(\widehat\mu,\widehat\Sigma)$ replaces the population
+parameters, with $\widehat\Sigma\succ0$. Define the unconstrained tangency
+direction
+\[
+q(\widehat\mu,\widehat\Sigma)
+=\widehat\Sigma^{-1}(\widehat\mu-r_f\mathbf1).
+\]
+\begin{enumerate}
+\item Study the sensitivity of $q$ to mean-estimation error. Throughout this
+question, keep $\widehat\Sigma$ and $r_f$ fixed. Let $h\in\mathbb R^n$ denote
+an estimation-error direction and replace $\widehat\mu$ by
+$\widehat\mu+\varepsilon h$.
+  \begin{enumerate}[label=(\alph*)]
+  \item Write $q(\widehat\mu+\varepsilon h,\widehat\Sigma)$ and isolate the
+  first-order change
+  $q(\widehat\mu+\varepsilon h,\widehat\Sigma)
+  -q(\widehat\mu,\widehat\Sigma)$.
+  \item Deduce the directional derivative
+  $D_{\mu}q(\widehat\mu,\widehat\Sigma)[h]$ and the Jacobian of $q$ with
+  respect to $\widehat\mu$.
+  \item Use an eigendecomposition
+  $\widehat\Sigma=U\operatorname{diag}(\lambda_1,\ldots,\lambda_n)U\trans$.
+  Decompose $h$ in the orthonormal eigenbasis and determine how the component
+  along an eigenvector associated with $\lambda_i$ is transformed.
+  \item Give an upper bound for the relative or absolute change in $q$ in
+  terms of $\lambda_{\min}(\widehat\Sigma)$ and $\lVert h\rVert_2$. Explain
+  why a mean-estimation error aligned with a small-eigenvalue direction can
+  produce a large change in the portfolio direction.
+  \item Optional: if the fully invested weights are
+  $w=q/(\mathbf1\trans q)$, explain why the normalization may create an
+  additional instability when $\mathbf1\trans q$ is close to zero.
+  \end{enumerate}
+\item Explain why GMV weights are insensitive to mean estimation but remain
+sensitive to covariance estimation.
+\item Define the ridge-regularized covariance
+\[
+\widehat\Sigma_\delta=\widehat\Sigma+\delta I,
+\qquad \delta\geq0.
+\]
+Show how its eigenvalues and condition number depend on $\delta$.
+\item Compare in-sample predicted volatility with out-of-sample realized
+volatility. Explain why optimizing estimated expected returns is particularly
+unstable.
+\item Propose a transparent validation rule for selecting $\delta$ without
+looking at the final test sample. Reserve all numerical comparisons for the
+separate portfolio project.
+\end{enumerate}
+
+% -----------------------------------------------------------------------------
+\begin{deliverablebox}{Separate Portfolio Optimization Project}
+The integrated project is in the separate Portfolio Optimization Project
+folder. Use its detailed statement and \path{portfolio_project_skeleton.py},
+which contains the staged questions, validation checks, expected outputs, and
+explicit \texttt{TODO} blocks.
+\end{deliverablebox}
+
+\end{document}

@@ -1,0 +1,361 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{bm}
+
+\title{Exercise Sheet -- Random Vectors and Convergence of Random Variables\\[0.4em]
+{\large Applications of Lecture: Random Vectors \& Convergence}}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+This sheet is organized in two parts:
+\begin{itemize}
+  \item \textbf{Part A -- Fundamental and applied exercises}
+  \item \textbf{Part B -- More advanced applied exercises}
+\end{itemize}
+
+The problems are designed to practice:
+random vectors and their distributions (joint, marginal, covariance),
+linear transformations and portfolio-style applications,
+and the main modes of convergence of random variables
+(almost sure, in probability, in distribution, and \(L^p\)).
+
+\bigskip
+\hrule
+\bigskip
+
+% =====================================================
+\section*{Part A -- Fundamental and Applied Exercises}
+% =====================================================
+
+\begin{enumerate}
+
+% -------------------------------------------------
+\item \textbf{Joint distribution of two discrete variables}
+
+A random vector $(X,Y)$ takes values in $\{0,1\}\times\{0,1,2\}$ with joint probabilities
+\[
+\mathbb{P}(X=i,Y=j)=\frac{1}{6}, \quad i\in\{0,1\},\ j\in\{0,1,2\}.
+\]
+
+\begin{enumerate}
+\item Compute the marginal distributions of $X$ and $Y$.
+\item Compute $\mathbb{E}[X]$, $\mathbb{E}[Y]$.
+\item Compute $\mathrm{Cov}(X,Y)$.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Independence check from a joint law}
+
+Let $(X,Y)$ have joint density
+\[
+f_{X,Y}(x,y)=2\,\mathbf{1}_{\{0\le y\le x\le 1\}}.
+\]
+
+\begin{enumerate}
+\item Compute the marginal densities of $X$ and $Y$.
+\item Are $X$ and $Y$ independent?
+\item Compute $\mathbb{E}[Y\mid X=x]$.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Mean and covariance of a random vector}
+
+Let $X=(X_1,X_2)$ where
+\[
+X_1\sim\mathcal{N}(1,1),\qquad X_2=2X_1+1.
+\]
+
+\begin{enumerate}
+\item Compute $\mathbb{E}[X]$.
+\item Compute the covariance matrix $\mathrm{Cov}(X)$.
+\item Is $X$ Gaussian? Justify.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Linear transformation (portfolio-style)}
+
+Let $R=(R_1,R_2)$ be asset returns with
+\[
+\mathbb{E}[R]=
+\begin{pmatrix}0.05\\0.02\end{pmatrix},
+\qquad
+\Sigma=
+\begin{pmatrix}
+0.04 & 0.01\\
+0.01 & 0.01
+\end{pmatrix}.
+\]
+
+A portfolio has weights $w=(0.6,0.4)$.
+
+\begin{enumerate}
+\item Compute the expected portfolio return.
+\item Compute the portfolio variance.
+\item Interpret the effect of correlation.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Multidimensional change of variables}
+
+Let $(X,Y)$ be a random vector with joint density
+\[
+f_{X,Y}(x,y)=\mathbf{1}_{\{0<x<1,\;0<y<1\}},
+\]
+i.e.\ $(X,Y)$ is uniformly distributed on the unit square $[0,1]^2$.
+
+Define the new random vector $(U,V)$ by
+\[
+U = X+Y,
+\qquad
+V = X-Y.
+\]
+
+\begin{enumerate}
+\item Express $(X,Y)$ as functions of $(U,V)$.
+\item Compute the Jacobian determinant of the transformation $(x,y)\mapsto(u,v)$.
+\item Determine the support of $(U,V)$.
+\item Compute the joint density $f_{U,V}(u,v)$.
+\item Compute the marginal density of $U$ and identify its distribution.
+\end{enumerate}
+% -------------------------------------------------
+\item \textbf{Convergence in probability (simple scaling)}
+
+Let $Z$ be an integrable random variable and define $X_n=Z/n$.
+
+\begin{enumerate}
+\item Show that $X_n\xrightarrow{\mathbb{P}}0$.
+\item Show that $X_n\xrightarrow{L^1}0$.
+\item Does almost sure convergence necessarily hold?
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Almost sure convergence from series}
+
+Let $(X_n)$ be independent with
+\[
+\mathbb{P}(X_n=1)=\frac{1}{n^2},\qquad
+\mathbb{P}(X_n=0)=1-\frac{1}{n^2}.
+\]
+
+\begin{enumerate}
+\item Show that $X_n\to 0$ almost surely.
+\item Does $X_n\to 0$ in $L^1$?
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Convergence in distribution: uniform shrinking}
+
+Let $X_n\sim U[0,1/n]$.
+
+\begin{enumerate}
+\item Show that $X_n\xrightarrow{\mathbb{P}}0$.
+\item Compute the distribution of $nX_n$.
+\item Identify the limit in distribution.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Sample mean and convergence}
+
+Let $X_1,X_2,\dots$ be i.i.d.\ with $\mathbb{E}[X_1]=m$ and $\mathrm{Var}(X_1)=\sigma^2$.
+Define $\bar X_n=\frac1n\sum_{k=1}^n X_k$.
+
+\begin{enumerate}
+\item Compute $\mathbb{E}[\bar X_n]$ and $\mathrm{Var}(\bar X_n)$.
+\item Show that $\bar X_n\xrightarrow{\mathbb{P}} m$.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Convergence of vectors}
+
+Let $X_n=(X_n^{(1)},X_n^{(2)})$ where
+\[
+X_n^{(1)}\xrightarrow{\mathbb{P}}1,
+\qquad
+X_n^{(2)}\xrightarrow{\mathbb{P}}2.
+\]
+
+\begin{enumerate}
+\item Show that $X_n\xrightarrow{\mathbb{P}}(1,2)$.
+\item Deduce convergence of $a^\top X_n$ for any $a\in\mathbb{R}^2$.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Convergence via continuous mapping}
+
+Let $X_n\xrightarrow{\mathbb{P}}X$ and define $Y_n=X_n^2+1$.
+
+\begin{enumerate}
+\item Show that $Y_n\xrightarrow{\mathbb{P}}X^2+1$.
+\item Explain which theorem is used.
+\end{enumerate}
+
+\end{enumerate}
+
+\bigskip
+\hrule
+\bigskip
+
+% =====================================================
+\section*{Part B -- More Advanced Applied Exercises}
+% =====================================================
+
+\begin{enumerate}
+\setcounter{enumi}{10}
+
+% -------------------------------------------------
+\item \textbf{Gaussian random vector and conditioning}
+
+Let $(X,Y)$ be jointly Gaussian with
+\[
+\mathbb{E}[X]=0,\quad \mathbb{E}[Y]=0,\quad
+\mathrm{Var}(X)=1,\quad \mathrm{Var}(Y)=4,\quad \mathrm{Cov}(X,Y)=2.
+\]
+
+\begin{enumerate}
+\item Compute $\mathbb{E}[X\mid Y]$.
+\item Compute $\mathrm{Var}(X\mid Y)$.
+\item Interpret the result as a regression.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Conditional expectation as best predictor}
+
+Let $X,Y\in L^2$ and consider predictors of $X$ of the form $aY+b$.
+
+\begin{enumerate}
+\item Find $(a,b)$ minimizing $\mathbb{E}[(X-aY-b)^2]$.
+\item Show that $aY+b=\mathbb{E}[X\mid Y]$ when $(X,Y)$ is Gaussian.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Failure of converse implications}
+
+Construct examples showing:
+\begin{enumerate}
+\item Convergence in probability does not imply almost sure convergence.
+\item Convergence in distribution does not imply convergence in probability.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Slutsky-type application}
+
+Let $X_n=\sqrt{n}(\bar X_n-m)$ where $X_i$ are i.i.d.\ with variance $\sigma^2$.
+
+\begin{enumerate}
+\item State the CLT.
+\item Show that $\frac{X_n}{\sigma}\xrightarrow{d}\mathcal{N}(0,1)$.
+\item Deduce the limit of $X_n/\hat\sigma_n$ where $\hat\sigma_n\to\sigma$ in probability.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Maximum of random variables}
+
+Let $X_1,\dots,X_n$ be i.i.d.\ $U[0,1]$ and $M_n=\max(X_1,\dots,X_n)$.
+
+\begin{enumerate}
+\item Compute the cdf of $M_n$.
+\item Show that $M_n\xrightarrow{\mathbb{P}}1$.
+\item Find the limit in distribution of $n(1-M_n)$.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Convergence of covariance matrices}
+
+Let $X_n=(X_n^{(1)},X_n^{(2)})$ with covariance matrices $\Sigma_n\to\Sigma$.
+
+\begin{enumerate}
+\item Show that $\mathrm{Var}(a^\top X_n)\to a^\top\Sigma a$.
+\item Give a portfolio interpretation.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Random vector LLN}
+
+Let $X_1,X_2,\dots$ be i.i.d.\ $\mathbb{R}^d$-valued with mean $\mu$.
+
+\begin{enumerate}
+\item Show that $\bar X_n\xrightarrow{\mathbb{P}}\mu$.
+\item Deduce convergence of $w^\top \bar X_n$.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Delta method (one-dimensional)}
+
+Let $X_n\xrightarrow{d}\mathcal{N}(0,\sigma^2)$ and $g(x)=x^2$.
+
+\begin{enumerate}
+\item Compute the limit in distribution of $g(X_n)$.
+\item Explain why the limit is not Gaussian.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Estimation error in portfolios}
+
+Let $\hat\mu_n$ be an estimator of $\mu$ such that
+$\sqrt{n}(\hat\mu_n-\mu)\xrightarrow{d}\mathcal{N}(0,\Sigma)$.
+
+\begin{enumerate}
+\item Compute the limit distribution of $w^\top\hat\mu_n$.
+\item Interpret the result for large portfolios.
+\end{enumerate}
+
+\bigskip
+
+% -------------------------------------------------
+\item \textbf{Applied convergence comparison}
+
+For each sequence below, determine the type(s) of convergence:
+\[
+X_n=\frac{\sin n}{n},\qquad
+Y_n=\mathbf{1}_{\{U\le 1/n\}},\qquad
+Z_n\sim \mathcal{N}(0,1/n).
+\]
+
+\begin{enumerate}
+\item Almost sure convergence.
+\item Convergence in probability.
+\item Convergence in distribution.
+\end{enumerate}
+
+\end{enumerate}
+
+\end{document}

@@ -1,0 +1,369 @@
+\documentclass[10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[margin=0.78in]{geometry}
+\usepackage{hyperref}
+
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\setlist{itemsep=2pt,topsep=3pt,parsep=0pt,partopsep=0pt}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{3pt}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\dd}{\,\mathrm{d}}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+
+\title{Summer Bootcamp -- Session 2\\Hands-On Calculus and ODE Exercises}
+\author{Nathan Sauldubois}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\section{Python and Elementary Financial Calculations}
+
+This first part requires only short Python functions and elementary algebra.
+
+\paragraph{Exercise 1 -- Coupon-bond yield, duration, and repricing.}
+A bond pays $4$ at $t=1$, $4$ at $t=2$, and $104$ at $t=3$. Its market
+price is $96.50$. We denote by $B(y)$ the price of the bond as a function of
+the continuously compounded yield $y$. Thus
+\[
+B(y)=4e^{-y}+4e^{-2y}+104e^{-3y}.
+\]
+\begin{enumerate}
+\item write Python functions for $B(y)$, $B'(y)$, and $B''(y)$;
+\item find the yield with bisection on an interval whose endpoint prices
+bracket $96.50$;
+\item verify the result with Newton's method;
+\item compute modified duration and convexity,
+\[
+D_{\mathrm{mod}}=-\frac{B'(y)}{B(y)},
+\qquad
+\mathcal C=\frac{B''(y)}{B(y)};
+\]
+\item estimate the new price after yield moves of $\pm25$ and $\pm100$ basis
+points using duration alone and then duration--convexity;
+\item compare both approximations with exact repricing.
+\end{enumerate}
+
+\section{Explicit Derivatives}
+
+\paragraph{Exercise 2 -- One-dimensional derivatives.}
+Differentiate and simplify each function. State its domain.
+\[
+f_1(x)=\sin(3x^2-1),
+\qquad
+f_2(x)=x^2e^{-3x},
+\]
+\[
+f_3(x)=\frac{\log x}{1+x^2},
+\qquad
+f_4(x)=\log(1+e^x),
+\qquad
+f_5(x)=\sqrt{1+x^2}.
+\]
+For $f_2$ and $f_4$, compute the second derivative as well.
+
+\paragraph{Exercise 3 -- Gradient, Hessian, and Jacobian.}
+Let
+\[
+f(x,y)=2x^2-xy+3y^2+4x,
+\qquad
+g(x,y)=\begin{pmatrix}e^x\cos y\\x-y^2\end{pmatrix}.
+\]
+Using the method of your choice, compute symbolically:
+\begin{enumerate}
+\item the gradient $\nabla f(x,y)$;
+\item the Hessian $H_f(x,y)$;
+\item the Jacobian $J_g(x,y)$.
+\end{enumerate}
+
+\paragraph{Exercise 4 -- Multivariate chain rule by two methods.}
+Define
+\[
+q(u,v)=ue^v,
+\qquad
+\Phi(x,y)=(x+y^2,xe^y),
+\qquad F=q\circ\Phi.
+\]
+\begin{enumerate}
+\item write $F(x,y)$ explicitly and compute $\partial_xF$ and $\partial_yF$;
+\item compute $J_\Phi(x,y)$ and $\nabla q(u,v)$;
+\item recover $\nabla F$ from
+$\nabla F=J_\Phi^\top\nabla q(\Phi)$;
+\item write the increment calculation
+$DF(x,y)h=Dq(\Phi(x,y))D\Phi(x,y)h$ and verify that it gives the same
+coefficients of $h_1$ and $h_2$.
+\end{enumerate}
+
+\section{Explicit Integration}
+
+\paragraph{Exercise 5 -- One-dimensional integrals.}
+Evaluate analytically and state the method used:
+\[
+I_1=\int_0^1(3x^2-2x+1)\dd x,
+\qquad
+I_2=\int_0^T(1+t)^{-r}\dd t,
+\]
+\[
+I_3=\int_0^1xe^{x^2}\dd x,
+\qquad
+I_4=\int_0^1x\log x\dd x,
+\qquad
+I_5=\int_0^1\frac{1}{1+x^2}\dd x.
+\]
+For $I_2$, distinguish $r=1$ from $r\neq1$ and recover the exceptional case
+by a limit. For $I_5$, use the substitution $x=\tan u$.
+
+\paragraph{Exercise 6 -- The Gaussian integral.}
+Let
+\[
+G=\int_{-\infty}^{\infty}e^{-x^2}\dd x.
+\]
+The objective is to obtain the value of $G$ by a formal calculation.
+\begin{enumerate}
+\item write $G^2$ as an integral over $\R^2$ using independent variables
+$x$ and $y$;
+\item change to polar coordinates, stating the domain and the Jacobian;
+\item evaluate the radial and angular integrals and deduce $G$;
+\item use the result to compute
+$\int_{-\infty}^{\infty}e^{-x^2/(2\sigma^2)}\dd x$ for $\sigma>0$;
+\item explain how this calculation determines the normalizing constant of a
+Gaussian density.
+\end{enumerate}
+
+\paragraph{Exercise 7 -- Multiple integrals and change of variables.}
+Compute
+\[
+J_1=\int_{-1}^2\int_0^3(2x-y)\dd y\dd x,
+\]
+\[
+J_2=\iint_D(x+2y)\dd x\dd y,
+\qquad
+D=\{(x,y):x\geq0,\ y\geq0,\ x+2y\leq2\},
+\]
+and
+\[
+J_3(R)=\iint_{1\leq x^2+y^2\leq R^2}(x^2+y^2)^2\dd x\dd y,
+\qquad R>1.
+\]
+\begin{enumerate}
+\item compute $J_1$ in both integration orders;
+\item write both possible iterated-integral descriptions of $D$ and compute
+$J_2$;
+\item transform $J_3(R)$ to polar coordinates, including the Jacobian $r$;
+\item specialize the result to $R=3$;
+\item check the three answers with a short numerical quadrature in Python.
+\end{enumerate}
+
+\section{Black--Scholes Greeks}
+
+For a non-dividend-paying asset,
+\[
+C=S\Phi(d_1)-Ke^{-rT}\Phi(d_2),
+\qquad
+d_1=\frac{\log(S/K)+(r+\tfrac12\sigma^2)T}{\sigma\sqrt T},
+\qquad d_2=d_1-\sigma\sqrt T.
+\]
+Here $\Phi$ is the cumulative distribution function of a standard normal
+random variable:
+\[
+\Phi(x)=\frac{1}{\sqrt{2\pi}}
+\int_{-\infty}^{x}e^{-u^2/2}\dd u,
+\qquad
+\phi(x)=\Phi'(x)=\frac{1}{\sqrt{2\pi}}e^{-x^2/2}.
+\]
+
+\paragraph{Exercise 8 -- Derive the Greeks.}
+The closed-form formulas for the Greeks are deliberately not supplied: they
+must be obtained by differentiating the Black--Scholes price.
+
+With all other variables held fixed, the Greeks are defined by the following
+partial derivatives:
+\[
+\boxed{
+\Delta=\frac{\partial C}{\partial S},\qquad
+\Gamma=\frac{\partial^2 C}{\partial S^2},\qquad
+\mathrm{Vega}=\frac{\partial C}{\partial\sigma}.}
+\]
+\[
+\boxed{
+\Theta=-\frac{\partial C}{\partial T},\qquad
+\mathrm{Rho}=\frac{\partial C}{\partial r}.}
+\]
+Here $T$ denotes time to maturity, so calendar-time Theta is
+$-\partial C/\partial T$.
+
+\begin{enumerate}
+\setcounter{enumi}{1}
+\item derive a useful identity relating $S\phi(d_1)$ and
+$Ke^{-rT}\phi(d_2)$;
+\item use the chain rule to derive the closed-form formulas for all five
+Greeks, simplifying with the identity from the previous question;
+\item Derive the short-maturity at-the-money approximation as follows.
+\begin{enumerate}[label=(\alph*)]
+\item Use the at-the-money-forward convention
+\[
+K=Se^{rT},
+\]
+and explain why it is equivalent to equality between the spot price $S$ and
+the discounted strike $Ke^{-rT}$.
+\item Substitute this relation into $d_1$ and $d_2$ and prove that
+\[
+d_1=\frac{\sigma\sqrt T}{2},
+\qquad
+d_2=-\frac{\sigma\sqrt T}{2}.
+\]
+\item Rewrite the call price in the form
+\[
+C=S\left[
+\Phi\left(\frac{\sigma\sqrt T}{2}\right)
+-\Phi\left(-\frac{\sigma\sqrt T}{2}\right)
+\right],
+\]
+then use the symmetry $\Phi(-z)=1-\Phi(z)$.
+\item Using the expansion
+\[
+\Phi(z)=\frac12+\frac{z}{\sqrt{2\pi}}+O(z^3)
+\qquad (z\to0),
+\]
+show that, as $T\downarrow0$,
+\[
+C=S\sigma\sqrt{\frac{T}{2\pi}}+O(T^{3/2}).
+\]
+\item Interpret the leading term: describe separately the effects of $S$,
+$\sigma$, and $T$, and explain why the short-maturity price is of order
+$\sqrt T$ rather than order $T$.
+\end{enumerate}
+\end{enumerate}
+
+\section{Numerical Schemes for ODEs}
+
+For $y'=f(t,y)$ on $t_n=nh$, recall
+\[
+y_{n+1}=y_n+hf(t_n,y_n)
+\quad\text{and}\quad
+y_{n+1}=y_n+hf(t_{n+1},y_{n+1}).
+\]
+
+\paragraph{Exercise 9 -- Euler accuracy and the classical inequalities.}
+For $y'=-2y$, $y(0)=1$, on $[0,3]$:
+\begin{enumerate}
+\item derive explicit and implicit Euler updates and their closed forms;
+\item implement both schemes for $h=0.5,0.25,0.125,0.0625$;
+\item compute
+$\max_n|y(t_n)-y_n|$ using $y(t)=e^{-2t}$ and estimate the convergence order;
+\item derive the explicit stability inequality
+$|1-2h|<1$ and the corresponding restriction on $h$;
+\item verify that the implicit update multiplier $1/(1+2h)$ has modulus
+below one for every $h>0$;
+\item explain why stability does not imply accuracy for a very large step.
+\end{enumerate}
+
+\section{Solving Scalar and Multidimensional ODEs}
+
+\paragraph{Exercise 10 -- Scalar linear equations.}
+Solve exactly and verify by differentiation:
+\[
+y'+4y=2t,\qquad y(0)=-1,
+\]
+\[
+y'-\frac{1}{1+t}y=(1+t)^2,\qquad y(0)=2,
+\]
+\[
+y'-y=e^{2t},\qquad y(0)=0.
+\]
+Use variation of the constant for the first and third equations and an
+integrating factor for the second.
+
+\paragraph{Exercise 11 -- Nonlinear scalar equations.}
+For an autonomous ODE $y'=f(y)$, an \emph{equilibrium} is a constant solution
+$y(t)\equiv y^\star$, equivalently a value satisfying $f(y^\star)=0$.
+
+Solve the following equations analytically whenever possible:
+\[
+y'=y(1-y),\qquad y(0)=y_0\in(0,1),
+\]
+\[
+y'=-y^3,\qquad y(0)=1,
+\]
+\[
+y'=t(1+y^2),\qquad y(0)=0.
+\]
+\begin{enumerate}
+\item For $y'=y(1-y)$, first identify the equilibrium solutions. For a
+non-equilibrium solution, divide by $y(1-y)$ and use
+\[
+\frac{1}{y(1-y)}=\frac1y+\frac1{1-y}.
+\]
+Integrate both sides, determine the integration constant from $y(0)=y_0$,
+then solve explicitly for $y(t)$.
+\item For $y'=-y^3$, rewrite the equation with all powers of $y$ on the
+left. Integrate, use $y(0)=1$, and choose the branch consistent with the
+initial condition. Verify the answer by differentiation.
+\item For $y'=t(1+y^2)$, separate the variables and recognize an elementary
+antiderivative on the left. After applying $y(0)=0$, solve for $y(t)$ and
+inspect where that expression ceases to be finite.
+\item For each solution, determine its maximal interval of existence. Do not
+infer this interval only from the ODE: inspect the explicit denominator or
+the inverse function introduced during the calculation.
+\item Draw the phase line for the two autonomous equations and determine
+the stability of every equilibrium.
+\end{enumerate}
+
+\paragraph{Exercise 12 -- Linear systems in dimension two.}
+Consider
+\[
+x'(t)=Ax(t),
+\qquad
+A=\begin{pmatrix}-2&1\\0&-4\end{pmatrix},
+\qquad
+x(0)=\begin{pmatrix}1\\2\end{pmatrix}.
+\]
+\begin{enumerate}
+\item compute the eigenvalues and eigenvectors of $A$;
+\item decompose $x(0)$ into eigenvectors and obtain the exact solution;
+\item verify the solution using $x(t)=e^{tA}x(0)$;
+\item implement explicit and implicit Euler in vector form;
+\item compare both numerical trajectories with the exact solution.
+\end{enumerate}
+
+\paragraph{Exercise 13 -- Forced multidimensional system.}
+Let
+\[
+x'=Ax+b,
+\qquad
+A=\begin{pmatrix}-2&0\\1&-1\end{pmatrix},
+\qquad
+b=\begin{pmatrix}2\\0\end{pmatrix},
+\qquad x(0)=\begin{pmatrix}0\\2\end{pmatrix}.
+\]
+\begin{enumerate}
+\item compute the equilibrium $x^\star=-A^{-1}b$;
+\item use
+$x(t)=x^\star+e^{tA}(x(0)-x^\star)$ to obtain an exact solution;
+\item derive the same answer component by component;
+\item implement Euler schemes and verify convergence to $x^\star$.
+\end{enumerate}
+
+\paragraph{Exercise 14 -- Second-order equation as a system.}
+Solve
+\[
+y''+4y'+3y=0,
+\qquad y(0)=0,
+\qquad y'(0)=2.
+\]
+\begin{enumerate}
+\item use the characteristic polynomial;
+\item rewrite the equation as a first-order system in $(y,y')$;
+\item compute the eigenvalues of the companion matrix;
+\item implement explicit Euler for the system and compare with the exact
+solution obtained in the first question.
+\end{enumerate}
+
+\end{document}

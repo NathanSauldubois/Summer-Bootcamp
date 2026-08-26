@@ -1,0 +1,835 @@
+\documentclass[11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{titlesec}
+\usepackage[most]{tcolorbox}
+
+\geometry{left=0.9in,right=0.9in,top=0.68in,bottom=0.7in}
+\hypersetup{colorlinks=true,linkcolor=blue,urlcolor=blue}
+\setlist{itemsep=1pt,topsep=2pt,parsep=0pt,partopsep=0pt}
+\setlength{\abovedisplayskip}{6pt plus 2pt minus 2pt}
+\setlength{\belowdisplayskip}{6pt plus 2pt minus 2pt}
+\setlength{\abovedisplayshortskip}{4pt plus 2pt minus 1pt}
+\setlength{\belowdisplayshortskip}{4pt plus 2pt minus 1pt}
+\titlespacing*{\section}{0pt}{1.5ex plus .4ex minus .2ex}{.7ex}
+\titlespacing*{\subsection}{0pt}{1.2ex plus .3ex minus .2ex}{.5ex}
+\titlespacing*{\subsubsection}{0pt}{1ex plus .2ex minus .1ex}{.4ex}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\trans}{^{\mathsf T}}
+\newcommand{\grad}{\nabla}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\argmin}{\operatorname*{arg\,min}}
+\newcommand{\proj}{\operatorname{proj}}
+\newcommand{\diag}{\operatorname{diag}}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\theoremstyle{remark}
+\newtheorem{remark}[definition]{Remark}
+
+\definecolor{PropositionBlue}{RGB}{31,78,121}
+\definecolor{WarningRed}{RGB}{154,27,30}
+\newtcbtheorem[number within=section]{keyproposition}{Proposition}{
+  enhanced,breakable,
+  colback=PropositionBlue!4,
+  colframe=PropositionBlue,
+  colbacktitle=PropositionBlue,
+  coltitle=white,
+  fonttitle=\bfseries,
+  boxrule=0.9pt,
+  arc=1.5mm,
+  left=2mm,right=2mm,top=1.2mm,bottom=1.2mm,
+  before skip=5pt,after skip=5pt
+}{prop}
+
+\newtcolorbox{warningbox}[1]{
+  enhanced,breakable,
+  title={#1},
+  colback=WarningRed!4,
+  colframe=WarningRed,
+  colbacktitle=WarningRed,
+  coltitle=white,
+  fonttitle=\bfseries,
+  boxrule=0.9pt,
+  arc=1.5mm,
+  top=1.2mm,bottom=1.2mm,
+  before skip=5pt,after skip=5pt
+}
+
+\title{Summer Bootcamp -- Session 3 Notes\\Optimization}
+\author{Nathan Sauldubois}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\section*{Purpose of the Session}
+
+Optimization turns a modeling objective into a decision. This session develops
+the conditions used to recognize optima, the role of convexity in obtaining
+global guarantees, and the algorithms used to solve smooth and constrained
+problems. The final sections apply this toolkit to portfolio allocation.
+
+The central logical distinction is the following:
+\begin{quote}
+derivatives generate candidates; curvature, convexity, feasibility, and
+duality determine whether those candidates are optimal.
+\end{quote}
+
+\section{Formulating an Optimization Problem}
+
+A general constrained optimization problem has the form
+\[
+  \min_{x\in\R^d} f(x)
+  \quad\text{subject to}\quad
+  h(x)=0,\qquad g(x)\leq0.
+\]
+Here $x$ is the decision variable, $f$ is the objective function, and
+\[
+  \mathcal F=\{x\in\R^d:h(x)=0,\ g(x)\leq0\}
+\]
+is the feasible set.
+
+\begin{definition}[Local and global minimizers]
+A feasible point $x^\star$ is a local minimizer if it has no better feasible
+competitor in some neighborhood. It is a global minimizer if
+\[
+  f(x^\star)\leq f(x)\qquad\text{for every }x\in\mathcal F.
+\]
+\end{definition}
+
+Three recurring financial examples are
+\[
+  \min_\theta \frac12\norm{A\theta-b}_2^2,
+\]
+\[
+  \min_w\frac12w\trans\Sigma w
+  \quad\text{s.t.}\quad \mathbf1\trans w=1,
+\]
+and
+\[
+  \min_w\frac12w\trans\Sigma w-\gamma\mu\trans w
+  \quad\text{s.t.}\quad \mathbf1\trans w=1,\quad w\geq0.
+\]
+
+\paragraph{Example.}
+Fitting $y_i\approx a+bt_i$ by least squares means choosing
+$x=(a,b)\trans$ and solving
+\[
+  \min_{a,b}\frac12\sum_{i=1}^n(a+bt_i-y_i)^2
+  =\min_x\frac12\norm{Ax-y}_2^2,
+\]
+with $A_i=(1,t_i)$. There is no constraint.
+
+\paragraph{Example.}
+If $R$ contains asset returns and $b$ contains benchmark returns, a fully
+invested long-only tracking portfolio solves
+\[
+  \boxed{
+  \min_{w\in\R^d}\frac12\norm{Rw-b}_2^2
+  \quad\text{s.t.}\quad \mathbf1\trans w=1,\quad w\geq0.}
+\]
+The decision variable is $w$ and the feasible set is the long-only simplex.
+
+\section{Unconstrained Optimality}
+
+\subsection{First-order condition}
+
+\begin{keyproposition}{First-order necessary condition}{first-order-condition}
+Let $f:\R^d\to\R$ be differentiable. If $x^\star$ is an interior local
+minimum, then
+\[
+  \boxed{\grad f(x^\star)=0.}
+\]
+Such a point is called a critical or stationary point.
+\end{keyproposition}
+
+\begin{proof}
+For every direction $v\in\R^d$, define
+$\phi(t)=f(x^\star+tv)$. Since $t=0$ is a local minimum of $\phi$,
+\[
+  0=\phi'(0)=\grad f(x^\star)\trans v.
+\]
+This holds for every $v$, so $\grad f(x^\star)=0$.
+\end{proof}
+
+\begin{warningbox}{Necessary does not mean sufficient}
+A stationary point can be a minimum, a maximum, or a saddle point. The
+first-order equation only generates candidates; classification requires
+curvature or another argument.
+\end{warningbox}
+
+\subsection{Second-order information}
+
+For a twice differentiable function, Taylor expansion at a critical point gives
+\[
+  f(x^\star+h)
+  =f(x^\star)+\frac12h\trans\grad^2f(x^\star)h+o(\norm{h}^2).
+\]
+
+\begin{keyproposition}{Second-order classification}{second-order-classification}
+Let $x^\star$ satisfy $\grad f(x^\star)=0$.
+\begin{itemize}
+  \item If $\grad^2f(x^\star)\succ0$, then $x^\star$ is a strict local minimum.
+  \item If $\grad^2f(x^\star)\prec0$, then $x^\star$ is a strict local maximum.
+  \item If $\grad^2f(x^\star)$ is indefinite, then $x^\star$ is a saddle point.
+  \item A semidefinite Hessian can be inconclusive.
+\end{itemize}
+\end{keyproposition}
+
+\subsubsection*{Reminder: positivity of symmetric matrices}
+
+For $H=H\trans$, the sign of the quadratic form $z\trans Hz$ determines its
+definiteness:
+\[
+\boxed{
+\begin{aligned}
+H\succ0&\Longleftrightarrow z\trans Hz>0 &&\text{for all }z\neq0,\\
+H\succeq0&\Longleftrightarrow z\trans Hz\geq0 &&\text{for all }z,\\
+H\prec0&\Longleftrightarrow z\trans Hz<0 &&\text{for all }z\neq0.
+\end{aligned}}
+\]
+If the quadratic form takes both signs, $H$ is indefinite. For symmetric
+matrices, these conditions are equivalent to the corresponding sign conditions
+on every eigenvalue.
+
+For a $2\times2$ symmetric matrix
+\[
+H=\begin{pmatrix}a&b\\b&c\end{pmatrix},
+\]
+the easy determinant tests are
+\[
+\boxed{
+\begin{array}{rcl}
+H\succ0&\Longleftrightarrow&a>0\text{ and }ac-b^2>0,\\
+H\prec0&\Longleftrightarrow&a<0\text{ and }ac-b^2>0,\\
+H\text{ indefinite}&\Longleftrightarrow&ac-b^2<0.
+\end{array}}
+\]
+In any dimension, Sylvester's criterion states that $H\succ0$ exactly when
+all leading principal minors are positive.
+
+\paragraph{Example.}
+For $f(x)=x^3-3x^2+2$, the stationary points are $0$ and $2$. Since
+$f''(0)=-6$ and $f''(2)=6$, they are respectively a local maximum and a local
+minimum. For
+\[
+q(x,y)=x^2+xy+y^2-4x-2y,
+\]
+the stationary point is $(2,0)$ and
+\[
+H_q=\begin{pmatrix}2&1\\1&2\end{pmatrix}\succ0,
+\]
+so it is the unique global minimum. Finally, $x^2-y^2$ has an indefinite
+Hessian at the origin and therefore a saddle point there.
+
+\paragraph{Example.}
+For
+\[
+g_1(x,y)=3x^2+2xy+2y^2,
+\qquad g_2(x,y)=-x^2-xy-y^2,
+\]
+we have
+\[
+H_{g_1}=\begin{pmatrix}6&2\\2&4\end{pmatrix}\succ0,
+\qquad
+H_{g_2}=\begin{pmatrix}-2&-1\\-1&-2\end{pmatrix}\prec0.
+\]
+Thus the origin is a strict minimum of $g_1$ and a strict maximum of $g_2$.
+
+The functions $x\mapsto x^4$ and $x\mapsto-x^4$ both have zero first and
+second derivatives at the origin, yet the origin is respectively a strict
+minimum and a strict maximum. Higher-order information is then necessary.
+
+\subsection{Quadratic objectives and least squares}
+
+Consider
+\[
+  f(x)=\frac12x\trans Qx+c\trans x+r,
+  \qquad Q=Q\trans.
+\]
+Then
+\[
+  \grad f(x)=Qx+c,
+  \qquad \grad^2f(x)=Q.
+\]
+
+\begin{keyproposition}{Minimizer of a positive-definite quadratic}{quadratic-minimizer}
+If $Q\succ0$, the function has the unique global minimizer
+\[
+  \boxed{x^\star=-Q^{-1}c.}
+\]
+\end{keyproposition}
+
+For least squares,
+\[
+  f(x)=\frac12\norm{Ax-b}_2^2,
+  \qquad
+  \grad f(x)=A\trans(Ax-b).
+\]
+The criticality condition produces the normal equations
+\[
+  \boxed{A\trans A x=A\trans b.}
+\]
+If $A$ has full column rank, then $A\trans A\succ0$ and the solution is unique.
+
+\section{Convexity and Global Optimality}
+
+\begin{definition}[Convex set]
+A set $C\subset\R^d$ is convex if
+\[
+  x,y\in C,\ t\in[0,1]
+  \quad\Longrightarrow\quad
+  tx+(1-t)y\in C.
+\]
+\end{definition}
+
+\begin{definition}[Convex function]
+A function $f:C\to\R$ is convex if
+\[
+  f(tx+(1-t)y)\leq tf(x)+(1-t)f(y)
+\]
+for all $x,y\in C$ and $t\in[0,1]$.
+\end{definition}
+
+\begin{keyproposition}{First-order characterization of convexity}{convexity-first-order}
+Let $f$ be differentiable on an open convex set. Then $f$ is convex if and only if
+\[
+  \boxed{f(y)\geq f(x)+\grad f(x)\trans(y-x)
+  \qquad\text{for all }x,y.}
+\]
+Thus the tangent affine function is a global lower bound.
+\end{keyproposition}
+
+\begin{keyproposition}{Criticality is sufficient under convexity}{convex-criticality}
+If $f$ is differentiable and convex and
+\[
+  \grad f(x^\star)=0,
+\]
+then $x^\star$ is a global minimizer.
+\end{keyproposition}
+
+Indeed, the first-order inequality gives $f(y)\geq f(x^\star)$ for every $y$.
+
+\begin{keyproposition}{Second-order characterization of convexity}{convexity-second-order}
+Let $f$ be twice differentiable on an open convex set. Then
+\[
+  \boxed{f\text{ is convex}
+  \quad\Longleftrightarrow\quad
+  \grad^2f(x)\succeq0\quad\text{for every }x.}
+\]
+\end{keyproposition}
+
+\paragraph{Example.}
+The functions
+\[
+e^{a\trans x},\qquad \log(1+e^x),\qquad x^2-xy+y^2
+\]
+are convex because their Hessians are respectively
+\[
+e^{a\trans x}aa\trans\succeq0,
+\qquad
+\frac{e^x}{(1+e^x)^2}>0,
+\qquad
+\begin{pmatrix}2&-1\\-1&2\end{pmatrix}\succ0.
+\]
+
+\paragraph{Example.}
+For $p(x,y)=x^4+e^y$,
+\[
+\grad^2p(x,y)=\begin{pmatrix}12x^2&0\\0&e^y\end{pmatrix}\succeq0,
+\]
+so $p$ is convex. For $q(x,y)=x^2-y^2$, the Hessian
+$\diag(2,-2)$ is indefinite, so $q$ is not convex.
+
+\begin{definition}[Strong convexity and smoothness]
+A twice differentiable function is $\mu$-strongly convex and $L$-smooth when
+\[
+  \mu I\preceq\grad^2f(x)\preceq LI
+\]
+throughout its domain. The ratio $\kappa=L/\mu$ is the condition number.
+\end{definition}
+
+Large $\kappa$ corresponds to very different curvatures in different
+directions. This geometry typically slows first-order algorithms.
+
+For example, the Hessian of $(x^2+100y^2)/2$ has eigenvalues $1$ and $100$,
+so $(\mu,L,\kappa)=(1,100,100)$. As a second calculation, the Hessian of
+$2x^2+32y^2$ is $\diag(4,64)$, hence
+\[
+\boxed{\mu=4,\qquad L=64,\qquad\kappa=16.}
+\]
+
+\section{Algorithms for Smooth Optimization}
+
+\subsection{Gradient descent}
+
+Gradient descent uses the iteration
+\[
+  \boxed{x_{k+1}=x_k-\alpha_k\grad f(x_k).}
+\]
+The negative gradient is the direction of steepest local decrease in the
+Euclidean geometry.
+
+\begin{keyproposition}{Descent lemma}{descent-lemma}
+If $\grad f$ is $L$-Lipschitz, then
+\[
+  f(x-\alpha\grad f(x))
+  \leq f(x)-\alpha\left(1-\frac{L\alpha}{2}\right)
+  \norm{\grad f(x)}_2^2.
+\]
+Consequently, every fixed step satisfying
+\[
+  \boxed{0<\alpha<\frac{2}{L}}
+\]
+decreases the objective away from stationary points.
+\end{keyproposition}
+
+A standard conservative choice is $\alpha=1/L$. When $L$ is unknown,
+backtracking line search reduces the step until sufficient decrease is observed.
+
+\paragraph{Example.}
+For $f(x)=\frac12(x-3)^2$, $x_0=0$, and $\alpha=0.4$,
+\[
+x_{k+1}=0.6x_k+1.2,
+\qquad (x_1,x_2,x_3)=(1.2,1.92,2.352).
+\]
+For the companion problem $g(x)=\frac12(x+2)^2$, $x_0=2$, and
+$\alpha=0.25$,
+\[
+x_{k+1}=0.75x_k-0.5,
+\qquad
+\boxed{(x_1,x_2,x_3)=(1,0.25,-0.3125).}
+\]
+
+\begin{keyproposition}{Linear convergence under strong convexity}{gradient-linear-rate}
+If $f$ is $\mu$-strongly convex and $L$-smooth, gradient descent with
+$\alpha=1/L$ satisfies
+\[
+  \boxed{
+  f(x_k)-f(x^\star)
+  \leq
+  \left(1-\frac{\mu}{L}\right)^k
+  \bigl(f(x_0)-f(x^\star)\bigr).}
+\]
+\end{keyproposition}
+
+\subsection{Newton's method}
+
+The second-order approximation
+\[
+  f(x+p)\approx f(x)+\grad f(x)\trans p
+  +\frac12p\trans\grad^2f(x)p
+\]
+is minimized by solving
+\[
+  \grad^2f(x_k)p_k=-\grad f(x_k),
+  \qquad x_{k+1}=x_k+p_k.
+\]
+
+\begin{warningbox}{Implementation rule}
+Solve the linear system for $p_k$; do not explicitly form the inverse Hessian.
+Globalization may require damping or a line search, especially when the
+Hessian is indefinite or the initial point is far from the solution.
+\end{warningbox}
+
+\paragraph{Example.}
+For $f(x)=e^x-3x$, Newton's update is
+\[
+x_{k+1}=x_k-1+3e^{-x_k}.
+\]
+Starting from $x_0=1$ gives $x_1\simeq1.10364$ and
+$x_2\simeq1.09862$, close to $\log3$. For the companion problem
+$g(x)=e^x-2x$ from $x_0=0.5$,
+\[
+x_{k+1}=x_k-1+2e^{-x_k},
+\qquad
+\boxed{x_1\simeq0.71306,\quad x_2\simeq0.69334,}
+\]
+close to $\log2$.
+
+\subsection{Projected gradient descent}
+
+We now solve the convex constrained problem
+\[
+  \min_{x\in C}f(x),
+\]
+where $f$ is differentiable and convex and $C$ is nonempty, closed, and convex.
+
+\begin{keyproposition}{Euclidean projection onto a convex set}{convex-projection}
+For every $z\in\R^d$, the projection
+\[
+  \boxed{\proj_C(z)=\argmin_{u\in C}\norm{u-z}_2}
+\]
+exists and is unique.
+\end{keyproposition}
+
+Projected gradient descent alternates an unconstrained step and a projection:
+\[
+  \boxed{x_{k+1}=\proj_C\bigl(x_k-\alpha_k\grad f(x_k)\bigr).}
+\]
+
+\section{Equality Constraints and Lagrange Multipliers}
+
+Consider
+\[
+  \min_x f(x)\quad\text{s.t.}\quad h(x)=0.
+\]
+At a regular feasible point, first-order feasible directions satisfy
+$\grad h(x)\trans v=0$. At an optimum, $\grad f(x^\star)$ must also be
+orthogonal to all feasible directions.
+
+\begin{keyproposition}{Lagrange first-order conditions}{lagrange-conditions}
+Define
+\[
+  \mathcal L(x,\lambda)=f(x)+\lambda\trans h(x).
+\]
+Under a regularity condition, a constrained local optimum satisfies
+\[
+  \boxed{
+  \grad_x\mathcal L(x^\star,\lambda^\star)=0,
+  \qquad h(x^\star)=0.}
+\]
+\end{keyproposition}
+
+These equations are necessary in general, not sufficient. Convexity or a
+second-order constrained argument is required to classify candidates.
+
+\paragraph{Example.}
+For
+\[
+\min_{x,y}x^2+y^2\quad\text{s.t.}\quad x+y=1,
+\]
+the equations $2x+\lambda=0$, $2y+\lambda=0$, and $x+y=1$ give
+\[
+\boxed{x^\star=y^\star=\frac12,\qquad\lambda^\star=-1.}
+\]
+
+\paragraph{Example.}
+For
+\[
+\min_{x,y}x^2+y^2\quad\text{s.t.}\quad2x-y=3,
+\]
+the Lagrangian is $x^2+y^2+\lambda(2x-y-3)$. The first-order equations give
+$x=-\lambda$, $y=\lambda/2$, and therefore
+\[
+\boxed{\lambda^\star=-\frac65,\qquad
+(x^\star,y^\star)=\left(\frac65,-\frac35\right).}
+\]
+
+For several equality constraints $h=(h_1,\ldots,h_m)$, a standard regularity
+condition is LICQ.
+
+\begin{keyproposition}{Linear independence constraint qualification}{licq}
+LICQ holds at $x^\star$ when
+\[
+  \boxed{\grad h_1(x^\star),\ldots,\grad h_m(x^\star)
+  \text{ are linearly independent}.}
+\]
+\end{keyproposition}
+
+\paragraph{Why regularity matters.}
+For $\min_x x$ subject to $x^2=0$, the only feasible point is $0$, but
+$\partial_x(x+\lambda x^2)|_{x=0}=1$ for every $\lambda$. Likewise, for
+\[
+\min_{x,y}x+y\quad\text{s.t.}\quad x^2+y^2=0,
+\]
+the only feasible point is $(0,0)$ while
+$\grad f(0,0)=(1,1)\trans$ and $\grad h(0,0)=0$. In both cases the constraint
+gradient vanishes, LICQ fails, and no multiplier can satisfy stationarity.
+
+\subsection{Duality}
+
+The multiplier $\lambda_i$ can be interpreted as the marginal price of
+violating constraint $i$. The dual function is
+\[
+  q(\lambda)=\inf_x\mathcal L(x,\lambda).
+\]
+It is concave because it is the pointwise infimum of affine functions of
+$\lambda$.
+
+\begin{keyproposition}{Weak duality}{weak-duality}
+Let
+\[
+  p^\star=\inf_{h(x)=0}f(x),
+  \qquad d^\star=\sup_\lambda q(\lambda).
+\]
+Then, without requiring convexity,
+\[
+  \boxed{d^\star\leq p^\star.}
+\]
+For every feasible $x$ and every $\lambda$,
+\[
+  \boxed{f(x)-q(\lambda)\geq0.}
+\]
+The latter quantity is the primal--dual gap.
+\end{keyproposition}
+
+A small primal--dual gap gives a computable certificate of near-optimality.
+
+\begin{keyproposition}{Strong duality and saddle points}{strong-duality}
+Strong duality means
+\[
+  \boxed{d^\star=p^\star.}
+\]
+For convex problems, affine equality constraints and a suitable constraint
+qualification commonly ensure this equality. If optimal solutions exist, then
+\[
+  \boxed{
+  \min_x\max_\lambda\mathcal L(x,\lambda)
+  =\max_\lambda\min_x\mathcal L(x,\lambda).}
+\]
+The optimal pair is a saddle point:
+\[
+  \mathcal L(x^\star,\lambda)
+  \leq\mathcal L(x^\star,\lambda^\star)
+  \leq\mathcal L(x,\lambda^\star).
+\]
+\end{keyproposition}
+
+\subsection{Primal--dual gradient method}
+
+For a differentiable Lagrangian, the direct descent--ascent iteration is
+\[
+  \boxed{
+  \begin{aligned}
+  x_{k+1}&=x_k-\alpha_k\grad_x\mathcal L(x_k,\lambda_k),\\
+  \lambda_{k+1}&=\lambda_k+\beta_k\grad_\lambda
+  \mathcal L(x_k,\lambda_k).
+  \end{aligned}}
+\]
+Since $\grad_\lambda\mathcal L(x,\lambda)=h(x)$,
+\[
+  \lambda_{k+1}=\lambda_k+\beta_k h(x_k).
+\]
+The primal step decreases the Lagrangian with respect to the decision, while
+the dual step raises the price of constraint violations.
+
+\begin{warningbox}{Possible oscillations}
+Simultaneous gradient descent--ascent can rotate around a saddle point rather
+than converge. Damping, extragradient methods, and augmented Lagrangians can
+improve stability.
+\end{warningbox}
+
+\section{Inequality Constraints and KKT Conditions}
+
+Consider
+\[
+  \min_x f(x)
+  \quad\text{s.t.}\quad h(x)=0,\qquad g(x)\leq0,
+\]
+with
+\[
+  \mathcal L(x,\nu,\lambda)
+  =f(x)+\nu\trans h(x)+\lambda\trans g(x).
+\]
+
+\begin{keyproposition}{Karush--Kuhn--Tucker necessary conditions}{kkt-necessary}
+Under a suitable constraint qualification, a local optimum admits multipliers
+such that
+\[
+  \boxed{
+  \begin{aligned}
+  \grad_x\mathcal L(x^\star,\nu^\star,\lambda^\star)&=0
+    &&\text{stationarity},\\
+  h(x^\star)=0,\quad g(x^\star)&\leq0
+    &&\text{primal feasibility},\\
+  \lambda^\star&\geq0
+    &&\text{dual feasibility},\\
+  \lambda_i^\star g_i(x^\star)&=0
+    &&\text{complementary slackness}.
+  \end{aligned}}
+\]
+\end{keyproposition}
+
+Complementary slackness separates active and inactive constraints:
+\begin{itemize}
+  \item if $g_i(x^\star)<0$, then $\lambda_i^\star=0$;
+  \item if $\lambda_i^\star>0$, then $g_i(x^\star)=0$;
+  \item an active constraint may still have a zero multiplier.
+\end{itemize}
+
+\paragraph{Example.}
+For
+\[
+\min_{x,y}(x-1)^2+(y-2)^2
+\quad\text{s.t.}\quad x+y\leq1,
+\]
+the unconstrained minimizer is infeasible, so the constraint binds. The KKT
+equations give
+\[
+\boxed{\lambda^\star=2,\qquad(x^\star,y^\star)=(0,1).}
+\]
+
+\paragraph{Example.}
+For
+\[
+\min_{x,y}(x-2)^2+(y+1)^2
+\quad\text{s.t.}\quad x-y\leq1,
+\]
+the unconstrained point $(2,-1)$ is infeasible. With multiplier $\lambda$,
+stationarity gives $x=2-\lambda/2$ and $y=-1+\lambda/2$. Binding feasibility
+then gives
+\[
+\boxed{\lambda^\star=2,\qquad(x^\star,y^\star)=(1,0).}
+\]
+
+\begin{keyproposition}{KKT sufficiency for convex problems}{kkt-sufficient}
+Assume that $f$ and every $g_i$ are convex, every equality constraint is
+affine, and a constraint qualification holds. Then every point satisfying the
+KKT conditions is a global optimum.
+\end{keyproposition}
+
+\section{Portfolio Optimization}
+
+Let $R\in\R^d$ be the vector of asset returns, with
+\[
+  \mu=\E[R],
+  \qquad \Sigma=\operatorname{Cov}(R).
+\]
+For portfolio weights $w$,
+\[
+  \E[w\trans R]=\mu\trans w,
+  \qquad
+  \operatorname{Var}(w\trans R)=w\trans\Sigma w.
+\]
+Since covariance matrices are positive semidefinite, portfolio variance is a
+convex quadratic function.
+
+Throughout this section,
+\[
+\boxed{\mathbf1=(1,\ldots,1)\trans\in\R^d}
+\]
+denotes the vector of ones, so $\mathbf1\trans w=1$ is the full-investment
+constraint.
+
+\subsection{Minimum variance}
+
+\begin{keyproposition}{Fully invested minimum-variance portfolio}{minimum-variance-portfolio}
+Assume $\Sigma\succ0$. The problem
+\[
+  \min_w\frac12w\trans\Sigma w
+  \quad\text{s.t.}\quad \mathbf1\trans w=1
+\]
+has the unique solution
+\[
+  \boxed{
+  w^\star=
+  \frac{\Sigma^{-1}\mathbf1}
+  {\mathbf1\trans\Sigma^{-1}\mathbf1}.}
+\]
+\end{keyproposition}
+
+Indeed, stationarity gives $\Sigma w+\lambda\mathbf1=0$, and the budget
+constraint determines the multiplier.
+
+\paragraph{Example.}
+For $\Sigma=\diag(0.04,0.09,0.16)$, inverse-variance weighting gives
+\[
+w^\star=\begin{pmatrix}36/61\\16/61\\9/61\end{pmatrix}.
+\]
+For the companion covariance $\Sigma=\diag(0.01,0.04,0.09)$, the inverse
+variances are $100$, $25$, and $100/9$, hence
+\[
+\boxed{w^\star=\begin{pmatrix}36/49\\9/49\\4/49\end{pmatrix}.}
+\]
+In both cases the least volatile asset receives the largest weight.
+
+\subsection{Mean--variance trade-off}
+
+A common formulation is
+\[
+  \boxed{
+  \min_w\frac12w\trans\Sigma w-\gamma\mu\trans w
+  \quad\text{s.t.}\quad\mathbf1\trans w=1.}
+\]
+The parameter $\gamma>0$ controls the reward assigned to expected return.
+The first-order system is
+\[
+  \Sigma w-\gamma\mu+\lambda\mathbf1=0,
+  \qquad \mathbf1\trans w=1.
+\]
+
+Fixing a target return $m$ gives
+\[
+  \min_w\frac12w\trans\Sigma w
+  \quad\text{s.t.}\quad
+  \mathbf1\trans w=1,
+  \quad \mu\trans w=m.
+\]
+Let
+\[
+  C=\begin{pmatrix}\mathbf1\trans\\\mu\trans\end{pmatrix},
+  \qquad d=\begin{pmatrix}1\\m\end{pmatrix}.
+\]
+
+\begin{keyproposition}{Equality-constrained efficient portfolio}{efficient-portfolio}
+If the required inverses exist, the target-return portfolio is
+\[
+  \boxed{
+  w^\star=\Sigma^{-1}C\trans
+  (C\Sigma^{-1}C\trans)^{-1}d.}
+\]
+Varying $m$ traces the mean--variance frontier.
+\end{keyproposition}
+
+\subsection{Long-only and operational constraints}
+
+With $w\geq0$, the Lagrangian includes multipliers $\eta\geq0$ and KKT gives
+\[
+  \Sigma w-\gamma\mu+\lambda\mathbf1-\eta=0,
+  \qquad \eta_iw_i=0.
+\]
+Because the problem is convex, KKT conditions are sufficient under the usual
+constraint qualification.
+
+Real portfolio models may also impose position bounds, sector limits,
+turnover constraints, transaction costs, tracking-error limits, and stress
+constraints. Quadratic risk combined with linear constraints remains a convex
+quadratic program and can be solved reliably at realistic scale.
+
+\subsubsection*{Constrained rebalancing as a convex QCQP}
+
+Consider
+\[
+\min_w\frac12w\trans\Sigma w-\gamma\mu\trans w
+\quad\text{s.t.}\quad
+\mathbf1\trans w=1,\quad w\geq0,\quad
+\norm{w-w^{\mathrm{old}}}_2^2\leq\tau^2.
+\]
+Using multipliers $\lambda\in\R$, $\eta\geq0$, and $\rho\geq0$, stationarity is
+\[
+\boxed{
+\Sigma w-\gamma\mu+\lambda\mathbf1-\eta
++2\rho(w-w^{\mathrm{old}})=0.}
+\]
+Complementary slackness requires
+\[
+\boxed{
+\eta_iw_i=0\quad\forall i,
+\qquad
+\rho\bigl(\norm{w-w^{\mathrm{old}}}_2^2-\tau^2\bigr)=0.}
+\]
+Together with primal and dual feasibility, these are the KKT conditions. When
+$\Sigma\succeq0$, the problem is a convex quadratically constrained quadratic
+program. Under the usual qualification, KKT is sufficient and a convex QCQP
+solver returns the global optimum.
+
+\section{Summary}
+
+The workflow is to identify the decision variable, objective, and feasible set;
+check differentiability and convexity; derive and classify the first-order
+conditions; state the sign convention and all KKT conditions when constraints
+are present; choose an algorithm adapted to the structure; verify feasibility,
+stationarity, and numerical convergence; and interpret the optimizer in the
+original application.
+
+\end{document}

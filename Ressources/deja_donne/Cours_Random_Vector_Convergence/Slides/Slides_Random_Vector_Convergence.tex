@@ -1,0 +1,1473 @@
+% main_prob_lecture5_metropolis.tex
+\documentclass[aspectratio=169]{beamer}
+
+% --- Language & encoding ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english,french]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% --- Math & tables ---
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{changepage}
+
+% --- Metropolis Theme ---
+\usetheme[numbering=fraction,progressbar=frametitle]{metropolis}
+\setbeamertemplate{frame numbering}[fraction]
+
+% --- Colors (same palette as prior lectures) ---
+\definecolor{BootcampBlueDark}{HTML}{1A3C68}
+\definecolor{TextBlack}{HTML}{000000}
+\definecolor{AccentGold}{HTML}{DAA520}
+\definecolor{Crimson}{HTML}{990000}
+\definecolor{MatrixGreen}{HTML}{228B22}
+\definecolor{MatrixRed}{HTML}{B22222}
+
+\setbeamercolor{block title example}{bg=BootcampBlueDark!90!black,fg=white}
+\setbeamercolor{block body example}{bg=BootcampBlueDark!5!white,fg=black}
+
+% === Thick frame title band ===
+\setbeamercolor{frametitle}{bg=BootcampBlueDark,fg=white}
+\setbeamerfont{frametitle}{series=\bfseries,size=\large}
+\setbeamertemplate{frametitle}{
+  \nointerlineskip
+  \begin{beamercolorbox}[wd=\paperwidth,ht=3.2ex,dp=1.4ex,leftskip=1em,rightskip=1em]{frametitle}
+    \usebeamerfont{frametitle}\insertframetitle
+  \end{beamercolorbox}
+}
+
+% === Custom Definition Block ===
+\newenvironment{definitionblock}[1]{%
+  \par\vspace{0.4em}%
+  \begin{beamercolorbox}[
+      wd=\textwidth,
+      sep=0.4em,
+      leftskip=0.3em,
+      rightskip=0.6em,
+      rounded=false,
+      shadow=false
+    ]{block title example}%
+    \raisebox{0.15em}{\usebeamerfont{block title example}#1}%
+  \end{beamercolorbox}%
+  \vspace{-0.4em}%
+  \begin{beamercolorbox}[
+      wd=\textwidth,
+      sep=1em,
+      leftskip=0.6em,
+      rightskip=0.6em,
+      rounded=false,
+      shadow=false
+    ]{block body example}%
+    \usebeamerfont{block body example}%
+}{%
+  \end{beamercolorbox}%
+  \par\vspace{0.6em}%
+}
+
+% === Global text formatting ===
+\setbeamercolor{normal text}{fg=TextBlack,bg=white}
+\setbeamercolor{title}{fg=TextBlack}
+\setbeamercolor{structure}{fg=BootcampBlueDark}
+\setbeamercolor{progress bar}{fg=BootcampBlueDark,bg=gray!30}
+
+% --- Course Info ---
+\title{Random Vectors and Convergence of Random Variables}
+\institute{NYU Tandon School, Finance and Risk Engineering}
+\author{Nathan Sauldubois}
+\date{\today}
+% \titlegraphic{\includegraphics[height=1.2cm]{your_logo.pdf}}
+
+\metroset{
+  sectionpage=progressbar,
+  subsectionpage=progressbar
+}
+
+% --- Section & subsection transitions (plain) ---
+\AtBeginSection{
+  \frame[plain]{\sectionpage}
+}
+\AtBeginSubsection{
+  \frame[plain]{\subsectionpage}
+}
+
+\begin{document}
+
+\maketitle
+
+% ===== Outline =====
+\begin{frame}{Outline}
+  \tableofcontents[hideallsubsections]
+\end{frame}
+
+% ===========================
+% SECTION 0 — Motivation
+% ===========================
+% ===========================
+% SECTION — Motivation & Overview
+% ===========================
+\section{Motivation \& Overview}
+
+\begin{frame}{Outline}
+  \tableofcontents[currentsection, hideothersubsections]
+\end{frame}
+
+\subsection{Where We're Going}
+
+\begin{frame}{From Random Variables to Random Vectors and Convergence}
+
+\begin{itemize}
+  \item Extend random variables to \textbf{random vectors} and joint distributions.
+  \item Understand dependence through covariance, correlation, and joint laws.
+  \item Introduce \textbf{modes of convergence} for random variables:
+  \begin{itemize}
+    \item almost sure convergence,
+    \item convergence in probability,
+    \item convergence in \(L^p\),
+    \item convergence in distribution.
+  \end{itemize}
+  \item Clarify the relationships between these notions and their practical meaning.
+  \item Prepare the ground for limit theorems and statistical applications.
+\end{itemize}
+
+\end{frame}
+% ======================================
+% SECTION 1 — Random Variables (cont.)
+% ======================================
+\section{Random Vectors}
+
+\begin{frame}{Outline}
+  \tableofcontents[currentsection, hideothersubsections]
+\end{frame}
+
+% ======================================
+% Random Vectors
+% ======================================
+
+\subsection{Definition}
+
+\begin{frame}{Random Vectors}
+\begin{definitionblock}{Random Vector}
+A \emph{random vector} is a vector of random variables
+\[
+X = (X_1,\dots,X_d) \in \mathbb{R}^d,
+\]
+defined on the same probability space \((\Omega,\mathbb{P})\).
+\pause
+\end{definitionblock}
+
+\begin{itemize}
+  \item Each component \(X_k\) is a real-valued random variable.\pause
+  \item The distribution of \(X\) is a probability measure on \(\mathbb{R}^d\).\pause
+  \item The distribution of each \(X_k\) is called a \emph{marginal distribution}.\pause
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Example of a Random Vector}
+
+\textbf{Example — Two-asset returns}
+
+Let \(R_1\) and \(R_2\) denote the (random) returns of two assets over one period.
+
+Define the random vector:
+$
+R = (R_1, R_2) \in \mathbb{R}^2.
+$
+
+\begin{itemize}
+  \item \(R_1\): return of asset 1,
+  \item \(R_2\): return of asset 2.
+\end{itemize}
+\pause
+\medskip
+
+Each component has its own marginal distribution:
+\[
+R_1 \sim \mathcal{N}(\mu_1,\sigma_1^2),
+\qquad
+R_2 \sim \mathcal{N}(\mu_2,\sigma_2^2).
+\]
+
+\medskip
+
+\textbf{Joint behavior:}
+\begin{itemize}
+  \item dependence is captured by \(\mathrm{Cov}(R_1,R_2)\),
+  \item diversification effects depend on the joint distribution of \(R\).
+\end{itemize}
+
+\end{frame}
+
+
+% ======================================
+% Joint and Marginal Densities
+% ======================================
+
+\subsection{Joint \& Marginal Densities}
+
+\begin{frame}{Joint and Marginal Densities}
+\begin{definitionblock}{Joint Density}
+A random vector \((X,Y)\) has a \emph{joint density} \(f_{X,Y}\) if
+\[
+\mathbb{P}((X,Y)\in A) = \int_A f_{X,Y}(x,y)\,dx\,dy.
+\]\pause
+\end{definitionblock}
+
+\begin{itemize}
+  \item Marginal densities are obtained by integration:
+  \[
+    f_X(x)=\int_{\mathbb{R}} f_{X,Y}(x,y)\,dy,
+    \quad
+    f_Y(y)=\int_{\mathbb{R}} f_{X,Y}(x,y)\,dx.
+  \]
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Example: Joint and Marginal Densities}
+
+\textbf{Example — Uniform distribution on a square}
+
+Let \((X,Y)\) have joint density
+\[
+f_{X,Y}(x,y)=
+\begin{cases}
+1, & (x,y)\in[0,1]\times[0,1],\\
+0, & \text{otherwise.}
+\end{cases}
+\vspace{-5mm}
+\]\pause
+
+\medskip
+
+\textbf{Step 1: Compute the marginal density of \(X\).}
+\vspace{-1mm}
+\[
+f_X(x)=\int_0^1 1\,dy
+=
+\begin{cases}
+1, & x\in[0,1],\\
+0, & \text{otherwise.}
+\end{cases}
+\vspace{-2mm}
+\]
+\pause
+\textbf{Step 2: Compute the marginal density of \(Y\).}
+\[
+f_Y(y)=\int_0^1 1\,dx
+=
+\begin{cases}
+1, & y\in[0,1],\\
+0, & \text{otherwise.}
+\end{cases}
+\vspace{-9mm}
+\]\pause
+
+\medskip
+
+\textbf{Conclusion:}
+\[
+f_{X,Y}(x,y)=f_X(x)f_Y(y),
+\]
+so \(X\) and \(Y\) are independent.
+\end{frame}
+
+\begin{frame}{Independence via Densities}
+\begin{definitionblock}{Independence}
+Random variables \(X\) and \(Y\) are independent if
+\[
+f_{X,Y}(x,y) = f_X(x)\,f_Y(y)
+\quad \text{(a.e.)}.
+\]\pause
+\end{definitionblock}
+
+\begin{itemize}
+  \item Independence \(\Rightarrow\) zero covariance (but not conversely).\pause
+  \item Independence implies factorization of:
+  \begin{itemize}
+    \item joint CDF,\pause
+    \item joint density,\pause
+    \item characteristic function.\pause
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{How to Characterize the Law of a Random Vector}
+
+Let \(X=(X_1,\dots,X_d)\) be a random vector in \(\mathbb{R}^d\).
+\pause
+\medskip
+
+The distribution of \(X\) can be characterized in several equivalent ways:
+\begin{itemize}
+  \item by its \textbf{joint cumulative distribution function (CDF)};\pause
+  \item by its \textbf{joint density} (if it exists);\pause
+  \item by its \textbf{moments} (mean vector, covariance matrix);\pause
+  \item by its \textbf{characteristic function}.\pause
+\end{itemize}
+
+\medskip
+
+Each representation emphasizes different aspects of the dependence structure.
+
+\end{frame}
+
+\begin{frame}{Characteristic Function of a Random Vector}
+
+The characteristic function of \(X\in\mathbb{R}^d\) is
+\[
+\Phi_X(t)
+=
+\mathbb{E}\big[e^{i\,t^\top X}\big],
+\quad t\in\mathbb{R}^d.
+\]
+\pause
+\begin{itemize}
+  \item \(\Phi_X\) always exists.\pause
+  \item \(\Phi_X\) uniquely determines the distribution of \(X\).\pause
+  \item Independence is equivalent to factorization:
+  \[
+    \Phi_X(t)=\prod_{i=1}^d \Phi_{X_i}(t_i).
+  \]\pause
+\end{itemize}
+
+\medskip
+
+\textbf{Widely used for:}
+limit theorems, Gaussian vectors, convergence in distribution.
+
+\end{frame}
+
+\begin{frame}{Summary: Characterizing a Random Vector}
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Tool & What it captures \\
+\midrule
+Joint CDF & Full distribution (always) \\
+Joint density & Local behavior (if exists) \\
+Moments & Location and dependence \\
+Characteristic function & Full distribution (always) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\medskip
+
+\textbf{Key message:}  
+different tools, same distribution — choose the right one for the problem.
+
+\end{frame}
+
+\begin{frame}{Example: Characterization via Joint Density}
+
+Let \((X,Y)\) be a random vector with joint density
+\[
+f_{X,Y}(x,y)
+=
+\begin{cases}
+e^{-(x+y)}, & x\ge0,\ y\ge0,\\
+0, & \text{otherwise.}
+\end{cases}
+\vspace{-5mm}
+\]
+\pause
+\medskip
+
+\textbf{Step 1: Marginal densities}
+\[
+f_X(x)=\int_0^\infty e^{-(x+y)}\,dy = e^{-x}\mathbf{1}_{x\ge0},
+\quad
+f_Y(y)=e^{-y}\mathbf{1}_{y\ge0}.
+\vspace{-5mm}
+\]
+\pause
+\medskip
+
+\textbf{Step 2: Factorization}
+\[
+f_{X,Y}(x,y)=f_X(x)f_Y(y).
+\vspace{-9mm}
+\]
+\pause
+\medskip
+
+\textbf{Conclusion:}
+\begin{itemize}
+  \item \(X\sim \mathrm{Exp}(1)\), \(Y\sim \mathrm{Exp}(1)\)
+  \item \(X\) and \(Y\) are independent
+  \item the joint law is fully characterized by the density
+\end{itemize}
+
+\end{frame}
+
+
+
+% ======================================
+% Covariance and Correlation
+% ======================================
+
+\subsection{Covariance and Correlation}
+
+
+\begin{frame}{Mean of a Random Vector}
+
+\begin{definitionblock}{Mean Vector}
+Let \(X=(X_1,\dots,X_d)\) be a random vector such that
+\(\mathbb{E}[|X_i|]<\infty\) for all \(i\).
+\pause
+The \emph{mean vector} of \(X\) is defined as
+\[
+\mathbb{E}[X]
+=
+\begin{pmatrix}
+\mathbb{E}[X_1]\\
+\vdots\\
+\mathbb{E}[X_d]
+\end{pmatrix}
+\in\mathbb{R}^d.
+\vspace{-5mm}
+\]
+\end{definitionblock}
+\vspace{-5mm}
+\pause
+\begin{itemize}
+  \item The expectation is taken \emph{componentwise}.
+  \item The mean vector represents the average location of the distribution.
+  \item In finance, it corresponds to expected returns.
+\end{itemize}
+\pause
+\medskip
+
+\textbf{Linearity:}
+for any matrix \(A\) and vector \(b\),
+\[
+\mathbb{E}[AX+b] = A\,\mathbb{E}[X] + b.
+\]
+\end{frame}
+
+\begin{frame}{Example: Mean Vector}
+
+\textbf{Example — Two-asset portfolio}
+
+Let \(R=(R_1,R_2)\) be the vector of one-period returns of two assets.
+
+Assume:
+\[
+\mathbb{E}[R_1]=5\%,
+\qquad
+\mathbb{E}[R_2]=8\%.
+\]
+\pause
+\medskip
+
+Then the mean vector is
+\[
+\mathbb{E}[R]
+=
+\begin{pmatrix}
+0.05\\
+0.08
+\end{pmatrix}.
+\]
+\pause
+\medskip
+
+\textbf{Expected portfolio return.}
+For portfolio weights \(w=(w_1,w_2)\),
+\[
+\mathbb{E}[w^\top R]
+=
+w^\top \mathbb{E}[R]
+=
+0.05\,w_1 + 0.08\,w_2.
+\]
+\pause
+\medskip
+
+\textbf{Interpretation:}
+the mean vector summarizes the expected performance of each asset.
+
+\end{frame}
+
+
+\begin{frame}{Covariance}
+\begin{definitionblock}{Covariance}
+For \(X,Y\in L^2\),
+\[
+\mathrm{Cov}(X,Y)
+= \mathbb{E}[(X-\mathbb{E}[X])(Y-\mathbb{E}[Y])]
+= \mathbb{E}[XY]-\mathbb{E}[X]\mathbb{E}[Y].
+\]\pause
+\end{definitionblock}
+
+\begin{itemize}
+  \item \(\mathrm{Var}(X)=\mathrm{Cov}(X,X)\).\pause
+  \item If \(X\) and \(Y\) are independent, then \(\mathrm{Cov}(X,Y)=0\).\pause
+  \item
+  \[
+    \mathrm{Var}(X+Y)=\mathrm{Var}(X)+\mathrm{Var}(Y)+2\mathrm{Cov}(X,Y).
+  \]\pause
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Covariance Matrix}
+\begin{definitionblock}{Covariance Matrix}
+For \(X=(X_1,\dots,X_d)\),
+\[
+\Sigma = \mathrm{Cov}(X)
+= \big(\mathrm{Cov}(X_i,X_j)\big)_{i,j}.
+\]\pause
+\end{definitionblock}
+
+\begin{itemize}
+  \item \(\Sigma\) is symmetric and positive semi-definite.\pause
+  \item Compact form:
+  \[
+    \Sigma = \mathbb{E}\big[(X-\mathbb{E}[X])(X-\mathbb{E}[X])^\top\big].
+  \]\pause
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Linear Transformations}
+Let \(X\in\mathbb{R}^d\), \(M\in\mathbb{R}^{p\times d}\), \(a\in\mathbb{R}^p\).
+\pause
+\begin{itemize}
+  \item Mean:
+  \[
+    \mathbb{E}[MX+a]=M\mathbb{E}[X]+a.
+  \]\pause
+  \item Covariance:
+  \[
+    \mathrm{Cov}(MX+a)=M\,\mathrm{Cov}(X)\,M^\top.
+  \]
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Portfolio Variance}
+
+Let \(R=(R_1,\dots,R_d)\) be the vector of asset returns with
+mean \(\mu=\mathbb{E}[R]\) and covariance matrix \(\Sigma=\mathrm{Cov}(R)\).
+
+\medskip
+
+For a portfolio with weights \(w=(w_1,\dots,w_d)\),
+the portfolio return is
+\[
+R_p = w^\top R.
+\]
+\pause
+\medskip
+
+\begin{itemize}
+  \item \textbf{Expected return:}
+  \[
+    \mathbb{E}[R_p] = w^\top \mu.
+  \]
+\pause
+  \item \textbf{Variance:}
+  \[
+    \mathrm{Var}(R_p) = w^\top \Sigma\, w.
+  \]\pause
+\end{itemize}
+
+\medskip
+
+\textbf{Interpretation:}
+\begin{itemize}
+  \item Diagonal terms: individual asset risks.
+  \item Off-diagonal terms: dependence and diversification effects.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Correlation}
+\begin{definitionblock}{Correlation}
+For \(X,Y\in L^2\) with positive variances,
+\[
+\rho_{X,Y}
+= \frac{\mathrm{Cov}(X,Y)}{\sqrt{\mathrm{Var}(X)\mathrm{Var}(Y)}} \in [-1,1].
+\]
+\end{definitionblock}
+\pause
+\begin{itemize}
+  \item \(\rho=0\): no linear dependence.
+  \item \(|\rho|=1\): perfect linear relationship.
+  \item Correlation is invariant under affine transformations.
+\end{itemize}
+\end{frame}
+
+% ======================================
+% SUBSECTION — Gaussian Random Vectors
+% ======================================
+\subsection{Gaussian Random Vectors}
+
+\begin{frame}{Gaussian Random Vectors}
+\begin{definitionblock}{Gaussian Random Vector}
+A random vector \(X\in\mathbb{R}^d\) is called \emph{Gaussian} (or \emph{multivariate normal})
+if any linear combination
+\[
+a^\top X = \sum_{i=1}^d a_i X_i,
+\quad a\in\mathbb{R}^d,
+\]
+is a (univariate) normal random variable.\pause
+\end{definitionblock}
+
+\begin{itemize}
+  \item Denoted \(X\sim\mathcal{N}(\mu,\Sigma)\).\pause
+  \item \(\mu=\mathbb{E}[X]\in\mathbb{R}^d\): mean vector.\pause
+  \item \(\Sigma=\mathrm{Cov}(X)\in\mathbb{R}^{d\times d}\): covariance matrix.\pause
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Example and Counterexample}
+
+\textbf{Example — Gaussian random vector}
+
+Let \(Z=(Z_1,Z_2)\) where \(Z_1,Z_2\) are independent and
+$
+Z_1 \sim \mathcal{N}(0,1),
+\,
+Z_2 \sim \mathcal{N}(0,1).
+$
+\pause
+Then
+\[
+Z \sim \mathcal{N}\!\left(
+\begin{pmatrix}0\\0\end{pmatrix},
+\begin{pmatrix}1&0\\0&1\end{pmatrix}
+\right).
+\]
+\pause
+For \(a\in\mathbb{R}^2\), \(a^\top Z\) is a combination of independent
+normal variables, hence normal.
+\vspace{-5mm}
+\pause
+\medskip
+
+\textbf{Counterexample — Normal marginals but not Gaussian}
+
+Let \(X\sim \mathcal{N}(0,1)\) and define
+\[
+Y =
+\begin{cases}
+X, & \text{with probability } \tfrac12,\\
+-\,X, & \text{with probability } \tfrac12,
+\end{cases}
+\,\,\text{independently of \(X\).}
+\vspace{-5mm}
+\]
+\pause
+\begin{itemize}
+  \item \(X\sim \mathcal{N}(0,1)\) and \(Y\sim \mathcal{N}(0,1)\),
+  \item but the vector \((X,Y)\) is \emph{not} Gaussian,
+  \item some linear combinations of \((X,Y)\) are not normally distributed.
+\end{itemize}
+\end{frame}
+
+% --------------------------------------
+
+\begin{frame}{Joint Density of a Gaussian Vector}
+
+If \(\Sigma\) is positive definite, \(X\sim\mathcal{N}(\mu,\Sigma)\) admits the density
+\[
+f_X(x)
+=
+\frac{1}{(2\pi)^{d/2}|\Sigma|^{1/2}}
+\exp\!\left(
+-\frac12 (x-\mu)^\top \Sigma^{-1} (x-\mu)
+\right),
+\quad x\in\mathbb{R}^d.
+\]
+\pause
+\begin{itemize}
+  \item Elliptical level sets centered at \(\mu\).
+  \item Shape determined by \(\Sigma\).
+\end{itemize}
+
+\end{frame}
+
+% --------------------------------------
+
+\begin{frame}{Key Properties of Gaussian Vectors}
+
+Let \(X\sim\mathcal{N}(\mu,\Sigma)\).
+\pause
+\begin{itemize}
+  \item Any subvector of \(X\) is Gaussian.\pause
+  \item Any linear transformation is Gaussian:
+  \[
+    AX+b \sim \mathcal{N}(A\mu+b,\;A\Sigma A^\top).
+  \]\pause
+  \item A Gaussian vector is fully characterized by \((\mu,\Sigma)\).\pause
+\end{itemize}
+
+\medskip
+
+\textbf{Important consequence:}
+for Gaussian vectors,
+\[
+\text{zero covariance} \;\Longleftrightarrow\; \text{independence}.
+\]
+
+\end{frame}
+
+% --------------------------------------
+
+\begin{frame}{Marginals and Independence}
+
+Let \(X=(X_1,\dots,X_d)\sim\mathcal{N}(\mu,\Sigma)\).
+
+\begin{itemize}
+  \item Each component \(X_i\sim\mathcal{N}(\mu_i,\Sigma_{ii})\).\pause
+  \item Any subvector is multivariate normal.\pause
+  \item If \(\Sigma_{ij}=0\), then \(X_i\) and \(X_j\) are independent.\pause
+\end{itemize}
+
+\medskip
+
+\textbf{Contrast:}
+this equivalence between independence and zero covariance
+is \emph{specific} to Gaussian vectors.
+
+\end{frame}
+
+% --------------------------------------
+
+\begin{frame}{Gaussian Vectors in Finance}
+
+\begin{itemize}
+  \item Asset returns often modeled as:
+  \[
+    R \sim \mathcal{N}(\mu,\Sigma).
+  \]\pause
+  \item Portfolio return:
+  \[
+    w^\top R \sim \mathcal{N}(w^\top\mu,\; w^\top\Sigma w).
+  \]\pause
+  \item Mean–variance analysis relies entirely on \((\mu,\Sigma)\).
+\end{itemize}
+
+\medskip
+
+\textbf{Limitations:}
+\begin{itemize}
+  \item No skewness.
+  \item Thin tails (underestimates extreme risks).
+\end{itemize}
+
+\end{frame}
+
+% --------------------------------------
+
+\begin{frame}{Summary: Gaussian Random Vectors}
+
+\begin{itemize}
+  \item Gaussian vectors generalize the normal distribution to \(\mathbb{R}^d\).\pause
+  \item Fully characterized by mean vector and covariance matrix.\pause
+  \item Linear transformations and conditional laws remain Gaussian.\pause
+  \item Central tool in portfolio theory and multivariate statistics.
+\end{itemize}
+
+\end{frame}
+% ======================================
+% SECTION — Convergence of Random Variables
+% ======================================
+\section{Convergence of Random Variables}
+
+\begin{frame}{Outline}
+  \tableofcontents[currentsection, hideothersubsections]
+\end{frame}
+
+% --------------------------------------
+\subsection{Why Convergence?}
+
+\begin{frame}{Why Do We Need Convergence?}
+
+In probability and statistics, we often work with sequences of random variables
+\[
+(X_n)_{n\ge1}.
+\]
+\pause
+\medskip
+
+\begin{itemize}
+  \item Approximating a complicated quantity by a simpler one.\pause
+  \item Studying large-sample behavior (statistics, econometrics).\pause
+  \item Understanding long-run averages and fluctuations.\pause
+\end{itemize}
+
+\medskip
+
+\textbf{Key question:}
+In what sense does \(X_n\) get close to a limiting random variable \(X\)?
+\pause
+\end{frame}
+
+% --------------------------------------
+\subsection{Different Types of Convergence}
+
+\begin{frame}{Different Notions of Convergence}
+
+Several notions of convergence coexist in probability theory:
+\pause
+\begin{itemize}
+  \item almost sure convergence,\pause
+  \item convergence in probability,\pause
+  \item convergence in \(L^p\),\pause
+  \item convergence in distribution (in law).\pause
+\end{itemize}
+
+\medskip
+
+They differ in strength and interpretation, but are closely related.
+
+\end{frame}
+
+% --------------------------------------
+\begin{frame}{Convergence in Probability}
+
+\begin{definitionblock}{Convergence in Probability}
+A sequence \((X_n)_{n\ge1}\) converges to \(X\) in probability,
+denoted
+\[
+X_n \xrightarrow{\mathbb{P}} X,
+\]
+if for every \(\varepsilon>0\),
+\[
+\lim_{n\to\infty}\mathbb{P}(|X_n-X|>\varepsilon)=0.
+\]
+\end{definitionblock}
+\pause
+\begin{itemize}
+  \item Deviations larger than \(\varepsilon\) become unlikely.
+  \item Central notion in statistics and estimation.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Example: Convergence in Probability}
+
+\textbf{Example (Sample mean).}
+
+Let \(X_1,X_2,\dots\) be i.i.d.\ random variables with
+\[
+\mathbb{E}[X_1]=\mu,
+\qquad
+\mathrm{Var}(X_1)=\sigma^2<\infty.
+\]
+\pause
+Define the sample mean
+$
+\bar X_n=\frac1n\sum_{k=1}^n X_k.
+$
+\pause
+\medskip
+Then, for any \(\varepsilon>0\),
+\[
+\mathbb{P}\big(|\bar X_n-\mu|>\varepsilon\big)
+\;\le\;
+\frac{\mathrm{Var}(\bar X_n)}{\varepsilon^2}
+=
+\frac{\sigma^2}{n\varepsilon^2}
+\;\xrightarrow[n\to\infty]{}\;0.
+\]
+\pause
+\medskip
+
+\textbf{Conclusion:}
+\[
+\bar X_n \xrightarrow{\mathbb{P}} \mu.
+\]
+
+\medskip
+
+This is the \emph{Weak Law of Large Numbers}.
+
+\end{frame}
+
+% --------------------------------------
+\begin{frame}{Almost Sure Convergence}
+
+\begin{definitionblock}{Almost Sure Convergence}
+A sequence \((X_n)_{n\ge1}\) converges to \(X\) almost surely,
+denoted
+\[
+X_n \xrightarrow{\text{a.s.}} X,
+\]
+if
+\[
+\mathbb{P}\big(\omega : X_n(\omega)\to X(\omega)\big)=1.
+\]\pause
+\end{definitionblock}
+
+\begin{itemize}
+  \item Pointwise convergence for almost all outcomes.
+  \item Strongest and most intuitive notion.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Example: Almost Sure Convergence}
+
+\textbf{Example (Strong Law of Large Numbers).}
+
+Let \(X_1,X_2,\dots\) be i.i.d.\ random variables such that
+\[
+\mathbb{E}[|X_1|] < \infty.
+\]
+\pause
+Define the sample mean
+\[
+\bar X_n=\frac1n\sum_{k=1}^n X_k.
+\]
+
+\medskip
+
+Then
+\[
+\mathbb{P}\Big(
+\omega:\ \lim_{n\to\infty} \bar X_n(\omega)=\mathbb{E}[X_1]
+\Big)=1.
+\]
+\pause
+\medskip
+
+\textbf{Conclusion:}
+\[
+\bar X_n \xrightarrow{\text{a.s.}} \mathbb{E}[X_1].
+\]
+
+\medskip
+
+\textbf{Interpretation:}
+for almost every outcome \(\omega\), the empirical average
+stabilizes and converges to the true mean.
+
+\end{frame}
+
+% --------------------------------------
+\begin{frame}{Convergence in \texorpdfstring{$L^p$}{Lp}}
+
+\begin{definitionblock}{\(L^p\) Convergence}
+For \(p\ge1\), we say that \(X_n\) converges to \(X\) in \(L^p\),
+denoted
+\[
+X_n \xrightarrow{L^p} X,
+\]
+if
+\[
+\lim_{n\to\infty}\mathbb{E}[|X_n-X|^p]=0.
+\]\pause
+\end{definitionblock}
+
+\begin{itemize}
+  \item Controls the mean size of the error.
+  \item \(L^2\) convergence is especially important (variance).
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Example: Convergence in \texorpdfstring{$L^p$}{Lp}}
+
+\textbf{Example (Sample mean in \(L^2\)).}
+
+Let \(X_1,X_2,\dots\) be i.i.d.\ random variables with
+\[
+\mathbb{E}[X_1]=\mu,
+\qquad
+\mathrm{Var}(X_1)=\sigma^2<\infty.
+\]
+\pause
+Define
+\[
+\bar X_n=\frac1n\sum_{k=1}^n X_k.
+\]
+
+\medskip
+
+Then
+\[
+\mathbb{E}\big[(\bar X_n-\mu)^2\big]
+=
+\mathrm{Var}(\bar X_n)
+=
+\frac{\sigma^2}{n}
+\;\xrightarrow[n\to\infty]{}\;0.
+\]
+
+\medskip
+
+\textbf{Conclusion:}
+$\bar X_n \xrightarrow{L^2} \mu.$
+
+\medskip
+
+\textbf{Interpretation:}
+the mean squared error between \(\bar X_n\) and \(\mu\) goes to zero.
+
+\end{frame}
+
+% --------------------------------------
+\begin{frame}{Convergence in Distribution}
+
+\begin{definitionblock}{Convergence in Distribution}
+We say that \(X_n\) converges in distribution to \(X\),
+denoted
+\[
+X_n \xrightarrow{d} X,
+\]
+if for every bounded continuous function \(\varphi\),
+\[
+\lim_{n\to\infty}\mathbb{E}[\varphi(X_n)]
+=
+\mathbb{E}[\varphi(X)].
+\]\pause
+\end{definitionblock}
+
+\begin{itemize}
+  \item Concerns the convergence of \emph{laws}.
+  \item Random variables need not live on the same probability space.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}{Example: Convergence in Distribution}
+
+\textbf{Example (Central Limit Theorem).}
+
+Let \(X_1,X_2,\dots\) be i.i.d.\ random variables with
+\[
+\mathbb{E}[X_1]=\mu,
+\qquad
+\mathrm{Var}(X_1)=\sigma^2<\infty.
+\]
+
+Define the normalized sum
+\[
+Z_n
+=
+\frac{\sqrt{n}\,(\bar X_n-\mu)}{\sigma}
+=
+\frac{1}{\sigma\sqrt{n}}
+\sum_{k=1}^n (X_k-\mu).
+\]
+
+\medskip
+
+Then
+$
+Z_n \xrightarrow{d} \mathcal{N}(0,1).
+$
+
+\medskip
+
+\textbf{Interpretation:}
+although \(Z_n\) does not converge to a fixed random variable,
+its \emph{distribution} converges to the standard normal law.
+
+\medskip
+
+This is the cornerstone of asymptotic statistics.
+
+\end{frame}
+
+% \begin{frame}{CLT: A Visual Picture (Standardized Sums)}
+% \textbf{Concrete example.} Let \(X_k\in\{-1,+1\}\) with \(\mathbb{P}(X_k=\pm1)=\tfrac12\).
+% Then \(\mu=0\), \(\sigma^2=1\), and
+% \[
+% Z_n=\frac{1}{\sqrt{n}}\sum_{k=1}^n X_k.
+% \]
+
+% \begin{center}
+% \begin{tikzpicture}
+% \begin{axis}[
+%   width=11.2cm, height=6.2cm,
+%   xmin=-3.2, xmax=3.2,
+%   ymin=0, ymax=0.55,
+%   axis lines=left,
+%   xlabel={$z$}, ylabel={density / pmf},
+%   legend style={at={(0.02,0.98)},anchor=north west, draw=none, fill=none},
+% ]
+
+% % Standard normal density
+% \addplot[thick, domain=-3.2:3.2, samples=200]
+%   {1/sqrt(2*pi)*exp(-x^2/2)};
+% \addlegendentry{$\mathcal{N}(0,1)$}
+
+% % Z_1
+% \addplot+[ycomb, mark=*, mark size=1.0pt]
+%   coordinates {(-1,0.5) (1,0.5)};
+% \addlegendentry{$Z_1$}
+
+% % Z_5
+% \addplot+[ycomb, mark=*, mark size=0.7pt, opacity=0.75]
+% coordinates {
+%   (-2.2360679,0.03125)
+%   (-1.3416408,0.15625)
+%   (-0.4472136,0.3125)
+%   ( 0.4472136,0.3125)
+%   ( 1.3416408,0.15625)
+%   ( 2.2360679,0.03125)
+% };
+% \addlegendentry{$Z_5$}
+
+% \end{axis}
+% \end{tikzpicture}
+% \end{center}
+
+% \vspace{-2mm}
+% \begin{itemize}
+%   \item The law is discrete for finite \(n\) (spikes).
+%   \item As \(n\) grows, it aligns with the smooth \(\mathcal{N}(0,1)\) curve: \(Z_n \xrightarrow{d}\mathcal{N}(0,1)\).
+% \end{itemize}
+% \end{frame}
+
+% --------------------------------------
+\subsection{Relations Between Convergences}
+
+\begin{frame}{Relations Between the Notions}
+
+The following implications hold in general:
+\[
+\text{almost surely}
+\;\Rightarrow\;
+\text{in probability}
+\;\Rightarrow\;
+\text{in distribution}.
+\]
+\pause
+Moreover, for any \(p\ge1\),
+\[
+L^p
+\;\Rightarrow\;
+\text{in probability}.
+\vspace{-5mm}
+\]
+\pause
+\medskip
+
+\begin{itemize}
+  \item None of the converse implications hold in general.
+  \item \(L^p\) convergence does \emph{not} imply almost sure convergence.
+\end{itemize}
+\pause
+\begin{definitionblock}{Special Case}
+If \(X_n\xrightarrow{d} c\) where \(c\) is a constant,
+then
+\[
+X_n\xrightarrow{\mathbb{P}} c.
+\]
+\end{definitionblock}
+
+\end{frame}
+
+\begin{frame}{Example: Almost Sure $\Rightarrow$ Probability $\Rightarrow$ Distribution}
+
+Let \(X_n(\omega)=\frac{1}{n}\) for all \(\omega\in\Omega\).
+\pause
+\medskip
+
+Then:
+\begin{itemize}
+  \item For every \(\omega\),
+  \[
+    X_n(\omega)\to 0,
+  \]
+  hence
+  \[
+    X_n \xrightarrow{\text{a.s.}} 0.
+  \]
+  \item Therefore,
+  \[
+    X_n \xrightarrow{\mathbb{P}} 0
+    \quad\text{and}\quad
+    X_n \xrightarrow{d} 0.
+  \]
+\end{itemize}
+
+\medskip
+
+\textbf{Conclusion:} almost sure convergence implies all weaker notions.
+
+\end{frame}
+
+\begin{frame}{Counterexample: In Probability but not Almost Surely}
+
+Let \((U_n)_{n\ge1}\) be i.i.d.\ uniform on \([0,1]\), and define
+\[
+X_n = \mathbf{1}_{\{U_n \le 1/n\}}.
+\]
+\pause
+Then:
+\begin{itemize}
+  \item \(\mathbb{P}(X_n=1)=\frac{1}{n}\to0\), hence
+  \[
+    X_n \xrightarrow{\mathbb{P}} 0.
+  \]
+  \item However,
+  \[
+    \sum_{n=1}^\infty \mathbb{P}(X_n=1)=\infty,
+  \]
+  so by Borel--Cantelli,
+  \[
+    \mathbb{P}(X_n=1 \text{ infinitely often})=1.
+  \]
+\end{itemize}
+\pause
+\medskip
+
+\textbf{Conclusion:}
+\[
+X_n \not\xrightarrow{\text{a.s.}} 0.
+\]
+
+\end{frame}
+
+\begin{frame}{Counterexample: In Distribution but not in Probability}
+
+Let \(X_n\sim \mathcal{N}(0,1)\) for all \(n\), and assume the \(X_n\) are independent.
+\pause
+\medskip
+
+Then:
+\begin{itemize}
+  \item The distribution does not depend on \(n\), so
+  \[
+    X_n \xrightarrow{d} \mathcal{N}(0,1).
+  \]
+  \item But for any random variable \(X\),
+  \[
+    \mathbb{P}(|X_n-X|>\varepsilon) \not\to 0
+  \]
+  in general.
+\end{itemize}
+\pause
+\medskip
+
+\textbf{Conclusion:}
+convergence in distribution does not imply convergence in probability
+unless the limit is a constant.
+
+\end{frame}
+
+% --------------------------------------
+\subsection{Preservation of Convergence}
+
+\begin{frame}{Stability Properties}
+
+\begin{itemize}
+  \item If \(X_n\xrightarrow{\mathbb{P}} X\) and
+        \(Y_n\xrightarrow{\mathbb{P}} Y\), then
+  \[
+  X_n+Y_n \xrightarrow{\mathbb{P}} X+Y,
+  \qquad
+  X_nY_n \xrightarrow{\mathbb{P}} XY.
+  \]\pause
+  \item Same results hold for almost sure convergence.
+\end{itemize}\pause
+
+\medskip
+
+\begin{definitionblock}{Continuous Mapping Theorem}
+If \(X_n\xrightarrow{\mathbb{P}} X\) and \(g\) is continuous,
+then
+\[
+g(X_n)\xrightarrow{\mathbb{P}} g(X).
+\]
+\end{definitionblock}
+
+\end{frame}
+
+% --------------------------------------
+\begin{frame}{Slutsky's Lemma}
+
+\begin{definitionblock}{Slutsky's Lemma}
+If
+\[
+X_n\xrightarrow{d} X,
+\qquad
+Y_n\xrightarrow{\mathbb{P}} c,
+\]
+then
+\[
+(X_n,Y_n)\xrightarrow{d}(X,c).
+\]\pause
+\end{definitionblock}
+
+\medskip
+
+In particular:
+\[
+X_n+Y_n\xrightarrow{d} X+c,
+\quad
+X_nY_n\xrightarrow{d} Xc.
+\]
+
+\end{frame}
+
+\begin{frame}{Application: Continuous Mapping and Stability}
+
+\textbf{Example (Transformation of an estimator).}
+
+Let \(X_1,X_2,\dots\) be i.i.d.\ with mean \(\mu\), and define
+\[
+\bar X_n = \frac1n\sum_{k=1}^n X_k.
+\]
+
+By the Law of Large Numbers,
+\[
+\bar X_n \xrightarrow{\mathbb{P}} \mu.
+\]
+\pause
+\medskip
+
+Let \(g(x)=x^2\), which is continuous.  
+By the Continuous Mapping Theorem,
+\[
+(\bar X_n)^2 \xrightarrow{\mathbb{P}} \mu^2.
+\]
+
+\medskip
+\pause
+\textbf{Interpretation:}
+plug-in estimators preserve convergence in probability
+under continuous transformations.
+
+\end{frame}
+
+\begin{frame}{Application: Slutsky's Lemma}
+
+\textbf{Example (Studentized mean).}
+
+Let \(X_1,X_2,\dots\) be i.i.d.\ with
+$
+\mathbb{E}[X_1]=\mu,
+\qquad
+\mathrm{Var}(X_1)=\sigma^2.
+$
+Define:
+\[
+\bar X_n=\frac1n\sum_{k=1}^n X_k,
+\qquad
+S_n^2=\frac1n\sum_{k=1}^n (X_k-\bar X_n)^2.
+\]
+
+\medskip
+
+Then:
+\[
+\sqrt{n}(\bar X_n-\mu) \xrightarrow{d} \mathcal{N}(0,\sigma^2),
+\qquad
+S_n \xrightarrow{\mathbb{P}} \sigma.
+\]
+
+\medskip
+
+By Slutsky's lemma,
+\[
+\frac{\sqrt{n}(\bar X_n-\mu)}{S_n}
+\xrightarrow{d}
+\mathcal{N}(0,1).
+\]
+
+\medskip
+
+\textbf{Interpretation:}
+unknown parameters can be replaced by consistent estimators.
+
+\end{frame}
+
+% --------------------------------------
+\subsection{Law of Large Numbers}
+
+\begin{frame}{Law of Large Numbers}
+
+Let \(X_1,X_2,\dots\) be i.i.d.\ random variables with
+\(\mathbb{E}[X_1]=\mu\).
+\pause
+\medskip
+
+\begin{definitionblock}{Weak Law of Large Numbers}
+If \(\mathrm{Var}(X_1)<\infty\), then
+\[
+\bar X_n = \frac1n\sum_{k=1}^n X_k
+\xrightarrow{L^2} \mu.
+\]\pause
+\end{definitionblock}
+
+\begin{definitionblock}{Strong Law of Large Numbers}
+If \(\mathbb{E}[|X_1|]<\infty\), then
+\[
+\bar X_n \xrightarrow{\text{a.s.}} \mu.
+\]\pause
+\end{definitionblock}
+
+\end{frame}
+
+% --------------------------------------
+\subsection{Central Limit Theorem}
+
+\begin{frame}{Central Limit Theorem}
+
+Let \(X_1,X_2,\dots\) be i.i.d.\ with mean \(\mu\) and variance \(\sigma^2>0\).
+\pause
+\begin{definitionblock}{Central Limit Theorem}
+\[
+\sqrt{n}\,(\bar X_n-\mu)
+\xrightarrow{d}
+\mathcal{N}(0,\sigma^2).
+\]
+\end{definitionblock}
+
+\medskip
+
+Equivalently,
+\[
+\frac{\bar X_n-\mu}{\sigma/\sqrt{n}}
+\xrightarrow{d}
+\mathcal{N}(0,1).
+\]
+
+\end{frame}
+
+% --------------------------------------
+\begin{frame}{Delta Method}
+
+\begin{definitionblock}{Delta Method}
+Let \(g:\mathbb{R}\to\mathbb{R}\) be continuously differentiable.
+Then
+\[
+\sqrt{n}\big(g(\bar X_n)-g(\mu)\big)
+\xrightarrow{d}
+\mathcal{N}\big(0,(g'(\mu))^2\sigma^2\big).
+\]
+\end{definitionblock}
+\pause
+\begin{itemize}
+  \item Allows nonlinear transformations.
+  \item Widely used in statistics and econometrics.
+\end{itemize}
+
+\end{frame}
+
+% --------------------------------------
+
+
+\section{References}
+\begin{frame}{Suggested References}
+\begin{itemize}
+  \item Carl P. Simon and Lawrence Blume, \textit{Mathematics for Economists}.
+  \item J. Douglas Carroll and Paul E. Green, \textit{Mathematical Tools for Applied Multivariate Analysis}.
+  \item (Optional, more advanced) Bruce Hajek, \textit{Random Processes}; David Williams, \textit{Probability with Martingales}.
+\end{itemize}
+\end{frame}
+
+\end{document}

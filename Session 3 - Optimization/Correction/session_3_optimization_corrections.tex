@@ -1,0 +1,821 @@
+\documentclass[10pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage[margin=0.78in]{geometry}
+\usepackage{xcolor}
+\usepackage[most]{tcolorbox}
+\usepackage{listings}
+\usepackage{hyperref}
+
+\definecolor{ResultBlue}{RGB}{31,78,121}
+\definecolor{ProjectGold}{RGB}{190,128,20}
+\hypersetup{colorlinks=true,linkcolor=ResultBlue,urlcolor=ResultBlue}
+\setlist{itemsep=2pt,topsep=3pt,parsep=1pt,partopsep=0pt}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\setlength{\abovedisplayskip}{5pt plus 2pt minus 2pt}
+\setlength{\belowdisplayskip}{5pt plus 2pt minus 2pt}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\trans}{^{\mathsf T}}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\proj}{\operatorname{proj}}
+\newcommand{\pospart}[1]{\left(#1\right)_{+}}
+
+\newtcolorbox{resultbox}[1][Result]{breakable,colback=ResultBlue!3,
+  colframe=ResultBlue,boxrule=0.8pt,arc=1mm,
+  title=\textbf{#1},fonttitle=\bfseries}
+\newtcolorbox{projectbox}[1]{breakable,colback=ProjectGold!7,
+  colframe=ProjectGold!90!black,boxrule=0.8pt,arc=1mm,
+  title=\textbf{#1},fonttitle=\bfseries}
+
+\lstdefinestyle{python}{
+  language=Python,
+  basicstyle=\ttfamily\scriptsize,
+  keywordstyle=\color{ResultBlue}\bfseries,
+  commentstyle=\color{black!55},
+  stringstyle=\color{ProjectGold!80!black},
+  showstringspaces=false,
+  breaklines=true,
+  columns=fullflexible,
+  frame=single,
+  rulecolor=\color{black!25},
+  xleftmargin=2pt,
+  xrightmargin=2pt
+}
+
+\title{Summer Bootcamp -- Session 3\\Corrections to the Optimization Exercises}
+\author{Nathan Sauldubois}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\section*{Correction Guidelines}
+
+The solutions follow the numbering of the exercise sheet. Necessary conditions
+are not used as sufficient conditions unless convexity, curvature, or a direct
+comparison supplies the missing argument. Numerical experiments use the seeds
+stated below and stop when
+\(\norm{\nabla f(x_k)}_2\leq10^{-8}\), or, for a constrained problem, when
+both feasibility and stationarity residuals are at most \(10^{-8}\).
+
+The companion file
+\texttt{session\_3\_optimization\_corrections.py} contains the complete
+reference computations for Exercises 10 and 11. The separate Portfolio
+Optimization Project is not corrected in this document; its status is stated
+at the end.
+
+% -----------------------------------------------------------------------------
+\section{One-Dimensional Unconstrained Optimization}
+
+\paragraph{Exercise 1 -- Critical points are only candidates.}
+
+For \(f_1(x)=x^4-4x^2+3\),
+\[
+f_1'(x)=4x(x^2-2),\qquad f_1''(x)=12x^2-8.
+\]
+Thus \(0\) is a strict local maximum and \(\pm\sqrt2\) are strict local
+minima. Since \(f_1(x)\to+\infty\) as \(|x|\to\infty\), the two minima are
+global:
+\[
+f_1(0)=3,\qquad f_1(\pm\sqrt2)=-1.
+\]
+
+For \(f_2(x)=x^3-3x+1\), the interior critical points are \(\pm1\), with
+\(f_2''(x)=6x\). The boundary comparison is essential:
+\[
+\begin{array}{c|rrrr}
+x&-2&-1&1&2\\ \midrule
+f_2(x)&-1&3&-1&3
+\end{array}
+\]
+Hence the global minima on \([-2,2]\) are \(x=-2\) and \(x=1\), while the
+global maxima are \(x=-1\) and \(x=2\). Among the interior points, \(-1\) is a
+strict local maximum and \(1\) a strict local minimum. Relative to the closed
+domain, the two endpoints are also one-sided local extrema.
+
+Finally, for
+\(f_3(x)=\log(1+e^x)-\frac34x\),
+\[
+f_3'(x)=\frac{e^x}{1+e^x}-\frac34,
+\qquad
+f_3''(x)=\frac{e^x}{(1+e^x)^2}>0.
+\]
+The function is strictly convex, and stationarity gives \(e^x=3\). Moreover,
+\(f_3(x)\to+\infty\) at both ends of the real line. Therefore
+\begin{resultbox}
+\[
+x_3^\star=\log3,
+\qquad
+f_3(x_3^\star)=\log4-\frac34\log3,
+\]
+and this minimizer is unique and global.
+\end{resultbox}
+The sketches must show the symmetric double well of \(f_1\), the cubic on its
+restricted interval for \(f_2\), and the strictly convex bowl of \(f_3\), with
+the points just identified marked explicitly.
+
+\paragraph{Exercise 2 -- A parameter changes the number of local optima.}
+
+Stationarity for
+\(f_a(x)=\frac14x^4-\frac a2x^2+x\) is
+\[
+p_a(x):=f_a'(x)=x^3-ax+1=0.
+\]
+The turning points of this cubic occur at \(x=\pm s\), where
+\(s=\sqrt{a/3}\), and
+\[
+p_a(-s)=1+\frac{2a^{3/2}}{3\sqrt3}>0,
+\qquad
+p_a(s)=1-\frac{2a^{3/2}}{3\sqrt3}.
+\]
+Introduce the threshold
+\[
+a_c=\left(\frac{3\sqrt3}{2}\right)^{2/3}
+=\frac{3}{2^{2/3}}.
+\]
+Then \(p_a\) has one real root for \(0<a<a_c\), three distinct real roots for
+\(a>a_c\), and a simple root plus a double root when \(a=a_c\).
+
+In the three-root regime, write the roots \(r_1<r_2<r_3\). The sign pattern is
+\[
+\begin{array}{c|ccccccc}
+x&(-\infty,r_1)&r_1&(r_1,r_2)&r_2&(r_2,r_3)&r_3&(r_3,\infty)\\ \midrule
+f_a'(x)&-&0&+&0&-&0&+
+\end{array}
+\]
+so \(r_1,r_3\) are strict local minima and \(r_2\) is a strict local maximum.
+At \(a=a_c\), the negative simple root is a strict local minimum; the positive
+double root of \(p_a\) is stationary but is neither a minimum nor a maximum.
+
+Because \(f_a(x)\to+\infty\) as \(|x|\to\infty\), a global minimum exists.
+Checking \(f_a'=0\) only generates its candidates. A rigorous comparison can
+evaluate \(f_a\) at all stationary points; at a stationary root \(r\), the
+identity \(r^3=ar-1\) simplifies the value to
+\[
+f_a(r)=-\frac a4r^2+\frac34r.
+\]
+There is also a direct argument in the three-root regime: for every \(x>0\),
+\(f_a(-x)=f_a(x)-2x<f_a(x)\). Hence the positive local minimum cannot be
+global, and the negative local minimum \(r_1\) is the unique global minimizer.
+
+\paragraph{Exercise 3 -- Newton's method as a local model.}
+
+Here
+\[
+f'(x)=e^x-3+\frac x2,
+\qquad
+f''(x)=e^x+\frac12>0.
+\]
+Strict convexity and coercivity give one global minimizer. It is the unique
+root of \(f'\), and it may be written using the Lambert \(W\) function as
+\[
+x^\star=6-W(2e^6).
+\]
+Newton's iteration is
+\begin{resultbox}
+\[
+x_{k+1}=x_k-
+\frac{e^{x_k}-3+x_k/2}{e^{x_k}+1/2}.
+\]
+\end{resultbox}
+Indeed, the quadratic model in a displacement \(p\) is
+\[
+m_k(p)=f(x_k)+f'(x_k)p+\frac12f''(x_k)p^2,
+\]
+whose unique minimizer is \(p_k=-f'(x_k)/f''(x_k)\). At every nonstationary
+\(x_k\),
+\[
+f'(x_k)p_k=-\frac{f'(x_k)^2}{f''(x_k)}<0,
+\]
+so \(p_k\) is a descent direction. This does not guarantee that the full step
+\(\alpha_k=1\) decreases the true nonlinear objective. Armijo backtracking
+replaces it by \(x_{k+1}=x_k+\alpha_kp_k\), repeatedly reducing \(\alpha_k\)
+until
+\[
+f(x_k+\alpha_kp_k)
+\leq f(x_k)+c\alpha_k f'(x_k)p_k.
+\]
+It therefore preserves the fast local Newton step when it is acceptable and
+forces sufficient decrease when the quadratic model is poor.
+
+% -----------------------------------------------------------------------------
+\section{Multidimensional Unconstrained Optimization}
+
+\paragraph{Exercise 4 -- Quadratic optimization and conditioning.}
+
+For \(f(x)=\frac12x\trans Qx-c\trans x\), with \(Q=Q\trans\succ0\),
+\[
+\nabla f(x)=Qx-c,\qquad \nabla^2f(x)=Q.
+\]
+For distinct \(x,y\) and \(t\in(0,1)\), direct expansion gives
+\[
+tf(x)+(1-t)f(y)-f(tx+(1-t)y)
+=\frac12t(1-t)(x-y)\trans Q(x-y)>0,
+\]
+so \(f\) is strictly convex. Positive definiteness also implies
+\(\ker Q=\{0\}\), hence \(Q\) is invertible. The stationarity system has the
+unique solution
+\[
+\boxed{x^\star=Q^{-1}c},
+\]
+where a numerical implementation should use a linear solve. Completing the
+square yields the global certificate
+\[
+f(x)-f(x^\star)=\frac12(x-x^\star)\trans Q(x-x^\star)\geq0.
+\]
+
+Let \(Q=U\diag(\lambda_1,\ldots,\lambda_d)U\trans\). In coordinates
+\(z=U\trans(x-x^\star)\), the objective gap is
+\(\frac12\sum_i\lambda_i z_i^2\): the eigenvectors are principal directions
+and the eigenvalues are their curvatures.
+
+For gradient descent, \(e_k=x_k-x^\star\) satisfies
+\[
+e_{k+1}=(I-\alpha Q)e_k,
+\qquad
+(U\trans e_{k+1})_i=(1-\alpha\lambda_i)(U\trans e_k)_i.
+\]
+Convergence for every initial point is equivalent to
+\[
+0<\alpha<\frac{2}{\lambda_{\max}}.
+\]
+When \(\kappa(Q)\approx1\), level sets are nearly spherical and all
+coordinates contract at comparable rates. When \(\kappa(Q)\gg1\), the level
+sets are elongated: a step small enough for the largest curvature makes slow
+progress along the smallest-curvature direction. The constant step
+\(2/(\lambda_{\min}+\lambda_{\max})\) has worst-coordinate contraction factor
+\((\kappa-1)/(\kappa+1)\).
+
+\paragraph{Exercise 5 -- Least squares, ridge regression, and conditioning.}
+
+For
+\(\ell(x)=\frac12\norm{Ax-b}_2^2\),
+\[
+\nabla\ell(x)=A\trans(Ax-b),
+\]
+so every minimizer solves the normal equations
+\[
+A\trans A x=A\trans b.
+\]
+The solution is unique exactly when \(\ker A=\{0\}\), equivalently when \(A\)
+has full column rank. At any solution \(x^\star\),
+\[
+A\trans(b-Ax^\star)=0,
+\]
+so the residual is orthogonal to the column space of \(A\); \(Ax^\star\) is
+the orthogonal projection of \(b\) onto that space.
+
+For ridge regression,
+\[
+\nabla\ell_\lambda(x)
+=(A\trans A+\lambda I)x-A\trans b,
+\]
+and therefore
+\begin{resultbox}
+\[
+x_\lambda=(A\trans A+\lambda I)^{-1}A\trans b.
+\]
+\end{resultbox}
+For every nonzero \(v\),
+\[
+v\trans(A\trans A+\lambda I)v
+=\norm{Av}_2^2+\lambda\norm v_2^2>0.
+\]
+Thus ridge has a unique solution even if \(A\) is rank deficient.
+
+If \(\sigma_i\) are the singular values of \(A\), the Hessian eigenvalues
+become \(\sigma_i^2+\lambda\). Hence
+\[
+\kappa(A\trans A+\lambda I)
+=\frac{\sigma_{\max}^2+\lambda}{\sigma_{\min}^2+\lambda},
+\]
+where \(\sigma_{\min}=0\) in a rank-deficient problem. Regularization raises
+small curvatures and improves stability, but the singular-vector coefficients
+are shrunk by factors \(\sigma_i/(\sigma_i^2+\lambda)\). This creates bias in
+exchange for lower sensitivity to noise.
+
+\paragraph{Exercise 6 -- Second-order conditions in several dimensions.}
+
+For \(f_1\),
+\[
+\nabla f_1=\binom{2x+y-4}{x+2y+2},
+\qquad
+H_1=\begin{pmatrix}2&1\\1&2\end{pmatrix}.
+\]
+The stationary point is
+\((10/3,-8/3)\), and the Hessian eigenvalues \(1,3\) are positive. It is the
+unique global minimizer.
+
+For \(f_2\), stationarity requires
+\[
+4x(x^2-1)=0,
+\qquad
+4y(y^2-2)=0,
+\]
+so \(x\in\{0,\pm1\}\) and \(y\in\{0,\pm\sqrt2\}\). Moreover,
+\[
+H_2(x,y)=\diag(12x^2-4,12y^2-8).
+\]
+The classification is
+\[
+\begin{array}{c|c|c}
+\text{points}&\text{Hessian signs}&\text{classification}\\ \midrule
+(\pm1,\pm\sqrt2)&(+,+)&\text{strict global minima, value }-5\\
+(0,0)&(-,-)&\text{strict local maximum, value }0\\
+(\pm1,0)&(+,-)&\text{saddles}\\
+(0,\pm\sqrt2)&(-,+)&\text{saddles}
+\end{array}
+\]
+There are no degenerate stationary candidates for the stated \(f_2\): both
+diagonal Hessian entries are nonzero at every candidate. Thus the requested
+directional inspection is not needed here; this observation is itself the
+appropriate check.
+
+For \(f_3\), the only stationary point is \((0,0)\), and
+\[
+H_3=\begin{pmatrix}2&2\\2&-2\end{pmatrix},
+\qquad \det H_3=-8<0.
+\]
+It is a saddle. The restrictions \(f_3(x,0)=x^2\) and
+\(f_3(0,y)=-y^2\) give the same conclusion and show that the function is
+unbounded above and below. Contour plots should respectively display an
+elliptic bowl, four equivalent wells for \(f_2\), and hyperbolic saddle
+contours for \(f_3\).
+
+% -----------------------------------------------------------------------------
+\section{Multidimensional Constrained Optimization}
+
+\paragraph{Exercise 7 -- Projection onto an affine constraint.}
+
+The projection is the solution of
+\[
+\min_x\ \frac12\norm{x-z}_2^2
+\quad\text{subject to}\quad a\trans x=b.
+\]
+With
+\(\mathcal L(x,\lambda)=\frac12\norm{x-z}^2+\lambda(a\trans x-b)\),
+stationarity gives \(x=z-\lambda a\). Enforcing feasibility yields
+\begin{resultbox}
+\[
+\proj_C(z)=z-\frac{a\trans z-b}{\norm a_2^2}a.
+\]
+\end{resultbox}
+The correction vanishes when \(z\in C\), and
+\(z-\proj_C(z)\in\operatorname{span}(a)\), the normal space of the hyperplane.
+
+For \(C=\{x:Ax=b\}\), use the vector multiplier \(\lambda\). Stationarity and
+feasibility give
+\[
+x=z-A\trans\lambda,
+\qquad
+AA\trans\lambda=Az-b.
+\]
+If \(A\) has full row rank, then \(A\trans y=0\) implies \(y=0\), and
+\(y\trans AA\trans y=\norm{A\trans y}^2>0\) for \(y\ne0\). Thus \(AA\trans\)
+is invertible and
+\[
+\boxed{\proj_C(z)=z-A\trans(AA\trans)^{-1}(Az-b).}
+\]
+
+\paragraph{Exercise 8 -- Equality constraints, duality, and a saddle point.}
+
+Set \(S=AQ^{-1}A\trans\). The Lagrangian and KKT system are
+\[
+\mathcal L(x,\lambda)
+=\frac12x\trans Qx+c\trans x+\lambda\trans(Ax-b),
+\]
+\[
+\begin{pmatrix}Q&A\trans\\A&0\end{pmatrix}
+\binom{x^\star}{\lambda^\star}
+=\binom{-c}{b}.
+\]
+Since \(Q\succ0\) and \(A\) has full row rank, \(S\succ0\). Eliminating \(x\)
+gives
+\begin{resultbox}
+\[
+\lambda^\star=-S^{-1}(b+AQ^{-1}c),
+\]
+\[
+x^\star=-Q^{-1}c
++Q^{-1}A\trans S^{-1}(b+AQ^{-1}c).
+\]
+\end{resultbox}
+
+For a fixed multiplier, minimizing the Lagrangian in \(x\) at
+\(x(\lambda)=-Q^{-1}(c+A\trans\lambda)\) gives
+\[
+q(\lambda)
+=-\frac12(c+A\trans\lambda)\trans Q^{-1}
+  (c+A\trans\lambda)-b\trans\lambda.
+\]
+Its Hessian is \(-S\prec0\), so the dual function is strictly concave.
+
+If \(x\) is feasible, then for every \(\lambda\),
+\[
+q(\lambda)=\inf_y\mathcal L(y,\lambda)
+\leq\mathcal L(x,\lambda)=f(x),
+\]
+which is weak duality. At the KKT pair, \(x^\star\) minimizes
+\(\mathcal L(\cdot,\lambda^\star)\) and is feasible, hence
+\[
+q(\lambda^\star)=\mathcal L(x^\star,\lambda^\star)=f(x^\star).
+\]
+This proves strong duality and the saddle relations
+\[
+\mathcal L(x^\star,\lambda)
+=\mathcal L(x^\star,\lambda^\star)
+\leq\mathcal L(x,\lambda^\star)
+\quad\text{for all }x,\lambda.
+\]
+Finally, if \(V(b)\) is the optimal value, the envelope theorem with the
+stated sign convention gives
+\[
+DV(b)[\Delta b]=-\lambda^{\star\trans}\Delta b,
+\qquad
+\nabla_bV(b)=-\lambda^\star.
+\]
+
+\paragraph{Exercise 9 -- Projection onto a half-space with KKT.}
+
+For the inequality \(g(x)=a\trans x-b\leq0\),
+\[
+\mathcal L(x,\lambda)
+=\frac12\norm{x-z}^2+\lambda(a\trans x-b).
+\]
+The KKT conditions are
+\[
+x-z+\lambda a=0,
+\qquad a\trans x\leq b,
+\qquad \lambda\geq0,
+\qquad \lambda(a\trans x-b)=0.
+\]
+If \(a\trans z\leq b\), the unconstrained minimizer is feasible and
+\((x^\star,\lambda^\star)=(z,0)\). If \(a\trans z>b\), the constraint is active
+and
+\[
+\lambda^\star=\frac{a\trans z-b}{\norm a^2},
+\qquad
+x^\star=z-\frac{a\trans z-b}{\norm a^2}a.
+\]
+Consequently,
+\begin{resultbox}
+\[
+\proj_{\{a\trans x\leq b\}}(z)
+=z-\frac{\pospart{a\trans z-b}}{\norm a_2^2}a.
+\]
+\end{resultbox}
+The positive part switches continuously from an inactive to an active
+constraint at the boundary. The objective is strictly convex, the constraint
+is affine, and a strictly feasible point exists because \(a\ne0\); therefore
+the KKT conditions are sufficient (and the optimizer is unique).
+
+% -----------------------------------------------------------------------------
+\section{Python Algorithms}
+
+\paragraph{Exercise 10 -- Implement gradient descent from scratch.}
+
+A reusable implementation must evaluate the stopping test before taking the
+next step and must keep the initial point in its history. The essential loop is
+shown below; the companion Python file adds input checks and all requested
+plots.
+
+\begin{lstlisting}[style=python]
+def gradient_descent(f, grad, x0, step_rule, tol=1e-8, max_iter=25_000):
+    x = np.asarray(x0, dtype=float).copy()
+    xs, values, norms, steps = [], [], [], []
+    for _ in range(max_iter + 1):
+        value, g = float(f(x)), np.asarray(grad(x), dtype=float)
+        xs.append(x.copy()); values.append(value)
+        norms.append(np.linalg.norm(g))
+        if norms[-1] <= tol:
+            break
+        alpha = float(step_rule(f, x, g))
+        steps.append(alpha)
+        x = x - alpha * g
+    return {"x": x, "iterates": np.asarray(xs),
+            "values": np.asarray(values),
+            "gradient_norms": np.asarray(norms),
+            "step_sizes": np.asarray(steps)}
+
+def armijo_step(f, x, g, initial=1.0, c=1e-4, rho=0.5):
+    alpha, fx = initial, f(x)
+    while f(x - alpha*g) > fx - c*alpha*(g @ g):
+        alpha *= rho
+    return alpha
+\end{lstlisting}
+
+For the quadratic experiment, seed \(3\) gives
+\[
+\lambda_{\min}=0.115303501,
+\quad \lambda_{\max}=74.677637749,
+\quad \kappa(Q)=647.661.
+\]
+The benchmark is computed with
+\texttt{np.linalg.solve(Q, c)}, never by explicitly forming \(Q^{-1}\).
+
+\begin{center}
+\begin{tabular}{lrrrl}
+\toprule
+Step & Iterations & Final \(\norm{\nabla f}\) & \(\norm{x-x^\star}\) & Status\\
+\midrule
+\(1/\lambda_{\max}\) & 11199 & \(9.99\times10^{-9}\) & \(8.66\times10^{-8}\) & converged\\
+\(2/(\lambda_{\min}+\lambda_{\max})\) & 5656 & \(9.99\times10^{-9}\) & \(7.37\times10^{-8}\) & converged\\
+\(2.05/\lambda_{\max}\) & 7358 & overflow & --- & unstable\\
+\bottomrule
+\end{tabular}
+\end{center}
+The second stable step roughly halves the iteration count. The third violates
+the stability bound and eventually amplifies the largest-eigenvalue component.
+
+For Rosenbrock,
+\[
+\nabla r(x,y)=
+\binom{-400x(y-x^2)-2(1-x)}{200(y-x^2)}.
+\]
+At \((-1.2,1)\), a centered finite-difference check with \(h=10^{-6}\) has
+infinity-norm error \(2.24\times10^{-8}\). Armijo backtracking with
+\(c=10^{-4}\), \(\rho=1/2\), and initial trial step \(1\) reaches
+\[
+x=(0.99999999,0.99999998),
+\quad r(x)=6.11\times10^{-17},
+\quad \norm{\nabla r(x)}=1.00\times10^{-8}
+\]
+after 19435 accepted steps. Slow motion along the narrow curved valley is
+expected for plain steepest descent.
+
+The reference script produces the four diagnostics requested in the exercise:
+the quadratic objective gap, the quadratic gradient norm, the path in the
+extreme eigendirections of \(Q\), and the Rosenbrock path over contours. A
+correct plot uses a positive floor before taking a logarithm of an objective
+gap at machine precision.
+
+\paragraph{Exercise 11 -- Implement primal--dual gradient descent--ascent.}
+
+The exact reference pair is obtained from
+\[
+\begin{pmatrix}Q&A\trans\\A&0\end{pmatrix}
+\binom{x^\star}{\lambda^\star}=\binom{-c}{b}.
+\]
+For \(e_k=x_k-x^\star\) and \(d_k=\lambda_k-\lambda^\star\), the simultaneous
+iteration has transition matrix
+\[
+\binom{e_{k+1}}{d_{k+1}}
+=
+\underbrace{\begin{pmatrix}
+I-\alpha Q&-\alpha A\trans\\
+\beta A&I
+\end{pmatrix}}_{T_{\alpha,\beta}}
+\binom{e_k}{d_k}.
+\]
+Thus the linear iteration converges for every initial condition exactly when
+\(\rho(T_{\alpha,\beta})<1\). This spectral-radius calculation explains the
+observed behavior more precisely than a visual judgment from the trajectories.
+
+Using seed \(11\), \(d=20\), \(m=3\), and the construction in the exercise:
+\[
+\begin{array}{c|c|c|r|c}
+(\alpha,\beta)&\rho(T)&\text{behavior}&\text{iterations}&
+\max(\text{final residuals})\\ \midrule
+(0.02,0.02)&0.988187&\text{stable}&1621&9.92\times10^{-9}\\
+(0.03,0.03)&1.064405&\text{growing oscillations}&3038&\text{diverged}
+\end{array}
+\]
+The Lagrangian value need not decrease monotonically: one variable descends
+while the multiplier ascends. Feasibility and stationarity residuals, not the
+Lagrangian alone, certify convergence.
+
+For the augmented Lagrangian,
+\[
+\nabla_x\mathcal L_\rho
+=Qx+c+A\trans\lambda+\rho A\trans(Ax-b),
+\]
+so the primal block in the transition matrix becomes
+\(I-\alpha(Q+\rho A\trans A)\). With
+\((\alpha,\beta)=(0.005,0.02)\), the reproducible comparison is
+\[
+\begin{array}{c|c|r|cc}
+\rho&\text{spectral radius}&\text{iterations}&
+\text{feasibility}&\text{stationarity}\\ \midrule
+0.1&0.996814&5770&6.84\times10^{-10}&9.98\times10^{-9}\\
+1&0.996803&5766&7.70\times10^{-10}&9.99\times10^{-9}\\
+10&0.998026&9916&2.40\times10^{-10}&1.00\times10^{-8}
+\end{array}
+\]
+Larger \(\rho\) penalizes infeasibility more strongly but also increases primal
+curvature, so a step size that is effective at \(\rho=1\) need not remain
+effective at \(\rho=10\). All converged solutions agree with the exact KKT
+solution to the reported tolerance.
+
+For the optional extragradient method, define
+\[
+F(x,\lambda)=
+\binom{Qx+c+A\trans\lambda}{-(Ax-b)}.
+\]
+Then compute
+\[
+\widetilde z_k=z_k-\eta F(z_k),
+\qquad
+z_{k+1}=z_k-\eta F(\widetilde z_k).
+\]
+The look-ahead evaluation damps the rotational behavior created by the
+off-diagonal \(A,A\trans\) blocks and often permits a wider stable step range
+than simultaneous descent--ascent. Stability should still be verified from
+residual histories or the corresponding linear iteration matrix.
+
+% -----------------------------------------------------------------------------
+\section{Portfolio Optimization}
+
+\paragraph{Exercise 12 -- Risk, return, and the Sharpe ratio.}
+
+For deterministic weights \(w\), linearity of expectation and covariance give
+\[
+\mathbb E[w\trans R]=w\trans\mu,
+\qquad
+\operatorname{Var}(w\trans R)
+=\mathbb E[(w\trans(R-\mu))^2]=w\trans\Sigma w.
+\]
+
+For GMV, use
+\(\mathcal L(w,\lambda)=\frac12w\trans\Sigma w
++\lambda(\mathbf1\trans w-1)\). Stationarity gives
+\(w=-\lambda\Sigma^{-1}\mathbf1\), and the budget fixes the multiplier.
+Thus
+\begin{resultbox}
+\[
+w_{\mathrm{GMV}}
+=\frac{\Sigma^{-1}\mathbf1}
+{\mathbf1\trans\Sigma^{-1}\mathbf1}.
+\]
+\end{resultbox}
+
+Let \(e=\mu-r_f\mathbf1\). Cauchy--Schwarz in the \(\Sigma\)-inner product
+gives
+\[
+e\trans w
+=(\Sigma^{-1/2}e)\trans(\Sigma^{1/2}w)
+\leq\sqrt{e\trans\Sigma^{-1}e}\sqrt{w\trans\Sigma w}.
+\]
+Equality holds precisely in the tangency direction
+\(w\propto\Sigma^{-1}e\). If
+\(D=\mathbf1\trans\Sigma^{-1}e\ne0\), full investment fixes
+\[
+w_T=\frac{\Sigma^{-1}(\mu-r_f\mathbf1)}{D}.
+\]
+For the usual maximum-positive-Sharpe interpretation one also checks the sign
+of \(D\); a negative normalization reverses the direction.
+
+Equal weight is a transparent, low-estimation benchmark. GMV uses covariance
+but not expected returns and is appropriate when risk control is primary.
+Tangency targets risk-adjusted excess return but is especially sensitive to
+mean estimates. With long-only constraints the closed forms can contain
+negative weights and become infeasible. For long-only GMV, for example, KKT
+requires
+\[
+\Sigma w+\lambda\mathbf1-\nu=0,
+\quad \mathbf1\trans w=1,
+\quad w\geq0,
+\quad \nu\geq0,
+\quad \nu_iw_i=0.
+\]
+An analogous stationarity equation, together with the same primal, dual, and
+complementarity conditions, is required for the chosen tangency formulation.
+
+\paragraph{Exercise 13 -- Derive the efficient frontier.}
+
+Let
+\[
+C=\begin{pmatrix}\mathbf1\trans\\\mu\trans\end{pmatrix},
+\qquad d_m=\binom1m.
+\]
+The Lagrangian gives the KKT system
+\[
+\begin{pmatrix}\Sigma&C\trans\\C&0\end{pmatrix}
+\binom{w}{\lambda}=\binom0{d_m}.
+\]
+Eliminating \(w\), and assuming the two constraints are independent, yields
+\begin{resultbox}
+\[
+w(m)=\Sigma^{-1}C\trans
+(C\Sigma^{-1}C\trans)^{-1}d_m.
+\]
+\end{resultbox}
+Define
+\[
+A_0=\mathbf1\trans\Sigma^{-1}\mathbf1,
+\quad B_0=\mathbf1\trans\Sigma^{-1}\mu,
+\quad D_0=\mu\trans\Sigma^{-1}\mu,
+\quad \Delta=A_0D_0-B_0^2>0.
+\]
+Since the multiplier calculation gives
+\(w(m)\trans\Sigma w(m)=d_m\trans
+(C\Sigma^{-1}C\trans)^{-1}d_m\), the frontier variance is
+\begin{resultbox}
+\[
+\sigma^2(m)=\frac{A_0m^2-2B_0m+D_0}{\Delta}.
+\]
+\end{resultbox}
+It is a convex quadratic in target return. In mean--standard-deviation space
+it produces a hyperbola; the efficient branch begins at the GMV return
+\(m_{\mathrm{GMV}}=B_0/A_0\) and moves toward higher returns.
+
+Long-only constraints and caps make the feasible set polyhedral. As \(m\)
+changes, weights hit or leave bounds; each fixed active set has its own
+quadratic formula, producing piecewise behavior and visible active-set
+changes. Before tracing a frontier, code should verify symmetry and positive
+semidefiniteness of \(\Sigma\), preferably positive definiteness for
+uniqueness; rank and consistency of the equality constraints; feasibility of
+the budget and target; bounds and caps; solver success; and final KKT
+residuals. Under long-only full investment, a necessary and sufficient return
+check without caps is \(m\in[\min_i\mu_i,\max_i\mu_i]\).
+
+\paragraph{Exercise 14 -- Estimation error and robust weights.}
+
+Write
+\(q=\widehat\Sigma^{-1}(\widehat\mu-r_f\mathbf1)\). Keeping covariance and
+the risk-free rate fixed gives the exact perturbation formula
+\[
+q(\widehat\mu+\varepsilon h,\widehat\Sigma)
+=q(\widehat\mu,\widehat\Sigma)
++\varepsilon\widehat\Sigma^{-1}h.
+\]
+Therefore
+\[
+D_\mu q[h]=\widehat\Sigma^{-1}h,
+\qquad J_\mu q=\widehat\Sigma^{-1}.
+\]
+If
+\(\widehat\Sigma=U\diag(\lambda_1,\ldots,\lambda_d)U\trans\) and
+\(h=\sum_i h_i u_i\), then
+\[
+\Delta q=\varepsilon\sum_i\frac{h_i}{\lambda_i}u_i,
+\qquad
+\norm{\Delta q}_2
+\leq\frac{|\varepsilon|}{\lambda_{\min}(\widehat\Sigma)}\norm h_2.
+\]
+Small-eigenvalue directions amplify mean error the most. The corresponding
+relative bound is the right-hand side divided by
+\(\norm q_2\), when \(q\ne0\).
+
+For normalized weights \(w=q/(\mathbf1\trans q)\), set
+\(D=\mathbf1\trans q\). Differentiation gives
+\[
+D_\mu w[h]
+=\frac{D\widehat\Sigma^{-1}h
+-q\,\mathbf1\trans\widehat\Sigma^{-1}h}{D^2}.
+\]
+The denominator explains the additional instability when \(D\) is close to
+zero.
+
+GMV weights do not contain \(\widehat\mu\), so they are immune to mean
+estimation error. They still contain both \(\widehat\Sigma^{-1}\) and a
+normalizing denominator, and hence remain sensitive to covariance error,
+especially near singularity.
+
+For ridge regularization, the eigenvectors are unchanged and
+\[
+\lambda_i(\widehat\Sigma_\delta)=\lambda_i+\delta,
+\qquad
+\kappa(\widehat\Sigma_\delta)
+=\frac{\lambda_{\max}+\delta}{\lambda_{\min}+\delta}.
+\]
+This condition number decreases toward \(1\) as \(\delta\) increases, although
+the estimator becomes more biased toward an isotropic covariance.
+
+In-sample predicted volatility reuses the observations that selected both the
+covariance and the weights, so it is optimistically biased. Out-of-sample
+realized volatility must be computed from untouched future observations.
+Expected returns are particularly noisy, and optimization applies an inverse
+covariance to that noise; the resulting extreme weights can make return-based
+objectives much less stable than GMV.
+
+A transparent selection rule is:
+\begin{enumerate}
+  \item split the training period chronologically into an inner estimation
+  sample and a validation sample;
+  \item declare a grid such as
+  \(\delta=\tau\operatorname{tr}(\widehat\Sigma)/d\) before inspecting the
+  final test set;
+  \item fit each candidate on the inner sample and rank it by validation
+  realized variance, optionally with a predeclared concentration or turnover
+  tie-breaker;
+  \item choose \(\delta\), refit using all training observations, and evaluate
+  the final test sample exactly once.
+\end{enumerate}
+Rolling validation may replace a single split, provided every validation fold
+occurs strictly after its estimation window and the final test set remains
+untouched.
+
+% -----------------------------------------------------------------------------
+\begin{projectbox}{Separate Portfolio Optimization Project}
+The correction to the separate Portfolio Optimization Project is still being
+drafted. It is intentionally not included in this correction document.
+\end{projectbox}
+
+\end{document}
